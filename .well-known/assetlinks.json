@@ -6,5 +6,13 @@
       "package_name": "io.github.pbtcodelabs_pbt.twa",
       "sha256_cert_fingerprints": ["1F:1B:32:BC:B4:A5:4A:96:4A:9E:FD:99:3B:73:76:EF:86:8E:F6:6F:FF:0C:DB:C5:4C:74:57:CE:89:3A:52:43"]
     }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.pbtcodelabs.aioposdirect",
+      "sha256_cert_fingerprints": ["10:3E:04:98:99:22:19:45:06:A4:35:3B:EB:EB:C3:15:D5:85:81:D6:91:3C:3E:BD:20:8F:70:24:B3:8F:F0:27"]
+    }
   }
 ]
