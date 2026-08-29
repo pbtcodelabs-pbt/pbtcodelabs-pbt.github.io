@@ -20,7 +20,7 @@
     "target": {
       "namespace": "android_app",
       "package_name": "com.pbtcodelabs.aiopos",
-      "sha256_cert_fingerprints": ["06:34:2E:DE:16:04:94:D8:8C:B2:A6:DA:18:41:8F:88:E5:83:34:D8:26:02:82:EC:B3:AD:9E:A0:D3:8C:83:65"]
+      "sha256_cert_fingerprints": ["B8:88:D7:8D:04:14:0F:8F:7D:D3:EE:67:13:66:60:62:65:7B:20:8E:34:59:0A:76:FF:19:E8:84:B4:6F:6F:72"]
     }
   }
 ]
