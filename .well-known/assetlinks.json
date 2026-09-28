@@ -22,6 +22,13 @@
       "package_name": "com.pbtcodelabs.aiopos",
       "sha256_cert_fingerprints": ["B8:88:D7:8D:04:14:0F:8F:7D:D3:EE:67:13:66:60:62:65:7B:20:8E:34:59:0A:76:FF:19:E8:84:B4:6F:6F:72"]
     }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.pbtcodelabs.mycityshines",
+      "sha256_cert_fingerprints": ["38:9A:52:C6:DD:56:35:66:34:BB:A4:C2:17:9A:12:77:A6:2B:53:19:FF:AA:4E:49:79:6E:9E:0D:85:B7:2C:D5"]
+    }
   }
 ]
-
