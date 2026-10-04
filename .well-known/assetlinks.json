@@ -1,54 +1,14 @@
 [
   {
-    "relation": ["delegate_permission/common.handle_all_urls"],
-    "target": {
-      "namespace": "android_app",
-      "package_name": "io.github.pbtcodelabs_pbt.twa",
-      "sha256_cert_fingerprints": [
-        "1F:1B:32:BC:B4:A5:4A:96:4A:9E:FD:99:3B:73:76:EF:86:8E:F6:6F:FF:0C:DB:C5:4C:74:57:CE:89:3A:52:43",
-        "B9:CB:2A:64:06:2C:39:F9:E5:BD:3F:42:E1:DE:F1:7A:6D:99:92:66:78:2A:89:A0:54:66:18:AD:5F:13:A1:28"
-      ]
-    }
-  },
-  {
-    "relation": ["delegate_permission/common.handle_all_urls"],
-    "target": {
-      "namespace": "android_app",
-      "package_name": "com.pbtcodelabs.aioposdirect",
-      "sha256_cert_fingerprints": [
-        "10:3E:04:98:99:22:19:45:06:A4:35:3B:EB:EB:C3:15:D5:85:81:D6:91:3C:3E:BD:20:8F:70:24:B3:8F:F0:27"
-      ]
-    }
-  },
-  {
-    "relation": ["delegate_permission/common.handle_all_urls"],
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
     "target": {
       "namespace": "android_app",
       "package_name": "com.pbtcodelabs.aiopos",
       "sha256_cert_fingerprints": [
         "B8:88:D7:8D:04:14:0F:8F:7D:D3:EE:67:13:66:60:62:65:7B:20:8E:34:59:0A:76:FF:19:E8:84:B4:6F:6F:72",
         "18:1C:51:66:CE:EF:FC:46:EA:18:6C:3E:C0:57:58:60:F8:E2:60:05:41:9C:85:F9:AA:7A:64:93:95:0B:33:0C"
-      ]
-    }
-  },
-  {
-    "relation": ["delegate_permission/common.handle_all_urls"],
-    "target": {
-      "namespace": "android_app",
-      "package_name": "com.pbtcodelabs.mycityshines",
-      "sha256_cert_fingerprints": [
-        "38:9A:52:C6:DD:56:35:66:34:BB:A4:C2:17:9A:12:77:A6:2B:53:19:FF:AA:4E:49:79:6E:9E:0D:85:B7:2C:D5",
-        "C9:37:FE:00:D1:FF:EF:3D:CD:27:55:F7:82:F0:9B:FF:3A:03:D1:61:7C:2B:25:02:70:29:A5:7E:C2:61:80:D0"
-      ]
-    }
-  },
-  {
-    "relation": ["delegate_permission/common.handle_all_urls"],
-    "target": {
-      "namespace": "android_app",
-      "package_name": "com.pbtcodelabs.sm",
-      "sha256_cert_fingerprints": [
-        "E4:99:19:25:5A:46:1D:F7:B8:F6:30:3C:30:07:FA:86:27:E7:7B:5A:C4:9B:8A:12:6B:4F:40:B1:BB:C7:74:C8"
       ]
     }
   }
