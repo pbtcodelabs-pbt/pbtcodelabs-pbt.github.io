@@ -51,5 +51,15 @@
         "E4:99:19:25:5A:46:1D:F7:B8:F6:30:3C:30:07:FA:86:27:E7:7B:5A:C4:9B:8A:12:6B:4F:40:B1:BB:C7:74:C8"
       ]
     }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.pbtcodelabs.ma",
+      "sha256_cert_fingerprints": [
+        "E8:B6:82:66:DD:A3:6B:9D:47:E9:96:3F:34:A0:AB:E7:55:A2:C4:8C:9B:D3:EB:49:53:06:AF:AC:C8:9F:8B:B7"
+      ]
+    }
   }
 ]
