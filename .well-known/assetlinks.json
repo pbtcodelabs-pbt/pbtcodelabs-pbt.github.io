@@ -61,5 +61,17 @@
         "E8:B6:82:66:DD:A3:6B:9D:47:E9:96:3F:34:A0:AB:E7:55:A2:C4:8C:9B:D3:EB:49:53:06:AF:AC:C8:9F:8B:B7"
       ]
     }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.pbtcodelabs.ffpos",
+      "sha256_cert_fingerprints": [
+        "81:13:69:02:B4:65:70:CD:E3:20:BC:12:53:27:02:10:78:EE:AB:A1:DD:A9:F3:23:51:CD:2C:20:7C:1B:10:9D",
+        "BD:A9:87:02:C4:B7:1A:68:5C:D7:73:2B:30:96:97:62:A7:FC:8C:6F:D2:EE:AE:68:88:F0:E1:10:63:8B:C2:0C",
+        "C4:CC:23:69:0E:3A:23:A2:71:98:BF:E2:48:3D:B5:70:F5:65:93:72:D2:BE:9A:9A:BD:B1:49:6B:F9:BE:68:92"
+      ]
+    }
   }
 ]
