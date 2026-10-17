@@ -108,7 +108,8 @@
       "namespace": "android_app",
       "package_name": "com.pbtcodelabs.ggkhatabook",
       "sha256_cert_fingerprints": [
-        "0D:1C:92:E2:FC:31:B0:9F:C5:D7:B6:C6:0A:76:56:E5:B7:42:E6:49:DE:71:8B:88:A2:69:40:6B:B4:63:E0:0E"
+        "0D:1C:92:E2:FC:31:B0:9F:C5:D7:B6:C6:0A:76:56:E5:B7:42:E6:49:DE:71:8B:88:A2:69:40:6B:B4:63:E0:0E",
+        "C8:EE:E8:54:B9:C0:55:AF:72:E4:B6:62:26:D6:9E:1B:25:CA:CB:4E:FB:90:CF:15:C4:6C:C8:04:94:3A:E9:CE"
       ]
     }
   }
