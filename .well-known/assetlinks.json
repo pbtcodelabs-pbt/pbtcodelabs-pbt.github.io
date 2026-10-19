@@ -112,5 +112,17 @@
         "C8:EE:E8:54:B9:C0:55:AF:72:E4:B6:62:26:D6:9E:1B:25:CA:CB:4E:FB:90:CF:15:C4:6C:C8:04:94:3A:E9:CE"
       ]
     }
+  },
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.pbtcodelabs.ddl",
+      "sha256_cert_fingerprints": [
+        "89:AD:F6:56:AC:11:BE:5D:75:F2:02:F9:E1:95:92:D4:B9:E0:9D:F1:45:DA:67:85:1F:00:CE:18:C7:B0:D0:32"
+      ]
+    }
   }
 ]
