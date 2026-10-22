@@ -18,11 +18,14 @@
 <link rel="icon" href="img/aio.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Organization","name":"PBT Code Labs","alternateName":"پیارے بھائی ٹیک","url":"https://pbtcodelabs-pbt.github.io/","logo":"https://pbtcodelabs-pbt.github.io/img/aio.webp","areaServed":"PK","knowsLanguage":["ur","en"]}
 </script>
+<link rel="preload" href="fonts/JameelNooriNastaleeq.woff2" as="font" type="font/woff2" crossorigin>
 <style>
+@font-face{font-family:"Noori";src:url(fonts/JameelNooriNastaleeq.woff2) format("woff2");font-display:swap}
+@font-face{font-family:"NooriKasheeda";src:url(fonts/JameelNooriNastaleeqKasheeda.woff2) format("woff2");font-display:swap}
 :root{
   --bg:#f6f4ee;--surface:#fff;--ink:#14231f;--muted:#5b6b66;--line:#e3e0d6;
   --brand:#0b4f47;--brand2:#0f766e;--gold:#c8962e;--gold-soft:#f6ecd5;--hero-ink:#fff;
@@ -38,7 +41,8 @@
 }
 *{box-sizing:border-box;margin:0}
 html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--ink);font-family:"Noto Nastaliq Urdu",serif;line-height:2.1;font-size:16px;overflow-x:hidden}
+body{background:var(--bg);color:var(--ink);font-family:"Noori",serif;line-height:1.95;font-size:20px;overflow-x:hidden}
+h1,h2,h3,.logo,.btn,summary{font-family:"NooriKasheeda","Noori",serif}
 .en,.num{font-family:Inter,system-ui,sans-serif;line-height:1.4}
 a{color:inherit;text-decoration:none}
 .wrap{max-width:1120px;margin:0 auto;padding:0 16px}
