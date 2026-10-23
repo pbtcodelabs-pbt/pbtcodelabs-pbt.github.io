@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ur" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>PBT Code Labs — Bento</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+@font-face{font-family:Noori;src:url(../fonts/JameelNooriNastaleeq.woff2) format("woff2");font-display:swap}
+@font-face{font-family:Kash;src:url(../fonts/JameelNooriNastaleeqKasheeda.woff2) format("woff2");font-display:swap}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:Noori,serif;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+.en{font-family:Poppins,system-ui,sans-serif;direction:ltr;unicode-bidi:isolate}
+.page{min-height:100dvh;display:flex;flex-direction:column;max-width:1180px;margin:0 auto;padding:0 16px}
+.ic img,.tl img{display:block;object-fit:cover}
+
+body{background:linear-gradient(160deg,#1e1b4b,#312e81 45%,#0f766e);color:#fff;background-attachment:fixed}
+header{display:flex;align-items:center;justify-content:space-between;padding:12px 0}
+.brand{display:flex;align-items:center;gap:8px;font:800 20px Poppins}
+.brand span{background:#fff;color:#312e81;border-radius:10px;padding:2px 8px;font-size:14px}
+.wa{display:inline-flex;align-items:center;gap:6px;background:#25d366;border-radius:12px;padding:7px 12px;font:700 13px Poppins}
+.wa svg{font-size:17px}
+.bento{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;flex:1;align-content:space-evenly}
+.tile{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(12px);border-radius:22px;padding:14px}
+.t-hero{grid-column:span 4;background:linear-gradient(135deg,rgba(255,255,255,.22),rgba(255,255,255,.06))}
+.t-hero h1{font:30px/1.7 Kash}
+.t-hero h1 em{font-style:normal;color:#fde68a}
+.t-hero p{font-size:15px;line-height:1.9;color:#dbeafe}
+.t-stat{grid-column:span 1;text-align:center;padding:10px 4px}
+.t-stat b{display:block;font:800 22px Poppins;color:#fde68a}
+.t-stat span{font-size:12.5px;line-height:1.8}
+.t-apps{grid-column:span 4;padding:10px 8px}
+.t-apps h2{font:19px/1.6 Kash;padding:0 6px 2px}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:2px}
+.ic{display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 2px;border-radius:14px}
+.ic:hover{background:rgba(255,255,255,.1)}
+.ic img{width:46px;height:46px;border-radius:14px;box-shadow:0 6px 14px -6px rgba(0,0,0,.6)}
+.ic span{font-size:12px;line-height:1.8;white-space:nowrap}
+.t-wa{grid-column:span 4;display:flex;align-items:center;justify-content:space-between;background:#25d366;border:0}
+.t-wa p{font:20px/1.6 Kash}
+.t-wa .en{font:700 15px Poppins}
+.t-wa svg{font-size:36px}
+footer{text-align:center;font:500 12px Poppins;color:#c7d2fe;padding:10px 0 14px}
+@media(min-width:900px){
+ .bento{grid-template-columns:repeat(6,1fr)}
+ .t-hero{grid-column:span 4;grid-row:span 2;display:flex;flex-direction:column;justify-content:center;padding:32px}.t-hero h1{font-size:46px}
+ .t-stat{grid-column:span 1}.t-apps{grid-column:span 4}.t-wa{grid-column:span 2;flex-direction:column;justify-content:center;gap:8px;text-align:center}
+ .grid{grid-template-columns:repeat(7,1fr)}
+}
+
+</style></head><body>
+<div class="page">
+<header><span class="brand en"><span>PBT</span>Code Labs</span><a class="wa en" href="https://wa.me/923206793793?text=السلام%20علیکم،%20مجھے%20PBT%20Code%20Labs%20کی%20ایپ%20/%20ویب%20سائٹ%20کے%20بارے%20میں%20معلومات%20چاہیے"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg> WhatsApp</a></header>
+<main class="bento">
+<div class="tile t-hero"><h1>آپ کا کاروبار، <em>آپ کی ایپ</em></h1><p>اردو میں بلنگ، کھاتہ، منڈی، مدرسہ — انٹرنیٹ کے بغیر بھی</p></div>
+<div class="tile t-stat"><b>14</b><span>ایپس</span></div>
+<div class="tile t-stat"><b>100%</b><span>اردو</span></div>
+<div class="tile t-stat"><b>0</b><span>نیٹ کی شرط</span></div>
+<div class="tile t-stat"><b>☁️</b><span>ڈرائیو بیک اپ</span></div>
+<div class="tile t-apps"><h2>ہماری ایپس</h2><div class="grid"><a class="ic" href="../AIO-POS-DIRECT/"><img src="../img/aio.webp" alt="AIO POS" width="52" height="52"><span>AIO POS</span></a><a class="ic" href="../FFPOS/"><img src="../img/ffpos.webp" alt="فاسٹ فوڈ" width="52" height="52"><span>فاسٹ فوڈ</span></a><a class="ic" href="../SM/"><img src="../img/sm.webp" alt="سبزی منڈی" width="52" height="52"><span>سبزی منڈی</span></a><a class="ic" href="../FM/"><img src="../img/fm.webp" alt="فروٹ منڈی" width="52" height="52"><span>فروٹ منڈی</span></a><a class="ic" href="../DG/"><img src="../img/dg.webp" alt="کھاتہ بک" width="52" height="52"><span>کھاتہ بک</span></a><a class="ic" href="../DDL/"><img src="../img/ddl.webp" alt="دودھ ڈائری" width="52" height="52"><span>دودھ ڈائری</span></a><a class="ic" href="../MCS/"><img src="../img/mcs.webp" alt="سٹی شائنز" width="52" height="52"><span>سٹی شائنز</span></a><a class="ic" href="../Hifz-progress/"><img src="../img/hifz.webp" alt="مدرسہ" width="52" height="52"><span>مدرسہ</span></a><a class="ic" href="../hafiz-musab-app/"><img src="../img/hifzpro.webp" alt="Hifz Pro" width="52" height="52"><span>Hifz Pro</span></a><a class="ic" href="../MA/"><img src="../img/ma.webp" alt="مکتبہ" width="52" height="52"><span>مکتبہ</span></a><a class="ic" href="../urdu-fonts-studio/"><img src="../img/fonts.webp" alt="اردو فونٹس" width="52" height="52"><span>اردو فونٹس</span></a><a class="ic" href="../MS/"><img src="../img/ms.svg" alt="میڈیسن" width="52" height="52"><span>میڈیسن</span></a><a class="ic" href="../Stylish-listing-/"><img src="../img/list.webp" alt="سامان لسٹ" width="52" height="52"><span>سامان لسٹ</span></a><a class="ic" href="../MT/"><img src="../img/mt.webp" alt="میٹر" width="52" height="52"><span>میٹر</span></a></div></div>
+<a class="tile t-wa" href="https://wa.me/923206793793?text=السلام%20علیکم،%20مجھے%20PBT%20Code%20Labs%20کی%20ایپ%20/%20ویب%20سائٹ%20کے%20بارے%20میں%20معلومات%20چاہیے"><div><p>ویب سائٹ / ایپ بنوائیں</p><span class="en">0320 6793793</span></div><svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg></a>
+</main>
+<footer class="en">© 2026 PBT Code Labs · Made in Pakistan</footer>
+</div>
+</body></html>
