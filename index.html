@@ -1,295 +1,146 @@
 <!doctype html>
-<html lang="ur" dir="rtl">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PBT Code Labs — پیارے بھائی ٹیک | اردو ایپس: POS، کھاتہ، مدرسہ، دودھ ڈائری</title>
-<meta name="description" content="PBT Code Labs کی اردو ایپس: دکان کا POS بلنگ اور اسٹاک، فروٹ و سبزی منڈی، کھاتہ بک، دودھ کی ڈائری، مدرسہ حفظ پروگریس، میڈیسن شیلف اور مزید۔ انٹرنیٹ کے بغیر بھی چلتی ہیں۔ آپ کے کاروبار کی ویب سائٹ اور ایپ بھی بنا کر دیتے ہیں۔">
-<meta name="keywords" content="Urdu POS app, اردو POS, کھاتہ بک, دودھ کی ڈائری, سبزی منڈی بلنگ, فروٹ منڈی, مدرسہ سافٹ ویئر, حفظ پروگریس, Pakistan billing app, PBT Code Labs">
+<html lang="ur" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>PBT Code Labs — Urdu & English Apps: POS, Khata, Mandi, Madrasa</title>
+<meta name="description" content="PBT Code Labs کی ایپس: AIO POS بلنگ و اسٹاک، FFPOS، GG Khatabook، سبزی و فروٹ منڈی، دودھ ڈائری، مدرسہ سافٹ ویئر، Hifz Pro اور مزید — انٹرنیٹ کے بغیر بھی۔ آپ کے کاروبار کی ویب سائٹ اور ایپ بھی بناتے ہیں۔ WhatsApp 0320 6793793">
 <meta name="theme-color" content="#0b4f47">
 <link rel="canonical" href="https://pbtcodelabs-pbt.github.io/">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="PBT Code Labs">
-<meta property="og:title" content="PBT Code Labs — آپ کے کاروبار کی اردو ایپس">
-<meta property="og:description" content="POS بلنگ، کھاتہ، منڈی، مدرسہ اور گھر کی ایپس — اردو میں، انٹرنیٹ کے بغیر بھی۔">
-<meta property="og:url" content="https://pbtcodelabs-pbt.github.io/">
-<meta property="og:image" content="https://pbtcodelabs-pbt.github.io/img/aio.webp">
-<meta property="og:locale" content="ur_PK">
+<meta property="og:type" content="website"><meta property="og:site_name" content="PBT Code Labs">
+<meta property="og:title" content="PBT Code Labs — آپ کے کاروبار کی ایپس">
+<meta property="og:description" content="POS، کھاتہ، منڈی، مدرسہ اور گھر کی ایپس — انٹرنیٹ کے بغیر بھی۔">
+<meta property="og:url" content="https://pbtcodelabs-pbt.github.io/"><meta property="og:image" content="https://pbtcodelabs-pbt.github.io/img/shots/aio.webp">
 <link rel="icon" href="img/aio.webp">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
-<script type="application/ld+json">
-{"@context":"https://schema.org","@type":"Organization","name":"PBT Code Labs","alternateName":"پیارے بھائی ٹیک","url":"https://pbtcodelabs-pbt.github.io/","logo":"https://pbtcodelabs-pbt.github.io/img/aio.webp","areaServed":"PK","knowsLanguage":["ur","en"]}
-</script>
 <link rel="preload" href="fonts/JameelNooriNastaleeq.woff2" as="font" type="font/woff2" crossorigin>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"PBT Code Labs","url":"https://pbtcodelabs-pbt.github.io/","logo":"https://pbtcodelabs-pbt.github.io/img/aio.webp","telephone":"+92-320-6793793","areaServed":"PK","knowsLanguage":["ur","en"]}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
-@font-face{font-family:"Noori";src:url(fonts/JameelNooriNastaleeq.woff2) format("woff2");font-display:swap}
-@font-face{font-family:"NooriKasheeda";src:url(fonts/JameelNooriNastaleeqKasheeda.woff2) format("woff2");font-display:swap}
-:root{
-  --bg:#f6f4ee;--surface:#fff;--ink:#14231f;--muted:#5b6b66;--line:#e3e0d6;
-  --brand:#0b4f47;--brand2:#0f766e;--gold:#c8962e;--gold-soft:#f6ecd5;--hero-ink:#fff;
-  --shadow:0 10px 30px -14px rgba(11,79,71,.35);
-}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#0c1513;--surface:#13201d;--ink:#e8efec;--muted:#9fb1ab;--line:#22332f;
-  --brand:#0a3d37;--brand2:#2bb3a3;--gold:#e2b354;--gold-soft:#2a2414;--shadow:0 10px 30px -14px rgba(0,0,0,.7);
-}}
-:root[data-theme="dark"]{
-  --bg:#0c1513;--surface:#13201d;--ink:#e8efec;--muted:#9fb1ab;--line:#22332f;
-  --brand:#0a3d37;--brand2:#2bb3a3;--gold:#e2b354;--gold-soft:#2a2414;--shadow:0 10px 30px -14px rgba(0,0,0,.7);
-}
-*{box-sizing:border-box;margin:0}
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--ink);font-family:"Noori",serif;line-height:1.95;font-size:20px;overflow-x:hidden}
-h1,h2,h3,.logo,.btn,summary{font-family:"NooriKasheeda","Noori",serif}
-.en,.num{font-family:Inter,system-ui,sans-serif;line-height:1.4}
+@font-face{font-family:Noori;src:url(fonts/JameelNooriNastaleeq.woff2) format("woff2");font-display:swap}
+@font-face{font-family:Kash;src:url(fonts/JameelNooriNastaleeqKasheeda.woff2) format("woff2");font-display:swap}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:Noori,serif;overflow-x:hidden}
 a{color:inherit;text-decoration:none}
-.wrap{max-width:1120px;margin:0 auto;padding:0 16px}
+.en{font-family:Poppins,system-ui,sans-serif;direction:ltr;unicode-bidi:isolate}
+.page{min-height:100dvh;display:flex;flex-direction:column;max-width:1180px;margin:0 auto;padding:0 16px}
+.ic img,.tl img{display:block;object-fit:cover}
 
-/* header */
-header{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-.bar{display:flex;align-items:center;justify-content:space-between;height:64px;gap:12px}
-.logo{display:flex;align-items:center;gap:10px;font-weight:700}
-.logo .mark{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--brand2),var(--brand));display:grid;place-items:center;color:#fff;font:800 15px Inter,sans-serif;box-shadow:var(--shadow)}
-.logo small{display:block;font:600 11px Inter,sans-serif;color:var(--muted);letter-spacing:.06em}
-nav{display:flex;gap:22px;font-size:15px}
-nav a{color:var(--muted)} nav a:hover{color:var(--brand2)}
-@media(max-width:720px){nav{display:none}}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:6px 20px;border-radius:999px;font-weight:700;font-size:15px;border:0;cursor:pointer;transition:transform .15s}
-.btn:active{transform:scale(.97)}
-.btn-gold{background:var(--gold);color:#1b1404}
-.btn-ghost{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.35)}
-.btn-brand{background:var(--brand2);color:#fff}
-
-/* hero */
-.hero{background:radial-gradient(1200px 500px at 85% -10%,#1d8f81 0,transparent 60%),linear-gradient(160deg,#0b4f47,#072e2a);color:var(--hero-ink);padding:64px 0 90px;position:relative;overflow:hidden}
-.hero::after{content:"";position:absolute;inset:auto -10% -1px -10%;height:60px;background:var(--bg);border-radius:50% 50% 0 0/100% 100% 0 0}
-.hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center}
-@media(max-width:860px){.hero-grid{grid-template-columns:1fr}}
-.pill{display:inline-block;background:rgba(200,150,46,.18);color:#f3d48a;border:1px solid rgba(243,212,138,.35);border-radius:999px;padding:0 14px;font-size:14px}
-.hero h1{font-size:clamp(28px,5vw,46px);line-height:1.9;margin:14px 0 6px}
-.hero h1 b{color:#f3d48a}
-.hero p{color:#cfe5e0;font-size:17px;max-width:540px}
-.hero .cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:22px}
-.phones{position:relative;height:330px}
-.phone{position:absolute;width:150px;border-radius:26px;background:#0d1f1c;padding:10px;box-shadow:0 30px 60px -20px rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.12)}
-.phone .scr{border-radius:18px;height:280px;background:var(--c);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#fff;font-size:14px;text-align:center;padding:10px}
-.phone img{width:64px;height:64px;border-radius:16px;box-shadow:0 8px 20px rgba(0,0,0,.35)}
-.phone:nth-child(1){right:8%;top:20px;transform:rotate(6deg)}
-.phone:nth-child(2){right:36%;top:0;z-index:2}
-.phone:nth-child(3){right:64%;top:30px;transform:rotate(-6deg)}
-@media(max-width:860px){.phones{height:300px;max-width:420px;margin:0 auto;width:100%}.phone{width:120px}.phone .scr{height:230px}.phone:nth-child(2){right:calc(50% - 60px)}.phone:nth-child(3){right:auto;left:2%}.phone:nth-child(1){right:2%}}
-
-/* stats */
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:-46px;position:relative;z-index:3}
-.stat{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px;text-align:center;box-shadow:var(--shadow)}
-.stat .num{font-size:28px;font-weight:800;color:var(--brand2);display:block}
-.stat span{color:var(--muted);font-size:14px}
-@media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr)}}
-
-section{padding:64px 0}
-.head{text-align:center;margin-bottom:28px}
-.head h2{font-size:clamp(24px,3.6vw,34px);line-height:1.9}
-.head p{color:var(--muted)}
-.eyebrow{color:var(--gold);font:700 12px Inter,sans-serif;letter-spacing:.14em;text-transform:uppercase}
-
-/* apps */
-.tabs{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:24px}
-.tab{background:var(--surface);border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:2px 16px;font:inherit;font-size:15px;cursor:pointer}
-.tab.on{background:var(--brand2);color:#fff;border-color:transparent}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:6px;transition:transform .2s,box-shadow .2s}
-.card:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
-.card .top{display:flex;gap:12px;align-items:center}
-.card img{width:54px;height:54px;border-radius:14px;flex:none;object-fit:cover;background:var(--gold-soft)}
-.card h3{font-size:18px;line-height:1.8}
-.card .tag{font-size:12px;color:var(--gold);}
-.card p{color:var(--muted);font-size:14.5px;flex:1}
-.card .open{align-self:flex-start;margin-top:6px;color:var(--brand2);font-weight:700;font-size:15px}
-.card .open::after{content:" ←"}
-
-/* features */
-.feat{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-@media(max-width:860px){.feat{grid-template-columns:1fr 1fr}}
-@media(max-width:520px){.feat{grid-template-columns:1fr}}
-.f{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px}
-.f .ic{width:44px;height:44px;border-radius:12px;background:var(--gold-soft);display:grid;place-items:center;font-size:22px;margin-bottom:6px}
-.f h3{font-size:17px}
-.f p{color:var(--muted);font-size:14.5px}
-
-/* services */
-.svc{background:linear-gradient(150deg,var(--brand),#06302b);color:#fff;border-radius:28px;padding:36px;display:grid;grid-template-columns:1.2fr 1fr;gap:28px;align-items:center}
-@media(max-width:860px){.svc{grid-template-columns:1fr;padding:24px}}
-.svc h2{font-size:clamp(22px,3.4vw,32px);line-height:1.9}
-.svc p{color:#cfe5e0}
-.svc ul{list-style:none;padding:0;display:grid;gap:8px}
-.svc li{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:6px 14px}
-.svc li b{color:#f3d48a}
-
-/* steps */
-.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;counter-reset:s}
-@media(max-width:860px){.steps{grid-template-columns:1fr 1fr}}
-.step{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px;position:relative}
-.step::before{counter-increment:s;content:counter(s);font:800 22px Inter,sans-serif;color:var(--gold);display:block}
-.step p{color:var(--muted);font-size:14.5px}
-
-/* faq */
-details{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:6px 18px;margin-bottom:10px}
-summary{cursor:pointer;font-weight:700;list-style:none}
-summary::after{content:"+";float:left;color:var(--gold);font:700 20px Inter}
-details[open] summary::after{content:"−"}
-details p{color:var(--muted);padding-bottom:8px}
-.faq{max-width:780px;margin:0 auto}
-
-footer{background:#06221f;color:#a9c3bd;padding:36px 0 24px;margin-top:20px}
-.foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:20px}
-footer .logo{color:#fff}
-footer a:hover{color:#f3d48a}
-.copy{border-top:1px solid #133d37;margin-top:22px;padding-top:14px;font-size:13px;text-align:center}
-</style>
-</head>
-<body>
-
-<header>
-  <div class="wrap bar">
-    <a class="logo" href="#"><span class="mark">PBT</span><span>پیارے بھائی ٹیک<small>PBT CODE LABS</small></span></a>
-    <nav><a href="#apps">ایپس</a><a href="#why">خوبیاں</a><a href="#services">ہماری خدمات</a><a href="#faq">سوالات</a></nav>
-    <a class="btn btn-brand" href="#apps">ایپس دیکھیں</a>
-  </div>
-</header>
-
-<div class="hero">
-  <div class="wrap hero-grid">
-    <div>
-      <span class="pill">پاکستان کی اپنی اردو ایپس</span>
-      <h1>آپ کے کاروبار کا حساب،<br><b>آپ کی اپنی زبان میں</b></h1>
-      <p>دکان کا بل، منڈی کا کھاتہ، دودھ کی ڈائری، مدرسے کی حفظ پروگریس — سب کچھ آسان اردو میں۔ فون پر چلتی ہیں، انٹرنیٹ کے بغیر بھی۔</p>
-      <div class="cta">
-        <a class="btn btn-gold" href="#apps">مفت آزمائیں</a>
-        <a class="btn btn-ghost" href="#services">اپنی ویب سائٹ / ایپ بنوائیں</a>
-      </div>
-    </div>
-    <div class="phones" aria-hidden="true">
-      <div class="phone"><div class="scr" style="--c:linear-gradient(160deg,#e65100,#a33a00)"><img src="img/ffpos.webp" alt="">فاسٹ فوڈ POS</div></div>
-      <div class="phone"><div class="scr" style="--c:linear-gradient(160deg,#0f766e,#064e46)"><img src="img/aio.webp" alt="">AIO POS<br>بلنگ و اسٹاک</div></div>
-      <div class="phone"><div class="scr" style="--c:linear-gradient(160deg,#16446e,#0f2a45)"><img src="img/ddl.webp" alt="">دودھ کی ڈائری</div></div>
-    </div>
-  </div>
-</div>
-
-<div class="wrap">
-  <div class="stats">
-    <div class="stat"><b class="num" id="appCount">14</b><span>ایپس</span></div>
-    <div class="stat"><b class="num">100%</b><span>اردو</span></div>
-    <div class="stat"><b class="num">0</b><span>انٹرنیٹ کی شرط</span></div>
-    <div class="stat"><b class="num">24/7</b><span>ہر وقت دستیاب</span></div>
-  </div>
-</div>
-
-<section id="apps">
-  <div class="wrap">
-    <div class="head"><div class="eyebrow">Our Apps</div><h2>ہماری ایپس</h2><p>کسی بھی ایپ پر کلک کریں — فوراً کھل جائے گی، کچھ ڈاؤن لوڈ کرنے کی ضرورت نہیں</p></div>
-    <div class="tabs" id="tabs"></div>
-    <div class="grid" id="grid"></div>
-  </div>
-</section>
-
-<section id="why" style="padding-top:20px">
-  <div class="wrap">
-    <div class="head"><div class="eyebrow">Why PBT</div><h2>ہماری ایپس کیوں؟</h2></div>
-    <div class="feat">
-      <div class="f"><div class="ic">📴</div><h3>انٹرنیٹ کے بغیر</h3><p>ایک بار کھولیں، پھر نیٹ ہو یا نہ ہو، ایپ چلتی رہے گی۔</p></div>
-      <div class="f"><div class="ic">🗣️</div><h3>مکمل اردو</h3><p>ہر بٹن، ہر بل، ہر رپورٹ نوری نستعلیق میں — جیسے آپ رجسٹر لکھتے ہیں۔</p></div>
-      <div class="f"><div class="ic">📲</div><h3>ایپ کی طرح انسٹال</h3><p>ہوم اسکرین پر آئیکن لگائیں، بالکل عام ایپ کی طرح کھولیں۔</p></div>
-      <div class="f"><div class="ic">🔒</div><h3>ڈیٹا آپ کے پاس</h3><p>آپ کا حساب آپ کے فون میں، ساتھ گوگل ڈرائیو پر خودکار بیک اپ۔</p></div>
-      <div class="f"><div class="ic">💬</div><h3>واٹس ایپ پر بل اور پوسٹر</h3><p>بل، رسید اور خوبصورت پوسٹر ایک کلک میں گاہک کو بھیجیں۔</p></div>
-      <div class="f"><div class="ic">⚡</div><h3>خود بخود اپڈیٹ</h3><p>نئی سہولت آئے تو ایپ خود تازہ ہو جاتی ہے، آپ کو کچھ نہیں کرنا۔</p></div>
-    </div>
-  </div>
-</section>
-
-<section id="services" style="padding-top:20px">
-  <div class="wrap">
-    <div class="svc">
-      <div>
-        <div class="eyebrow">Services</div>
-        <h2>آپ کے کاروبار کی اپنی ویب سائٹ اور ایپ</h2>
-        <p>دکان، کلینک، مدرسہ، ریسٹورنٹ یا کوئی بھی کاروبار — ہم آپ کے نام سے آپ کی اپنی ویب سائٹ اور ایپ بنا کر دیتے ہیں، جو گوگل پر بھی نظر آئے اور گاہک واٹس ایپ پر سیدھا آرڈر دے سکیں۔</p>
-      </div>
-      <ul>
-        <li><b>ویب سائٹ:</b> آپ کا نام، پراڈکٹس، قیمتیں، نقشہ</li>
-        <li><b>واٹس ایپ آرڈر:</b> گاہک ایک کلک میں آرڈر بھیجے</li>
-        <li><b>اپنی ایپ:</b> بلنگ، کھاتہ یا ریکارڈ — آپ کی ضرورت کے مطابق</li>
-        <li><b>APK / پلے اسٹور:</b> آپ کی ایپ موبائل پر انسٹال</li>
-      </ul>
-    </div>
-  </div>
-</section>
-
-<section style="padding-top:20px">
-  <div class="wrap">
-    <div class="head"><div class="eyebrow">How it works</div><h2>کام کیسے ہوتا ہے</h2></div>
-    <div class="steps">
-      <div class="step"><h3>بات کریں</h3><p>اپنی ضرورت بتائیں — کیا چاہیے، کیسا چاہیے۔</p></div>
-      <div class="step"><h3>نمونہ دیکھیں</h3><p>چند دن میں آپ کے فون پر پہلا نمونہ۔</p></div>
-      <div class="step"><h3>تبدیلیاں</h3><p>جو بدلنا ہو، بتائیں — ہم ٹھیک کر دیں گے۔</p></div>
-      <div class="step"><h3>لائیو</h3><p>آپ کی ویب سائٹ یا ایپ سب کے لیے کھل جائے۔</p></div>
-    </div>
-  </div>
-</section>
-
-<section id="faq" style="padding-top:20px">
-  <div class="wrap faq">
-    <div class="head"><div class="eyebrow">FAQ</div><h2>عام سوالات</h2></div>
-    <details><summary>کیا ایپ استعمال کرنے کے لیے کچھ ڈاؤن لوڈ کرنا پڑے گا؟</summary><p>نہیں۔ اوپر کسی ایپ پر کلک کریں، وہ براؤزر میں کھل جائے گی۔ چاہیں تو «ہوم اسکرین پر لگائیں» سے عام ایپ کی طرح انسٹال کر لیں۔</p></details>
-    <details><summary>اگر فون بدل جائے یا ڈیٹا مٹ جائے تو؟</summary><p>زیادہ تر ایپس میں گوگل ڈرائیو کا خودکار بیک اپ ہے۔ نئے فون پر ایپ کھول کر ڈرائیو جوڑیں، سارا ریکارڈ واپس آ جائے گا۔</p></details>
-    <details><summary>کیا انٹرنیٹ ضروری ہے؟</summary><p>صرف پہلی بار کھولنے کے لیے۔ اس کے بعد ایپ نیٹ کے بغیر چلتی ہے۔ بیک اپ اور واٹس ایپ کے لیے نیٹ چاہیے۔</p></details>
-    <details><summary>کیا آپ میری دکان کے لیے الگ ایپ یا ویب سائٹ بنا سکتے ہیں؟</summary><p>جی ہاں۔ آپ کے کاروبار کا نام، رنگ اور ضرورت کے مطابق ویب سائٹ اور ایپ بنا کر دیتے ہیں۔</p></details>
-  </div>
-</section>
-
-<footer>
-  <div class="wrap">
-    <div class="foot">
-      <div><a class="logo" href="#"><span class="mark">PBT</span><span>پیارے بھائی ٹیک<small>PBT CODE LABS</small></span></a><p style="margin-top:8px;max-width:340px">آسان، اردو اور قابلِ بھروسہ ایپس — پاکستان کے کاروبار کے لیے۔</p></div>
-      <div><b style="color:#fff">ایپس</b><div id="footApps" style="display:grid;grid-template-columns:1fr 1fr;gap:0 24px;font-size:14px"></div></div>
-    </div>
-    <div class="copy en">© <span id="yr"></span> PBT Code Labs · Made in Pakistan</div>
-  </div>
-</footer>
-
-<script>
-const APPS=[
-  {n:'AIO POS',t:'دکان کا مکمل POS',c:'biz',i:'aio.webp',u:'AIO-POS-DIRECT/',d:'بلنگ، پراڈکٹس، اسٹاک، منافع، پرچیز آرڈر، کسٹمر اور سپلائر کا کھاتہ — ایک ہی ایپ میں۔'},
-  {n:'فاسٹ فوڈ POS',t:'ریسٹورنٹ / فاسٹ فوڈ',c:'biz',i:'ffpos.webp',u:'FFPOS/',d:'آرڈر، کچن، بل اور روزانہ کی سیل — آن لائن اور آف لائن دونوں۔'},
-  {n:'سبزی منڈی',t:'منڈی کا بل اور حساب',c:'biz',i:'sm.webp',u:'SM/',d:'آڑھت، بیوپاری اور گاہک کا حساب، کمیشن اور بل — اردو میں۔'},
-  {n:'صدام فروٹ منڈی',t:'فروٹ منڈی بلنگ',c:'biz',i:'fm.webp',u:'FM/',d:'فروٹ منڈی کی بلنگ، پیٹیوں کا حساب اور کھاتہ۔'},
-  {n:'کھاتہ بک',t:'GG Khatabook',c:'biz',i:'dg.webp',u:'DG/',d:'گاہکوں کا ادھار، وصولی اور لین دین کا مکمل ریکارڈ۔'},
-  {n:'دودھ کی ڈائری',t:'دودھ والے کا کھاتہ',c:'biz',i:'ddl.webp',u:'DDL/',d:'روز کی حاضری، ماہانہ بل، بقایا اور واٹس ایپ پر خوبصورت پوسٹر۔'},
-  {n:'مائی سٹی شائنز',t:'شہر کی ڈائریکٹری',c:'biz',i:'mcs.webp',u:'MCS/',d:'اپنے شہر کے تمام کاروبار، ڈاکٹرز اور سروسز ایک ہی جگہ۔'},
-  {n:'جامعہ امتحانی سافٹ ویئر',t:'مدرسہ حاضری و حفظ',c:'edu',i:'hifz.webp',u:'Hifz-progress/',d:'طلبہ کی حاضری، حفظ پروگریس، امتحان اور رپورٹیں — پرنٹ اور واٹس ایپ PDF۔'},
-  {n:'Hifz Pro',t:'حفظِ قرآن کا ساتھی',c:'edu',i:'hifzpro.webp',u:'hafiz-musab-app/',d:'سبق، سبقی اور منزل کی یاد دہانی اور روزانہ کا ریکارڈ۔'},
-  {n:'میرا مکتبہ',t:'ڈیجیٹل لائبریری',c:'edu',i:'ma.webp',u:'MA/',d:'علمائے کرام اور طلبہ کے لیے کتابوں کی ڈیجیٹل لائبریری۔'},
-  {n:'اردو فونٹس اسٹوڈیو',t:'نستعلیق ڈیزائن',c:'edu',i:'fonts.webp',u:'urdu-fonts-studio/',d:'نستعلیق فونٹس، ہاتھ کی تحریر کی نقل، اور کتاب/PDF بنانے کا ٹول۔'},
-  {n:'میڈیسن شیلف',t:'دوائیوں کا ریکارڈ',c:'home',i:'ms.svg',u:'MS/',d:'گھر کی دوائیاں، تاریخِ میعاد، نسخے اور تصویریں — اسکینر کے ساتھ۔'},
-  {n:'سامان کی لسٹ',t:'گراسری لسٹ',c:'home',i:'list.webp',u:'Stylish-listing-/',d:'بازار کے سامان کی خوبصورت لسٹ بنائیں اور شیئر کریں۔'},
-  {n:'میٹر ٹریکر',t:'Multi Meter Tracker',c:'home',i:'mt.webp',u:'MT/',d:'بجلی/گیس کے کئی میٹروں کی ریڈنگ اور یونٹس کا حساب۔'}
-];
-const CATS=[['all','سب'],['biz','کاروبار'],['edu','تعلیم و مدرسہ'],['home','گھر']];
-const grid=document.getElementById('grid'),tabs=document.getElementById('tabs');
-function render(c){
-  grid.innerHTML=APPS.filter(a=>c==='all'||a.c===c).map(a=>`
-    <a class="card" href="${a.u}"><div class="top"><img src="img/${a.i}" alt="${a.n}" loading="lazy" width="54" height="54"><div><h3>${a.n}</h3><div class="tag">${a.t}</div></div></div>
-    <p>${a.d}</p><span class="open">کھولیں</span></a>`).join('');
-  [...tabs.children].forEach(b=>b.classList.toggle('on',b.dataset.c===c));
+body{background:#f5f2ea;color:#14231f}
+.sl{--sbg:linear-gradient(150deg,#0e6b60,#073b35);--sink:#fff;--sacc:#f3d48a;--sbtn:#1b1404;--sline:rgba(255,255,255,.3)}
+header{display:flex;align-items:center;justify-content:space-between;padding:12px 0}
+.brand{display:flex;align-items:center;gap:10px}
+.mark{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#14a08f,#0b4f47);color:#fff;display:grid;place-items:center;font:800 14px Poppins}
+.brand b{font:800 20px Poppins;color:#0b4f47}
+.wa{display:inline-flex;align-items:center;gap:6px;background:#25d366;color:#fff;border-radius:999px;padding:7px 14px;font:700 14px Poppins;box-shadow:0 6px 16px -6px #25d366}
+.wa svg{font-size:18px}
+.hero{background:linear-gradient(150deg,#0e6b60,#073b35);color:#fff;border-radius:24px;padding:20px 20px 18px;position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;width:220px;height:220px;border-radius:50%;background:rgba(243,212,138,.14);left:-60px;top:-80px}
+.hero h1{font:32px/1.7 Kash;color:#fff}
+.hero h1 em{font-style:normal;color:#f3d48a}
+.hero p{font-size:16px;line-height:1.9;color:#cfe5e0}
+.fts{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.ft{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:2px 12px;font-size:14px;display:flex;gap:6px;align-items:center}
+.apps{background:#fff;border:1px solid #e6e1d4;border-radius:24px;padding:14px 10px 8px;margin-top:12px;flex:1}
+.apps h2{font:22px/1.6 Kash;color:#0b4f47;padding:0 6px 6px;display:flex;justify-content:space-between;align-items:baseline}
+.apps h2 small{font:600 12px Poppins;color:#c8962e;letter-spacing:.12em}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.ic{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;border-radius:14px}
+.ic:hover{background:#f5f2ea}
+.ic img{width:48px;height:48px;border-radius:14px;box-shadow:0 4px 10px -4px rgba(0,0,0,.3)}
+.ic span{font-size:12.5px;line-height:1.8;white-space:nowrap}
+.contact{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#0b4f47;color:#fff;border-radius:20px;padding:10px 16px;margin-top:12px}
+.contact p{font:20px/1.6 Kash}
+.contact .num{font:700 15px Poppins;color:#f3d48a}
+footer{text-align:center;font:500 12px Poppins;color:#7a8a85;padding:10px 0 14px}
+@media(min-width:900px){
+ main{display:grid;grid-template-columns:1fr 1.25fr;grid-template-rows:1fr auto;gap:16px;flex:1;align-items:stretch;padding-bottom:4px}
+ .hero{display:flex;flex-direction:column;justify-content:center;padding:40px}
+ .hero h1{font-size:48px}.apps{margin-top:0}.grid{grid-template-columns:repeat(7,1fr)}
+ .contact{grid-column:1/-1;margin-top:0}
 }
-tabs.innerHTML=CATS.map(([k,v])=>`<button class="tab" data-c="${k}">${v}</button>`).join('');
-tabs.onclick=e=>{const b=e.target.closest('.tab');if(b)render(b.dataset.c)};
-render('all');
-document.getElementById('appCount').textContent=APPS.length;
-document.getElementById('footApps').innerHTML=APPS.map(a=>`<a href="${a.u}">${a.n}</a>`).join('');
-document.getElementById('yr').textContent=new Date().getFullYear();
+
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:0 4px 8px;scrollbar-width:none}
+.tab{flex:none;border:1px solid #e6e1d4;background:#faf8f2;color:#5b6b66;border-radius:999px;padding:0 12px;font:13.5px/2.1 Noori;cursor:pointer}
+.tab.on{background:#0b4f47;color:#fff;border-color:#0b4f47}
+.ic[hidden]{display:none}
+#grid{grid-template-columns:repeat(5,minmax(0,1fr))}
+.ic span{max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.ic span.en{font:600 10.5px/1.35 Poppins;white-space:normal;text-align:center;padding-top:4px}
+@media(min-width:900px){#grid{grid-template-columns:repeat(7,minmax(0,1fr))}}
+.play{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e6e1d4;border-radius:20px;padding:10px 12px;margin-top:12px}
+.play .lb{flex:none;display:flex;align-items:center;gap:8px;background:#111;color:#fff;border-radius:12px;padding:6px 10px}
+.play .lb svg{font-size:22px}
+.play .lb small{display:block;font:500 9px Poppins;letter-spacing:.04em;opacity:.8;line-height:1.2}
+.play .lb b{display:block;font:700 12.5px Poppins;line-height:1.2}
+.pls{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;flex:1}
+.pl{flex:none;display:flex;flex-direction:column;align-items:center;gap:2px;width:64px}
+.pl img{width:40px;height:40px;border-radius:12px;box-shadow:0 3px 8px -3px rgba(0,0,0,.3)}
+.pl span{font:600 9.5px/1.6 Poppins;white-space:nowrap}
+.live{font:600 10px Poppins;color:#0a8a4a;display:flex;align-items:center;gap:4px}
+.live::before{content:"";width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px #22c55e33}
+@media(min-width:900px){.play{grid-column:1/-1;margin-top:0}}
+
+
+.sl{position:relative;overflow:hidden;border-radius:24px;background:var(--sbg);color:var(--sink);height:272px;flex:none}
+.track{display:flex;height:100%;transition:transform .55s cubic-bezier(.2,.8,.2,1)}
+.sd{flex:0 0 100%;height:100%;display:flex;align-items:center;gap:14px;padding:16px 18px 26px}
+.sd .ph{flex:none;width:112px;height:226px;border-radius:22px;background:#0d1715;padding:6px;box-shadow:0 16px 30px -14px rgba(0,0,0,.6);transform:rotate(-3deg)}
+.sd .ph img{width:100%;height:100%;object-fit:cover;object-position:top;border-radius:16px;display:block}
+.sd .txt{flex:1;min-width:0}
+.sd small{font-size:14px;color:var(--sacc)}
+.sd h2{font:26px/1.6 Kash}
+.sd p{font-size:15px;line-height:1.85;opacity:.85}
+.intro h1{font:30px/1.7 Kash}
+.intro h1 em{font-style:normal;color:var(--sacc)}
+.sl .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;overflow:visible;padding:0}
+.sc{display:flex;gap:4px;align-items:center;border:1px solid var(--sline);border-radius:999px;padding:0 10px;font-size:13px;line-height:2}
+.bt{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.b1,.b2{border:0;cursor:pointer;font:14px/2.1 Noori;border-radius:999px;padding:0 14px}
+.b1{background:var(--sacc);color:var(--sbtn)}
+.b2{background:transparent;color:var(--sink);border:1px solid var(--sline)}
+.dots{position:absolute;bottom:9px;left:0;right:0;display:flex;justify-content:center;gap:5px}
+.dots i{width:6px;height:6px;border-radius:9px;background:var(--sline);transition:.3s;cursor:pointer}
+.dots i.on{width:18px;background:var(--sacc)}
+.vm{position:fixed;inset:0;background:rgba(0,0,0,.75);display:grid;place-items:center;z-index:50;padding:16px}
+.vm[hidden]{display:none}
+.vbox{position:relative;width:min(420px,100%);aspect-ratio:9/16;max-height:86dvh;background:#000;border-radius:18px;overflow:hidden}
+.vbox iframe,.vbox video{width:100%;height:100%;border:0}
+.vx{position:absolute;top:8px;left:8px;z-index:2;width:34px;height:34px;border-radius:50%;border:0;background:#fff;font-size:16px;cursor:pointer}
+@media(min-width:900px){.sl{height:100%;min-height:380px}.sd{padding:30px 40px 36px;gap:30px}.sd .ph{width:170px;height:340px}.sd h2{font-size:40px}.intro h1{font-size:46px}.sd p{font-size:18px}}
+
+</style></head><body>
+<div class="page">
+<header><a class="brand" href="#"><span class="mark">PBT</span><b class="en">PBT Code Labs</b></a>
+<a class="wa en" href="https://wa.me/923206793793?text=السلام%20علیکم،%20مجھے%20PBT%20Code%20Labs%20کی%20ایپ%20/%20ویب%20سائٹ%20کے%20بارے%20میں%20معلومات%20چاہیے"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg> WhatsApp</a></header>
+<main>
+<section class="sl" id="sl" aria-roledescription="carousel"><div class="track"><div class="sd intro"><div class="txt"><h1>آپ کے کاروبار کا حساب<br><em>ایک کلک پر</em></h1><p>دکان، منڈی، مدرسہ اور گھر — آسان ایپس، انٹرنیٹ کے بغیر بھی</p><div class="chips"><div class="sc"><b>📴</b><span>انٹرنیٹ کے بغیر</span></div><div class="sc"><b>🗣️</b><span>مکمل اردو</span></div><div class="sc"><b>☁️</b><span>ڈرائیو بیک اپ</span></div><div class="sc"><b>💬</b><span>واٹس ایپ بل</span></div></div></div></div><div class="sd"><div class="ph"><img src="img/shots/aio.webp" alt="AIO POS" loading="lazy"></div><div class="txt"><small>دکان کا مکمل POS</small><h2>AIO POS</h2><p>بلنگ، اسٹاک، منافع اور کھاتہ — ایک ہی ایپ میں</p><div class="bt"><a class="b1" href="https://play.google.com/store/apps/details?id=com.pbtcodelabs.aiopos">ایپ کھولیں</a><button class="b2" data-v="" data-n="AIO POS">▶ چلانے کا طریقہ</button></div></div></div><div class="sd"><div class="ph"><img src="img/shots/ffpos.webp" alt="FFPOS" loading="lazy"></div><div class="txt"><small>ریسٹورنٹ / فاسٹ فوڈ</small><h2>FFPOS</h2><p>آرڈر، کچن، بل اور روزانہ کی سیل</p><div class="bt"><a class="b1" href="FFPOS/">ایپ کھولیں</a><button class="b2" data-v="" data-n="FFPOS">▶ چلانے کا طریقہ</button></div></div></div><div class="sd"><div class="ph"><img src="img/shots/sm.webp" alt="سبزی منڈی" loading="lazy"></div><div class="txt"><small>منڈی کا بل</small><h2>سبزی منڈی</h2><p>آڑھت، بیوپاری اور گاہک کا حساب</p><div class="bt"><a class="b1" href="SM/">ایپ کھولیں</a><button class="b2" data-v="" data-n="سبزی منڈی">▶ چلانے کا طریقہ</button></div></div></div><div class="sd"><div class="ph"><img src="img/shots/hifz.webp" alt="مدرسہ سافٹ ویئر" loading="lazy"></div><div class="txt"><small>حاضری و حفظ</small><h2>مدرسہ سافٹ ویئر</h2><p>حاضری، حفظ پروگریس اور امتحانی رپورٹیں</p><div class="bt"><a class="b1" href="Hifz-progress/">ایپ کھولیں</a><button class="b2" data-v="" data-n="مدرسہ سافٹ ویئر">▶ چلانے کا طریقہ</button></div></div></div><div class="sd"><div class="ph"><img src="img/shots/hifzpro.webp" alt="Hifz Pro" loading="lazy"></div><div class="txt"><small>حفظ کا ساتھی</small><h2>Hifz Pro</h2><p>سبق، سبقی اور منزل کی روزانہ یاد دہانی</p><div class="bt"><a class="b1" href="hafiz-musab-app/">ایپ کھولیں</a><button class="b2" data-v="" data-n="Hifz Pro">▶ چلانے کا طریقہ</button></div></div></div><div class="sd"><div class="ph"><img src="img/shots/ma.webp" alt="میرا مکتبہ" loading="lazy"></div><div class="txt"><small>ڈیجیٹل لائبریری</small><h2>میرا مکتبہ</h2><p>علماء و طلبہ کے لیے کتابیں ایک جگہ</p><div class="bt"><a class="b1" href="MA/">ایپ کھولیں</a><button class="b2" data-v="" data-n="میرا مکتبہ">▶ چلانے کا طریقہ</button></div></div></div><div class="sd"><div class="ph"><img src="img/shots/mcs.webp" alt="مائی سٹی شائنز" loading="lazy"></div><div class="txt"><small>شہر کی ڈائریکٹری</small><h2>مائی سٹی شائنز</h2><p>شہر کے کاروبار، ڈاکٹرز اور سروسز</p><div class="bt"><a class="b1" href="MCS/">ایپ کھولیں</a><button class="b2" data-v="" data-n="مائی سٹی شائنز">▶ چلانے کا طریقہ</button></div></div></div><div class="sd"><div class="ph"><img src="img/shots/ms.webp" alt="میڈیسن شیلف" loading="lazy"></div><div class="txt"><small>دوائیوں کا ریکارڈ</small><h2>میڈیسن شیلف</h2><p>گھر کی دوائیاں، میعاد اور نسخے</p><div class="bt"><a class="b1" href="MS/">ایپ کھولیں</a><button class="b2" data-v="" data-n="میڈیسن شیلف">▶ چلانے کا طریقہ</button></div></div></div></div><div class="dots"></div></section><div class="vm" id="vm" hidden><div class="vbox"><button class="vx" aria-label="بند">✕</button><div class="vb"></div></div></div>
+<section class="apps"><h2>ہماری ایپس <small class="en">14 APPS</small></h2><div class="tabs" id="tabs"><button class="tab on" data-c="all">سب</button><button class="tab" data-c="biz">کاروبار</button><button class="tab" data-c="deen">دینی و تعلیمی</button><button class="tab" data-c="home">گھر</button><button class="tab" data-c="tools">ٹولز</button></div><div class="grid" id="grid"><a class="ic" data-c="biz" href="https://play.google.com/store/apps/details?id=com.pbtcodelabs.aiopos"><img src="img/aio.webp" alt="AIO POS" width="48" height="48"><span class="en">AIO POS</span></a><a class="ic" data-c="biz" href="FFPOS/"><img src="img/ffpos.webp" alt="FFPOS" width="48" height="48"><span class="en">FFPOS</span></a><a class="ic" data-c="biz" href="DG/"><img src="img/dg.webp" alt="GG Khatabook" width="48" height="48"><span class="en">GG Khatabook</span></a><a class="ic" data-c="biz" href="SM/"><img src="img/sm.webp" alt="سبزی منڈی" width="48" height="48"><span>سبزی منڈی</span></a><a class="ic" data-c="biz" href="FM/"><img src="img/fm.webp" alt="فروٹ منڈی" width="48" height="48"><span>فروٹ منڈی</span></a><a class="ic" data-c="biz" href="DDL/"><img src="img/ddl.webp" alt="دودھ ڈائری" width="48" height="48"><span>دودھ ڈائری</span></a><a class="ic" data-c="deen" href="Hifz-progress/"><img src="img/hifz.webp" alt="مدرسہ" width="48" height="48"><span>مدرسہ</span></a><a class="ic" data-c="deen" href="hafiz-musab-app/"><img src="img/hifzpro.webp" alt="Hifz Pro" width="48" height="48"><span class="en">Hifz Pro</span></a><a class="ic" data-c="deen" href="MA/"><img src="img/ma.webp" alt="مکتبہ" width="48" height="48"><span>مکتبہ</span></a><a class="ic" data-c="home" href="MS/"><img src="img/ms.svg" alt="میڈیسن" width="48" height="48"><span>میڈیسن</span></a><a class="ic" data-c="home" href="Stylish-listing-/"><img src="img/list.webp" alt="سامان لسٹ" width="48" height="48"><span>سامان لسٹ</span></a><a class="ic" data-c="home" href="MT/"><img src="img/mt.webp" alt="Meter Tracker" width="48" height="48"><span class="en">Meter Tracker</span></a><a class="ic" data-c="tools" href="MCS/"><img src="img/mcs.webp" alt="سٹی شائنز" width="48" height="48"><span>سٹی شائنز</span></a><a class="ic" data-c="tools" href="urdu-fonts-studio/"><img src="img/fonts.webp" alt="اردو فونٹس" width="48" height="48"><span>اردو فونٹس</span></a></div></section>
+<section class="play"><a class="lb" href="https://play.google.com/store/search?q=pbtcodelabs&c=apps"><svg viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><path fill="#34a853" d="M3.6 2.2 13.4 12l-9.8 9.8c-.4-.2-.6-.6-.6-1.1V3.3c0-.5.2-.9.6-1.1Z"/><path fill="#fbbc05" d="m17 8.4-3.6 3.6 3.6 3.6 3.9-2.2c.8-.5.8-1.6 0-2.1L17 8.4Z"/><path fill="#ea4335" d="M3.6 21.8 13.4 12l3.6 3.6L5 22.3c-.5.3-1 .2-1.4-.5Z"/><path fill="#4285f4" d="M3.6 2.2c.4-.7.9-.8 1.4-.5l12 6.7-3.6 3.6-9.8-9.8Z"/></svg><span><small>LIVE ON</small><b class="en">Google Play</b></span></a><div class="pls"><a class="pl" href="https://play.google.com/store/apps/details?id=com.pbtcodelabs.aiopos"><img src="img/aio.webp" alt="AIO POS" width="40" height="40"><span class="en">AIO POS</span></a><a class="pl" href="https://play.google.com/store/apps/details?id=com.pbtcodelabs.mycityshines"><img src="img/mcs.webp" alt="My City Shines" width="40" height="40"><span class="en">My City Shines</span></a><a class="pl" href="https://play.google.com/store/apps/details?id=io.github.pbtcodelabs_pbt.twa"><img src="img/hifzpro.webp" alt="Hifz Pro" width="40" height="40"><span class="en">Hifz Pro</span></a></div></section>
+<a class="contact" href="https://wa.me/923206793793?text=السلام%20علیکم،%20مجھے%20PBT%20Code%20Labs%20کی%20ایپ%20/%20ویب%20سائٹ%20کے%20بارے%20میں%20معلومات%20چاہیے"><div><p>اپنی ویب سائٹ یا ایپ بنوائیں</p><span class="num en">0320 6793793</span></div><span class="wa en"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg> Chat</span></a>
+</main>
+<footer class="en">© 2026 PBT Code Labs · Made in Pakistan</footer>
+</div>
+<script>
+document.getElementById('tabs').onclick=e=>{const b=e.target.closest('.tab');if(!b)return;
+[...document.querySelectorAll('.tab')].forEach(t=>t.classList.toggle('on',t===b));
+document.querySelectorAll('#grid .ic').forEach(a=>a.hidden=!(b.dataset.c==='all'||a.dataset.c===b.dataset.c))};
 </script>
-</body>
-</html>
+<script>
+(function(){const sl=document.getElementById('sl'),tr=sl.querySelector('.track'),n=tr.children.length,dots=sl.querySelector('.dots');let i=0,t;
+dots.innerHTML='<i></i>'.repeat(n);
+function go(k){i=(k+n)%n;tr.style.transform='translateX('+(i*100)+'%)';[...dots.children].forEach((d,j)=>d.classList.toggle('on',j===i))}
+function auto(){clearInterval(t);t=setInterval(()=>go(i+1),4500)}
+dots.onclick=e=>{const k=[...dots.children].indexOf(e.target);if(k>=0){go(k);auto()}};
+let x0=null;sl.addEventListener('touchstart',e=>{x0=e.touches[0].clientX},{passive:true});
+sl.addEventListener('touchend',e=>{if(x0===null)return;const dx=e.changedTouches[0].clientX-x0;if(Math.abs(dx)>40){go(i+(dx>0?1:-1));auto()}x0=null});
+go(0);auto();
+const vm=document.getElementById('vm'),vb=vm.querySelector('.vb');
+sl.addEventListener('click',e=>{const b=e.target.closest('.b2');if(!b)return;const v=b.dataset.v;
+ if(!v){location.href='https://wa.me/923206793793?text=السلام%20علیکم،%20مجھے%20PBT%20Code%20Labs%20کی%20ایپ%20/%20ویب%20سائٹ%20کے%20بارے%20میں%20معلومات%20چاہیے'+encodeURIComponent(' — مجھے '+b.dataset.n+' چلانے کا طریقہ بتائیں');return}
+ clearInterval(t);const yt=v.match(/(?:youtu\.be\/|v=|shorts\/)([\w-]{11})/);
+ vb.innerHTML=yt?'<iframe src="https://www.youtube-nocookie.com/embed/'+yt[1]+'?autoplay=1" allow="autoplay;encrypted-media" allowfullscreen></iframe>':'<video src="'+v+'" controls autoplay playsinline></video>';vm.hidden=false});
+function close(){vm.hidden=true;vb.innerHTML='';auto()}
+vm.onclick=e=>{if(e.target===vm||e.target.closest('.vx'))close()};
+})();
+</script>
+</body></html>
