@@ -125,5 +125,17 @@
         "89:AD:F6:56:AC:11:BE:5D:75:F2:02:F9:E1:95:92:D4:B9:E0:9D:F1:45:DA:67:85:1F:00:CE:18:C7:B0:D0:32"
       ]
     }
+  },
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.pbtcodelabs.ggdirect",
+      "sha256_cert_fingerprints": [
+        "17:1B:B5:BC:DD:1F:96:7B:18:A4:4B:5D:AA:ED:20:03:94:F6:16:C0:5B:4B:8A:F0:48:77:28:80:8F:AD:86:60"
+      ]
+    }
   }
 ]
