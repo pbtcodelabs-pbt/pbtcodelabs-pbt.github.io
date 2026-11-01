@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0111SU005';
-const UPDATE_NOTE = 'Clear rounded SOS button in every app; automatic review at 2 AM and 2 PM';
+const APP_VERSION = 'HD0211MO006';
+const UPDATE_NOTE = 'SOS side button in all apps — drag it up or down';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
