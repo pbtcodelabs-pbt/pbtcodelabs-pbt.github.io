@@ -117,6 +117,15 @@
     },
     ownerFirst() { return false; },
     async ownerLogout() { await Au.signOut(auth); },
+    // 🔑 پاس ورڈ بدلیں (پینل کے اندر، ای میل کے بغیر): پرانے سے تصدیق، پھر نیا
+    async changePassword(oldPw, newPw) {
+      if (!isOwner()) throw new Error('not owner');
+      const cred = Au.EmailAuthProvider.credential(OWNER_EMAIL, oldPw);
+      try { await Au.reauthenticateWithCredential(auth.currentUser, cred); }
+      catch (e) { throw new Error('old'); }
+      await Au.updatePassword(auth.currentUser, newPw);
+      return true;
+    },
     isOwner
   };
   window.CloudStore = Store;
