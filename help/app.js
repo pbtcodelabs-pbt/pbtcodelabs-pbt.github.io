@@ -2,25 +2,25 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0211MO006';
-const UPDATE_NOTE = 'SOS side button in all apps — drag it up or down';
+const APP_VERSION = 'HD0211MO007';
+const UPDATE_NOTE = 'Write or speak in any language; English apps open in English; «I have the same problem» button';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
-  { id: 'AIO', ur: 'AIO POS', en: 'AIO POS', img: '../img/aio.webp', repo: 'pbtcodelabs-pbt/AIO' },
-  { id: 'AIO-POS-DIRECT', ur: 'AIO POS ڈائریکٹ', en: 'AIO POS Direct', img: '../img/aiodirect.webp', repo: 'pbtcodelabs-pbt/AIO-POS-DIRECT' },
-  { id: 'FFPOS', ur: 'FFPOS', en: 'FFPOS', img: '../img/ffpos.webp?v=2', repo: 'ffpos-pbt/ffpos-pbt.github.io' },
+  { id: 'AIO', lang: 'en', ur: 'AIO POS', en: 'AIO POS', img: '../img/aio.webp', repo: 'pbtcodelabs-pbt/AIO' },
+  { id: 'AIO-POS-DIRECT', lang: 'en', ur: 'AIO POS ڈائریکٹ', en: 'AIO POS Direct', img: '../img/aiodirect.webp', repo: 'pbtcodelabs-pbt/AIO-POS-DIRECT' },
+  { id: 'FFPOS', lang: 'en', ur: 'FFPOS', en: 'FFPOS', img: '../img/ffpos.webp?v=2', repo: 'ffpos-pbt/ffpos-pbt.github.io' },
   { id: 'SM', ur: 'سبزی منڈی', en: 'Sabzi Mandi', img: '../img/sm.webp', repo: 'pbtcodelabs-pbt/SM' },
   { id: 'FM', ur: 'فروٹ منڈی', en: 'Fruit Mandi', img: '../img/fm.webp', repo: 'pbtcodelabs-pbt/FM' },
   { id: 'AB', ur: 'آڑھت بک', en: 'Arhat Book', img: 'img/ab.png', repo: 'pbtcodelabs-pbt/AB' },
-  { id: 'DG', ur: 'جی جی کھاتہ بک', en: 'GG Khatabook', img: '../img/dg.webp', repo: 'pbtcodelabs-pbt/DG' },
+  { id: 'DG', lang: 'en', ur: 'جی جی کھاتہ بک', en: 'GG Khatabook', img: '../img/dg.webp', repo: 'pbtcodelabs-pbt/DG' },
   { id: 'DDL', ur: 'دودھ ڈائری', en: 'Doodh Diary', img: '../img/ddl.webp', repo: 'pbtcodelabs-pbt/DDL' },
   { id: 'Hifz-progress', ur: 'مدرسہ', en: 'Madrasa', img: '../img/hifz.webp', repo: 'pbtcodelabs-pbt/Hifz-progress' },
   { id: 'hafiz-musab-app', ur: 'حفظ پرو', en: 'Hifz Pro', img: '../img/hifzpro.webp', repo: 'pbtcodelabs-pbt/hafiz-musab-app' },
   { id: 'MA', ur: 'مکتبہ', en: 'Maktaba', img: '../img/ma.webp', repo: 'pbtcodelabs-pbt/MA' },
   { id: 'MS', ur: 'میڈیسن شیلف', en: 'Medicine Shelf', img: '../img/ms.svg', repo: 'pbtcodelabs-pbt/MS' },
   { id: 'Stylish-listing-', ur: 'سامان لسٹ', en: 'Shopping List', img: '../img/list.webp', repo: 'pbtcodelabs-pbt/Stylish-listing-' },
-  { id: 'MT', ur: 'میٹر ٹریکر', en: 'Meter Tracker', img: '../img/mt.webp', repo: 'pbtcodelabs-pbt/MT' },
+  { id: 'MT', lang: 'en', ur: 'میٹر ٹریکر', en: 'Meter Tracker', img: '../img/mt.webp', repo: 'pbtcodelabs-pbt/MT' },
   { id: 'MCS', ur: 'سٹی شائنز', en: 'My City Shines', img: '../img/mcs.webp', repo: 'pbtcodelabs-pbt/MCS' },
   { id: 'urdu-fonts-studio', ur: 'اردو فونٹس', en: 'Urdu Fonts', img: '../img/fonts.webp', repo: 'pbtcodelabs-pbt/urdu-fonts-studio' },
   { id: 'other', ur: 'کوئی اور', en: 'Other', emoji: '🧩', repo: '' }
@@ -48,14 +48,15 @@ const DICT = {
   whyHere: ['یہاں لکھا ہر مسئلہ محفوظ رہتا ہے، گم نہیں ہوتا، اور حل ہوتے ہی جواب یہیں آ جاتا ہے۔ واٹس ایپ پر بھیجنے کی ضرورت نہیں۔',
     'Everything written here is saved, never lost, and the answer appears right here once solved. No need to send it on WhatsApp.'],
   tellBtn: ['اپنا مسئلہ یا مشورہ بتائیں', 'Report a problem or suggestion'],
-  dupTip: ['👀 پہلے نیچے دیکھ لیں — اگر آپ کا مسئلہ پہلے سے لکھا ہے تو «👋 میرا بھی» دبا دیں، دوبارہ لکھنے کی ضرورت نہیں۔ جتنے زیادہ لوگ، اتنی جلدی حل۔',
-    '👀 Check the list first — if your problem is already there, just tap «👋 Me too». No need to write it again. More votes = faster fix.'],
+  dupTip: ['👀 پہلے نیچے دیکھ لیں — اگر آپ کا مسئلہ پہلے سے لکھا ہے تو «👋 میرا بھی یہی مسئلہ ہے» دبا دیں، دوبارہ لکھنے کی ضرورت نہیں۔ جتنے زیادہ لوگ، اتنی جلدی حل۔',
+    '👀 Check the list first — if your problem is already there, just tap «👋 I have the same problem». No need to write it again. More votes = faster fix.'],
   tabOpen: ['زیر غور', 'Open'], tabDone: ['حل ہو گئے', 'Solved'],
   search: ['تلاش کریں…', 'Search…'],
   noOpen: ['اس ایپ میں ابھی کوئی کھلا مسئلہ نہیں 🎉', 'No open requests for this app 🎉'],
   noDone: ['اس ہفتے کوئی حل شدہ مسئلہ نہیں', 'Nothing solved this week yet'],
   noMine: ['آپ نے ابھی کچھ نہیں بھیجا', 'You have not sent anything yet'],
-  metoo: ['میرا بھی', 'Me too'],
+  metoo: ['میرا بھی یہی مسئلہ ہے', 'I have the same problem'],
+  metooIdea: ['میں بھی یہی چاہتا ہوں', 'I want this too'],
   yours: ['آپ کا', 'Yours'],
   pbtReply: ['💬 PBT Code Labs کا جواب', '💬 Reply from PBT Code Labs'],
   dupOf: ['یہ مسئلہ پہلے سے موجود ہے — دیکھیں', 'Already reported — see'],
@@ -66,7 +67,7 @@ const DICT = {
   bug: ['مسئلہ', 'Problem'], idea: ['مشورہ', 'Suggestion'], ask: ['سوال', 'Question'],
   q2: ['تفصیل لکھیں', 'Describe it'],
   q2s: ['جتنا صاف لکھیں گے، اتنا جلدی حل', 'the clearer, the faster'],
-  ph: ['مثلاً: بل پرنٹ کرتے وقت گاہک کا نام کٹ جاتا ہے…', 'e.g. When I print a bill, the customer name gets cut…'],
+  ph: ['کسی بھی زبان میں لکھیں — مثلاً: بل پرنٹ کرتے وقت گاہک کا نام کٹ جاتا ہے…', 'Write in any language — e.g. When I print a bill, the customer name gets cut…'],
   paste: ['پیسٹ', 'Paste'], speak: ['بول کر لکھیں', 'Speak to type'], stopSpeak: ['رکیں', 'Stop'],
   q3: ['اسکرین شاٹ لگائیں', 'Add screenshots'],
   q3s: ['بہت مدد ملتی ہے', 'helps a lot'],
@@ -271,15 +272,15 @@ function issueCard(i, opts) {
   return `<div class="is s-${i.status}">
     ${isNew ? `<span class="newDot">${LANG === 'en' ? 'New' : 'نیا'}</span>` : ''}
     <div class="top">${opts.showApp ? `${appIcon(app, 'appMini')} <b style="font-size:14px">${esc(AN(app))}</b>` : ''}${tyChip(i.type)}${stChip(i.status)}${mineIt && !opts.mine ? `<span class="chip mine">⭐ ${T('yours')}</span>` : ''}<span class="no">#${i.no}</span></div>
-    <div class="tx clamp" data-act="expand">${esc(txt)}</div>
+    <div class="tx clamp" dir="auto" data-act="expand">${esc(txt)}</div>
     ${steps}
     ${opts.mine && (i.status === 'new' || i.status === 'seen') ? revLine() : ''}
-    ${i.reply ? `<div class="reply"><span class="rh">${T('pbtReply')}</span>${esc(i.reply)}</div>` : ''}
+    ${i.reply ? `<div class="reply" dir="auto"><span class="rh">${T('pbtReply')}</span>${esc(i.reply)}</div>` : ''}
     ${i.status === 'dup' && i.dupOf ? `<div class="dupNote">🔗 ${T('dupOf')} <b class="num">#${i.dupOf}</b></div>` : ''}
     <div class="ft"><span class="when">🕒 ${ago(i.created)}</span>
       ${opts.mine && i.status === 'new' ? `<button class="tb red" style="font-size:12.5px;padding:0 10px" data-act="withdraw" data-id="${i.id}">${T('delMine')}</button>` : ''}
       ${mineIt ? (n ? `<span class="mt">👋 <b>${n + 1}</b> ${T('people')}</span>` : '') :
-      `<button class="mt ${on ? 'on' : ''}" data-act="metoo" data-id="${i.id}">👋 ${T('metoo')} <b>${n + 1}</b></button>`}
+      `<button class="mt ${on ? 'on' : ''}" data-act="metoo" data-id="${i.id}">👋 ${T(i.type === 'idea' ? 'metooIdea' : 'metoo')} <b>${n + 1}</b></button>`}
     </div></div>`;
 }
 function vApp() {
@@ -341,9 +342,9 @@ function vForm() {
     <div class="types">${['bug', 'idea', 'ask'].map(t => `<button type="button" class="ty ${F.type === t ? 'on' : ''}" data-act="type" data-id="${t}"><span class="e">${TYPES[t]}</span><b>${T(t)}</b><small>${DICT[t][LANG === 'en' ? 0 : 1]}</small></button>`).join('')}</div></div>
 
   <div class="fs"><div class="fh"><span class="n">2</span>${T('q2')} <small>— ${T('q2s')}</small></div>
-    <textarea class="big" id="fText" data-in="text" placeholder="${T('ph')}">${esc(F.text)}</textarea>
+    <textarea class="big" id="fText" dir="auto" data-in="text" placeholder="${T('ph')}">${esc(F.text)}</textarea>
     <div class="tools"><button type="button" class="tb" data-act="pasteText">📋 ${T('paste')}</button>
-      ${sr ? `<button type="button" class="tb" id="spkBtn" data-act="speak">🎙️ ${T('speak')}</button>` : ''}
+      ${sr ? `<button type="button" class="tb" id="spkBtn" data-act="speak">🎙️ ${T('speak')}</button><select class="tb" id="spkLang" aria-label="language">${SPK_LANGS.map(([c, l]) => `<option value="${c}" ${c === spkLang() ? 'selected' : ''}>${l}</option>`).join('')}</select>` : ''}
       <span class="cnt" id="cnt">${F.text.length}</span></div>
     <div class="err" id="eText">${T('errText')}</div></div>
 
@@ -359,7 +360,7 @@ function vForm() {
     <div class="recBox" id="recBox">${recHTML()}</div></div>
 
   <div class="fs"><div class="fh"><span class="n">5</span>${T('q5')} <small>— 🔒 ${T('q5s')}</small></div>
-    <label class="lbl">${T('name')}</label><input class="inp" data-in="name" value="${esc(F.name)}" autocomplete="name">
+    <label class="lbl">${T('name')}</label><input class="inp" dir="auto" data-in="name" value="${esc(F.name)}" autocomplete="name">
     <div class="err" id="eName">${T('errName')}</div>
     <label class="lbl">${T('phone')}</label>
     <div class="inpRow"><input class="inp" type="tel" inputmode="tel" data-in="phone" value="${esc(F.phone)}" placeholder="03001234567" autocomplete="tel">
@@ -430,13 +431,15 @@ async function toggleRec() {
     }, 300);
   } catch (e) { toast(T('micErr')); }
 }
-/* بول کر لکھیں */
+/* بول کر لکھیں — کوئی بھی زبان */
+const SPK_LANGS = [['ur-PK', 'اردو'], ['en-US', 'English'], ['pa-Guru-IN', 'ਪੰਜਾਬੀ'], ['hi-IN', 'हिन्दी'], ['ar-SA', 'العربية'], ['fa-IR', 'فارسی'], ['ps-AF', 'پښتو'], ['sd-IN', 'سنڌي'], ['bn-BD', 'বাংলা'], ['tr-TR', 'Türkçe'], ['zh-CN', '中文'], ['fr-FR', 'Français'], ['es-ES', 'Español'], ['de-DE', 'Deutsch']];
+const spkLang = () => ls.get('spk', LANG === 'en' ? 'en-US' : 'ur-PK');
 let SR = null;
 function toggleSpeak() {
   const btn = $('#spkBtn');
   if (SR) { SR.stop(); return; }
   const C = window.SpeechRecognition || window.webkitSpeechRecognition;
-  SR = new C(); SR.lang = LANG === 'en' ? 'en-US' : 'ur-PK'; SR.continuous = true; SR.interimResults = false;
+  SR = new C(); SR.lang = ($('#spkLang') && $('#spkLang').value) || spkLang(); ls.set('spk', SR.lang); SR.continuous = true; SR.interimResults = false;
   SR.onresult = e => {
     for (let k = e.resultIndex; k < e.results.length; k++) if (e.results[k].isFinal) {
       F.text = (F.text ? F.text.replace(/\s*$/, ' ') : '') + e.results[k][0].transcript.trim();
@@ -521,7 +524,7 @@ function vOwner() {
     return `<div class="is s-${i.status} oi" data-act="open" data-id="${i.id}">
       <div class="top">${appIcon(a, 'appMini')} <b style="font-size:14px">${esc(AN(a))}</b>${tyChip(i.type)}${stChip(i.status)}
         <span class="chip ${i.pub ? 'globe' : 'lock'}">${i.pub ? '🌐' : '🔒'}</span>${isHeld(i) ? '<span class="chip work">⏳</span>' : ''}${needsSend(i) ? '<span class="chip mine">📨</span>' : ''}<span class="no">#${i.no}</span></div>
-      <div class="tx clamp">${esc(i.text || (i.audio ? '🎤' : ''))}</div>
+      <div class="tx clamp" dir="auto">${esc(i.text || (i.audio ? '🎤' : ''))}</div>
       <div class="ft"><span class="who">👤 ${esc(i.name)} · <span class="num">${esc(i.phone)}</span></span>
         <span class="when">🕒 ${ago(i.created)}</span>${i.shots ? `<span class="when">🖼️ ${i.shots}</span>` : ''}${i.audio ? '<span class="when">🎤</span>' : ''}
         ${n ? `<span class="mt on">👋 <b>${n + 1}</b></span>` : ''}</div></div>`;
@@ -566,7 +569,7 @@ function detailHTML() {
       <span>🕒</span><span class="num">${fullDate(i.created)}</span>
       ${i.ver ? `<span>🏷️</span><span class="num">${esc(i.ver)}</span>` : ''}</div>
     ${holdBox(i)}
-    <div class="tx" style="white-space:pre-wrap;font-size:16.5px;overflow-wrap:anywhere">${phoneLinks(i.text) || '<i style="color:var(--mut)">—</i>'}</div>
+    <div class="tx" dir="auto" style="white-space:pre-wrap;font-size:16.5px;overflow-wrap:anywhere">${phoneLinks(i.text) || '<i style="color:var(--mut)">—</i>'}</div>
     ${DET.blobs == null && (i.shots || i.audio) ? '<div class="spin" style="margin:12px auto;width:30px;height:30px"></div>' : ''}
     ${shots.length ? `<div class="shotsBig">${shots.map((b, k) => `<img src="${b.data}" data-viewsrc="1" alt="">`).join('')}</div>` : ''}
     ${au ? `<audio controls src="${au.data}" style="width:100%;margin:6px 0"></audio>` : ''}
@@ -576,7 +579,7 @@ function detailHTML() {
     <div class="tools"><button class="tb" data-act="dup">🔗 ${E ? 'Mark duplicate of #…' : 'ڈپلیکیٹ — اصل نمبر لکھیں'}</button></div>
 
     <h3>${E ? 'Reply to customer' : 'گاہک کو جواب'}</h3>
-    <textarea class="big" id="rText" style="min-height:96px" placeholder="${E ? 'Write or paste the answer from Claude…' : 'جواب لکھیں یا Claude سے لے کر پیسٹ کریں…'}">${esc(i.reply || '')}</textarea>
+    <textarea class="big" id="rText" dir="auto" style="min-height:96px" placeholder="${E ? 'Write or paste the answer from Claude…' : 'جواب لکھیں یا Claude سے لے کر پیسٹ کریں…'}">${esc(i.reply || '')}</textarea>
     <div class="tools"><button class="tb" data-act="pasteReply">📋 ${T('paste')}</button>
       <button class="tb pri" data-act="saveReply">💾 ${E ? 'Save' : 'محفوظ'}</button>
       <button class="tb grn" data-act="doneReply">✅ ${E ? 'Save + Solved' : 'محفوظ + حل ہو گیا'}</button>
@@ -868,7 +871,14 @@ $('#viewer').addEventListener('click', () => $('#viewer').classList.remove('on')
   document.documentElement.lang = LANG === 'en' ? 'en' : 'ur';
   document.documentElement.dir = LANG === 'en' ? 'ltr' : 'rtl';
   const P = new URLSearchParams(location.search);
-  if (P.get('lang') === 'en' || P.get('lang') === 'ur') { LANG = P.get('lang'); try { localStorage.setItem('pbthd_lang', LANG); } catch (e) {} document.documentElement.lang = LANG; document.documentElement.dir = LANG === 'en' ? 'ltr' : 'rtl'; }
+  // زبان: ?lang= ؛ ایپ کے اندر (embed) بغیر lang کے تو اس ایپ کی اپنی زبان (انگریزی ایپس = English) — اندر والی زبان یاد نہیں رکھی جاتی
+  let ql = P.get('lang');
+  if (!ql && EMBED && P.get('app')) ql = appOf(P.get('app')).lang || 'ur';
+  if (ql === 'en' || ql === 'ur') {
+    LANG = ql;
+    if (!EMBED) try { localStorage.setItem('pbthd_lang', LANG); } catch (e) {}
+    document.documentElement.lang = LANG; document.documentElement.dir = LANG === 'en' ? 'ltr' : 'rtl';
+  }
   if (P.get('app') && !location.hash) history.replaceState(null, '', location.search + '#/app/' + encodeURIComponent(appOf(P.get('app')).id));
   parse();
   busy(true);
