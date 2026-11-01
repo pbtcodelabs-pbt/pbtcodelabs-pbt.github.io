@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0211MO007';
-const UPDATE_NOTE = 'Write or speak in any language; English apps open in English; «I have the same problem» button';
+const APP_VERSION = 'HD0211MO008';
+const UPDATE_NOTE = 'Developer panel: change your password inside the app (no email needed)';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -720,6 +720,13 @@ function settingsSheet() {
       <div class="num" style="font-size:13.5px;word-break:break-all">${esc(location.origin + location.pathname)}</div>
       <div class="tools"><button class="tb" data-act="copyLink">📋 ${E ? 'Copy' : 'کاپی'}</button><button class="tb" data-act="shareLink">💬 WhatsApp</button></div>
       <p style="font-size:12.5px;color:var(--mut);margin:6px 0 0">${E ? 'From inside an app:' : 'کسی ایپ کے اندر سے:'} <span class="num">…/help/?app=SM&amp;v=SM0111SU300</span></p></div>
+    ${Store.mode === 'cloud' ? `<div class="card" style="box-shadow:none;background:#fff7ed;border:1px solid #fdba74">
+      <b>🔑 ${E ? 'Change password' : 'پاس ورڈ بدلیں'}</b>
+      <p style="font-size:12.5px;color:var(--mut);margin:2px 0 6px">${E ? 'Use a password different from your Gmail.' : 'جی میل والا پاس ورڈ نہ رکھیں — نیا الگ پاس ورڈ۔'}</p>
+      <label class="lbl">${E ? 'Current password' : 'موجودہ پاس ورڈ'}</label><input class="inp ltr" type="password" id="pwOld" autocomplete="current-password">
+      <label class="lbl">${E ? 'New password (8+)' : 'نیا پاس ورڈ (کم از کم 8)'}</label><input class="inp ltr" type="password" id="pwNew" autocomplete="new-password">
+      <label class="lbl">${E ? 'New password again' : 'نیا پاس ورڈ دوبارہ'}</label><input class="inp ltr" type="password" id="pwNew2" autocomplete="new-password">
+      <div class="tools"><button class="tb pri" data-act="chPw">🔑 ${E ? 'Change' : 'بدلیں'}</button><button class="tb" data-act="pwEye">👁️</button></div></div>` : ''}
     ${Store.mode === 'demo' ? `<button class="tb red" data-act="wipe">🧪 ${E ? 'Clear demo data' : 'ڈیمو ڈیٹا مٹائیں'}</button>` : ''}`);
 }
 
@@ -798,6 +805,17 @@ document.addEventListener('click', async e => {
     }
     case 'logout': Store.ownerLogout(); go('#/'); break;
     case 'settings': settingsSheet(); break;
+    case 'pwEye': ['#pwOld', '#pwNew', '#pwNew2'].forEach(k => { const x = $(k); if (x) x.type = x.type === 'password' ? 'text' : 'password'; }); break;
+    case 'chPw': {
+      const E = LANG === 'en', o = $('#pwOld').value, n = $('#pwNew').value, n2 = $('#pwNew2').value;
+      if (n.length < 8) { toast(E ? 'New password: at least 8 characters' : 'نیا پاس ورڈ کم از کم 8 حروف کا'); break; }
+      if (n !== n2) { toast(E ? 'The two new passwords differ' : 'دونوں نئے پاس ورڈ ایک جیسے نہیں'); break; }
+      if (n === o) { toast(E ? 'New password is the same as old' : 'نیا پاس ورڈ پرانے جیسا ہے'); break; }
+      busy(true);
+      try { await Store.changePassword(o, n); closeSheet(); toast(E ? '✅ Password changed — save it in Chrome' : '✅ پاس ورڈ بدل گیا — کروم میں محفوظ کر لیں', 5000); }
+      catch (e) { toast(e.message === 'old' ? (E ? '❌ Current password is wrong' : '❌ موجودہ پاس ورڈ غلط ہے') : '⚠️ ' + (e.code || e.message), 5000); }
+      busy(false); break;
+    }
     case 'saveCfg': await Store.setCfg({ hoursUr: $('#hUr').value.trim(), hoursEn: $('#hEn').value.trim(), keepDays: Math.max(1, +digits($('#kDays').value) || 7) }); closeSheet(); toast('✅'); break;
     case 'copyLink': try { await navigator.clipboard.writeText(location.origin + location.pathname); toast('📋 ✅'); } catch (_) {} break;
     case 'shareLink': window.open('https://wa.me/?text=' + encodeURIComponent('السلام علیکم! PBT Code Labs کی کسی بھی ایپ میں مسئلہ ہو یا کوئی مشورہ دینا ہو تو یہاں لکھیں — جواب یہیں آئے گا:\n' + location.origin + location.pathname), '_blank'); break;
