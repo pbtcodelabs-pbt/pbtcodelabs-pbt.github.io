@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0111SU002';
-const UPDATE_NOTE = 'Camera button, next review time (2 AM / 2 PM), approval list, in-app Help Desk button';
+const APP_VERSION = 'HD0111SU003';
+const UPDATE_NOTE = 'Live on Firebase: your request reaches PBT Code Labs instantly, replies appear here live';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
