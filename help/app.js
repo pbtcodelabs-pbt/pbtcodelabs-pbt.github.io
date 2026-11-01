@@ -1,0 +1,843 @@
+/* PBT Help Desk — گاہک اپنا مسئلہ / مشورہ / سوال یہاں بتائیں؛ مالک (ڈویلپر) یہیں سے جواب دے
+   راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
+   ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
+'use strict';
+const APP_VERSION = 'HD0111SU001';
+const UPDATE_NOTE = 'First release: choose app, report problem with screenshot & voice, me-too, developer panel';
+const DEV_PHONE = '03206793793';
+
+const APPS = [
+  { id: 'AIO', ur: 'AIO POS', en: 'AIO POS', img: '../img/aio.webp', repo: 'pbtcodelabs-pbt/AIO' },
+  { id: 'AIO-POS-DIRECT', ur: 'AIO POS ڈائریکٹ', en: 'AIO POS Direct', img: '../img/aiodirect.webp', repo: 'pbtcodelabs-pbt/AIO-POS-DIRECT' },
+  { id: 'FFPOS', ur: 'FFPOS', en: 'FFPOS', img: '../img/ffpos.webp?v=2', repo: 'ffpos-pbt/ffpos-pbt.github.io' },
+  { id: 'SM', ur: 'سبزی منڈی', en: 'Sabzi Mandi', img: '../img/sm.webp', repo: 'pbtcodelabs-pbt/SM' },
+  { id: 'FM', ur: 'فروٹ منڈی', en: 'Fruit Mandi', img: '../img/fm.webp', repo: 'pbtcodelabs-pbt/FM' },
+  { id: 'AB', ur: 'آڑھت بک', en: 'Arhat Book', img: 'img/ab.png', repo: 'pbtcodelabs-pbt/AB' },
+  { id: 'DG', ur: 'جی جی کھاتہ بک', en: 'GG Khatabook', img: '../img/dg.webp', repo: 'pbtcodelabs-pbt/DG' },
+  { id: 'DDL', ur: 'دودھ ڈائری', en: 'Doodh Diary', img: '../img/ddl.webp', repo: 'pbtcodelabs-pbt/DDL' },
+  { id: 'Hifz-progress', ur: 'مدرسہ', en: 'Madrasa', img: '../img/hifz.webp', repo: 'pbtcodelabs-pbt/Hifz-progress' },
+  { id: 'hafiz-musab-app', ur: 'حفظ پرو', en: 'Hifz Pro', img: '../img/hifzpro.webp', repo: 'pbtcodelabs-pbt/hafiz-musab-app' },
+  { id: 'MA', ur: 'مکتبہ', en: 'Maktaba', img: '../img/ma.webp', repo: 'pbtcodelabs-pbt/MA' },
+  { id: 'MS', ur: 'میڈیسن شیلف', en: 'Medicine Shelf', img: '../img/ms.svg', repo: 'pbtcodelabs-pbt/MS' },
+  { id: 'Stylish-listing-', ur: 'سامان لسٹ', en: 'Shopping List', img: '../img/list.webp', repo: 'pbtcodelabs-pbt/Stylish-listing-' },
+  { id: 'MT', ur: 'میٹر ٹریکر', en: 'Meter Tracker', img: '../img/mt.webp', repo: 'pbtcodelabs-pbt/MT' },
+  { id: 'MCS', ur: 'سٹی شائنز', en: 'My City Shines', img: '../img/mcs.webp', repo: 'pbtcodelabs-pbt/MCS' },
+  { id: 'urdu-fonts-studio', ur: 'اردو فونٹس', en: 'Urdu Fonts', img: '../img/fonts.webp', repo: 'pbtcodelabs-pbt/urdu-fonts-studio' },
+  { id: 'other', ur: 'کوئی اور', en: 'Other', emoji: '🧩', repo: '' }
+];
+const appOf = id => APPS.find(a => a.id.toLowerCase() === String(id || '').toLowerCase()) || APPS[APPS.length - 1];
+
+/* ---------- زبان ---------- */
+const DICT = {
+  sub: ['اپنا مسئلہ یا مشورہ یہاں بتائیں', 'Tell us your problem or suggestion here'],
+  langBtn: ['EN', 'اردو'],
+  demo: ['🧪 ڈیمو — ابھی فائربیس نہیں جڑا، ڈیٹا صرف اسی فون میں', '🧪 Demo — not connected to Firebase yet, data stays on this phone'],
+  solvedWeek: ['اس ہفتے حل', 'Solved this week'],
+  pending: ['زیر غور', 'Under review'],
+  avgReply: ['اوسط جواب', 'Avg. reply'],
+  chooseApp: ['اپنی ایپ چنیں', 'Choose your app'],
+  chooseAppSub: ['جس ایپ میں مسئلہ ہے', 'the app you need help with'],
+  mine: ['میرے مسائل', 'My requests'],
+  mineSub: ['جو آپ نے بھیجے — حالت اور جواب', 'what you sent — status & reply'],
+  hours: ['جواب کا وقت', 'Reply hours'],
+  hoursDef: ['روزانہ شام 9 سے رات 11 بجے تک — ہر مسئلہ باری سے دیکھا جاتا ہے', 'Daily 9 PM – 11 PM — every request is handled in turn'],
+  whyHere: ['یہاں لکھا ہر مسئلہ محفوظ رہتا ہے، گم نہیں ہوتا، اور حل ہوتے ہی جواب یہیں آ جاتا ہے۔ واٹس ایپ پر بھیجنے کی ضرورت نہیں۔',
+    'Everything written here is saved, never lost, and the answer appears right here once solved. No need to send it on WhatsApp.'],
+  tellBtn: ['اپنا مسئلہ یا مشورہ بتائیں', 'Report a problem or suggestion'],
+  dupTip: ['👀 پہلے نیچے دیکھ لیں — اگر آپ کا مسئلہ پہلے سے لکھا ہے تو «👋 میرا بھی» دبا دیں، دوبارہ لکھنے کی ضرورت نہیں۔ جتنے زیادہ لوگ، اتنی جلدی حل۔',
+    '👀 Check the list first — if your problem is already there, just tap «👋 Me too». No need to write it again. More votes = faster fix.'],
+  tabOpen: ['زیر غور', 'Open'], tabDone: ['حل ہو گئے', 'Solved'],
+  search: ['تلاش کریں…', 'Search…'],
+  noOpen: ['اس ایپ میں ابھی کوئی کھلا مسئلہ نہیں 🎉', 'No open requests for this app 🎉'],
+  noDone: ['اس ہفتے کوئی حل شدہ مسئلہ نہیں', 'Nothing solved this week yet'],
+  noMine: ['آپ نے ابھی کچھ نہیں بھیجا', 'You have not sent anything yet'],
+  metoo: ['میرا بھی', 'Me too'],
+  yours: ['آپ کا', 'Yours'],
+  pbtReply: ['💬 PBT Code Labs کا جواب', '💬 Reply from PBT Code Labs'],
+  dupOf: ['یہ مسئلہ پہلے سے موجود ہے — دیکھیں', 'Already reported — see'],
+  more: ['مزید', 'more'],
+  // فارم
+  newTitle: ['نیا مسئلہ / مشورہ', 'New request'],
+  q1: ['کیا بتانا ہے؟', 'What is it?'],
+  bug: ['مسئلہ', 'Problem'], idea: ['مشورہ', 'Suggestion'], ask: ['سوال', 'Question'],
+  q2: ['تفصیل لکھیں', 'Describe it'],
+  q2s: ['جتنا صاف لکھیں گے، اتنا جلدی حل', 'the clearer, the faster'],
+  ph: ['مثلاً: بل پرنٹ کرتے وقت گاہک کا نام کٹ جاتا ہے…', 'e.g. When I print a bill, the customer name gets cut…'],
+  paste: ['پیسٹ', 'Paste'], speak: ['بول کر لکھیں', 'Speak to type'], stopSpeak: ['رکیں', 'Stop'],
+  q3: ['اسکرین شاٹ لگائیں', 'Add screenshots'],
+  q3s: ['بہت مدد ملتی ہے', 'helps a lot'],
+  dropT: ['اسکرین شاٹ لے کر یہاں پیسٹ کریں، یا گیلری سے چنیں', 'Paste a screenshot here, or pick from gallery'],
+  gallery: ['گیلری سے', 'Gallery'], pasteImg: ['تصویر پیسٹ', 'Paste image'],
+  q4: ['آواز میں بتائیں', 'Voice note'], q4s: ['اختیاری', 'optional'],
+  recT: ['دبائیں اور بولیں — 2 منٹ تک', 'Tap and speak — up to 2 min'],
+  recOn: ['ریکارڈ ہو رہا ہے… دوبارہ دبا کر روکیں', 'Recording… tap again to stop'],
+  recDone: ['آواز تیار ہے', 'Voice note ready'],
+  q5: ['آپ کا رابطہ', 'Your contact'],
+  q5s: ['صرف PBT Code Labs کو نظر آئے گا', 'only PBT Code Labs can see this'],
+  name: ['آپ کا نام', 'Your name'], phone: ['موبائل نمبر', 'Mobile number'],
+  remember: ['اگلی بار کے لیے یاد رکھیں', 'Remember for next time'],
+  verL: ['ایپ کا ورژن (اگر معلوم ہو)', 'App version (if you know it)'],
+  appL: ['ایپ', 'App'],
+  send: ['بھیج دیں', 'Send'],
+  sending: ['بھیجا جا رہا ہے…', 'Sending…'],
+  errText: ['تھوڑی سی تفصیل لکھیں، یا آواز / اسکرین شاٹ لگائیں', 'Please write a few words, or add a voice note / screenshot'],
+  errPhone: ['درست موبائل نمبر لکھیں (مثلاً 03001234567)', 'Enter a valid mobile number (e.g. 03001234567)'],
+  errName: ['اپنا نام لکھیں', 'Please enter your name'],
+  thanks: ['شکریہ! آپ کی بات ہم تک پہنچ گئی', 'Thank you! We received it'],
+  ticketL: ['آپ کا نمبر', 'Your number'],
+  thanksP: ['ہم باری سے دیکھیں گے۔ حالت بدلتے ہی اور حل ہوتے ہی جواب «میرے مسائل» میں یہیں آ جائے گا۔',
+    'We will look at it in turn. Status updates and the answer will appear here in «My requests».'],
+  home: ['ہوم', 'Home'],
+  maxShots: ['زیادہ سے زیادہ 4 تصویریں', 'Maximum 4 images'],
+  noClipImg: ['کلپ بورڈ میں تصویر نہیں ملی — پہلے اسکرین شاٹ کاپی کریں یا گیلری سے چنیں', 'No image in clipboard — copy a screenshot first or use Gallery'],
+  noClip: ['پیسٹ کی اجازت نہیں ملی — خانے کو دبا کر رکھیں اور Paste چنیں', 'Paste not allowed — long-press the box and choose Paste'],
+  micErr: ['مائیک کی اجازت نہیں ملی', 'Microphone permission denied'],
+  pasted: ['پیسٹ ہو گیا', 'Pasted'],
+  updatedMine: ['🎉 آپ کے مسئلے پر نیا جواب / حالت', '🎉 New update on your request'],
+  // حالتیں
+  s_new: ['موصول', 'Received'], s_seen: ['دیکھ لیا', 'Seen'], s_work: ['کام جاری', 'In progress'], s_done: ['حل ہو گیا', 'Solved'], s_dup: ['پہلے سے موجود', 'Duplicate'],
+  people: ['لوگ', 'people'],
+  now: ['ابھی', 'just now'], mAgo: ['منٹ پہلے', 'min ago'], hAgo: ['گھنٹے پہلے', 'h ago'], dAgo: ['دن پہلے', 'd ago'], yday: ['کل', 'yesterday'],
+  hrs: ['گھنٹے', 'hrs'], days: ['دن', 'days'],
+  foot: ['PBT Code Labs — آپ کی رائے سے ہماری ایپس بہتر ہوتی ہیں', 'PBT Code Labs — your feedback makes our apps better'],
+  viewOne: ['مسئلہ', 'Request'],
+  notFound: ['یہ مسئلہ نہیں ملا — شاید حل ہو کر ہٹ چکا ہے', 'Not found — it may have been solved and removed'],
+  delMine: ['واپس لیں', 'Withdraw'], delMineQ: ['یہ مسئلہ واپس لے لیں؟', 'Withdraw this request?']
+};
+let LANG = (() => { try { return localStorage.getItem('pbthd_lang') === 'en' ? 'en' : 'ur'; } catch (e) { return 'ur'; } })();
+const T = k => (DICT[k] ? DICT[k][LANG === 'en' ? 1 : 0] : k);
+const AN = a => (LANG === 'en' ? a.en : a.ur);
+function setLang(l) {
+  LANG = l; try { localStorage.setItem('pbthd_lang', l); } catch (e) {}
+  document.documentElement.lang = l === 'en' ? 'en' : 'ur';
+  document.documentElement.dir = l === 'en' ? 'ltr' : 'rtl';
+  render();
+}
+
+/* ---------- مددگار ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ls = {
+  get(k, d) { try { const v = localStorage.getItem('pbthd_' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('pbthd_' + k, JSON.stringify(v)); } catch (e) {} }
+};
+const DEV = (() => { let d = ls.get('dev'); if (!d) { d = 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); ls.set('dev', d); } return d; })();
+function toast(m, ms) { const t = $('#toast'); t.textContent = m; t.style.display = 'block'; clearTimeout(toast.h); toast.h = setTimeout(() => t.style.display = 'none', ms || 2600); }
+function busy(on, txt) { $('#busy').classList.toggle('on', !!on); $('#busyT').textContent = txt || ''; }
+const digits = s => String(s || '').replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+function normPhone(s) {
+  let p = digits(s).replace(/[^\d+]/g, '');
+  if (p.startsWith('+92')) p = '0' + p.slice(3);
+  else if (p.startsWith('0092')) p = '0' + p.slice(4);
+  else if (p.startsWith('92') && p.length === 12) p = '0' + p.slice(2);
+  else if (p.startsWith('3') && p.length === 10) p = '0' + p;
+  return p.replace(/\+/g, '');
+}
+const phoneOk = p => /^03\d{9}$/.test(p) || /^\d{8,15}$/.test(p);
+const waNum = p => (/^0\d{10}$/.test(p) ? '92' + p.slice(1) : p);
+function ago(t) {
+  const s = (Date.now() - t) / 1000;
+  if (s < 60) return T('now');
+  if (s < 3600) return Math.floor(s / 60) + ' ' + T('mAgo');
+  if (s < 86400) return Math.floor(s / 3600) + ' ' + T('hAgo');
+  if (s < 172800) return T('yday');
+  return Math.floor(s / 86400) + ' ' + T('dAgo');
+}
+const fullDate = t => new Date(t).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
+const appIcon = (a, cls) => a.img ? `<img class="${cls || ''}" src="${esc(a.img)}" alt="" loading="lazy">` : `<span class="em ${cls || ''}">${a.emoji}</span>`;
+const TYPES = { bug: '🐞', idea: '💡', ask: '❓' };
+const ST_IC = { new: '📥', seen: '👀', work: '🔧', done: '✅', dup: '🔗' };
+const stChip = s => `<span class="chip ${s}">${ST_IC[s]} ${T('s_' + s)}</span>`;
+const tyChip = t => `<span class="chip">${TYPES[t] || '🐞'} ${T(t)}</span>`;
+
+/* ---------- ڈیٹا ---------- */
+let ISSUES = [], CFG = {};
+const keepDays = () => +CFG.keepDays || 7;
+const isOpen = i => ['new', 'seen', 'work'].includes(i.status);
+const fresh = i => !(i.status === 'done' || i.status === 'dup') || (Date.now() - (i.doneAt || i.upd) < keepDays() * 864e5);
+const publicList = () => ISSUES.filter(i => i.pub && fresh(i));
+const myList = () => ISSUES.filter(i => i.dev === DEV && fresh(i)).sort((a, b) => b.created - a.created);
+const ptext = i => i.ptext || i.text || '';
+function weekSolved(list) { const w = Date.now() - 7 * 864e5; return list.filter(i => i.status === 'done' && i.doneAt > w).length; }
+function avgReply() {
+  const d = ISSUES.filter(i => i.status === 'done' && (i.replyAt || i.doneAt) && Date.now() - i.doneAt < 30 * 864e5);
+  if (!d.length) return '—';
+  const h = d.reduce((s, i) => s + ((i.replyAt || i.doneAt) - i.created), 0) / d.length / 3600e3;
+  return h < 48 ? Math.max(1, Math.round(h)) + ' ' + T('hrs') : Math.round(h / 24) + ' ' + T('days');
+}
+// «میرے مسائل» میں نیا کیا ہے
+const sig = i => i.status + '|' + (i.reply || '').length;
+function unseenMine() { const seen = ls.get('seen', {}); return myList().filter(i => seen[i.id] && seen[i.id] !== sig(i)).length; }
+function markMineSeen() { const seen = ls.get('seen', {}); myList().forEach(i => seen[i.id] = sig(i)); ls.set('seen', seen); }
+function rememberMine(id, s) { const seen = ls.get('seen', {}); seen[id] = s; ls.set('seen', seen); }
+
+/* ---------- راستہ ---------- */
+let R = { v: 'home' };
+function parse() {
+  const h = location.hash.replace(/^#\/?/, '').split('/');
+  const v = h[0] || 'home';
+  R = { v, a: decodeURIComponent(h[1] || '') };
+}
+function go(h) { if (location.hash === h) { parse(); render(); } else location.hash = h; }
+window.addEventListener('hashchange', () => { parse(); render(); window.scrollTo(0, 0); });
+
+/* ---------- سر ---------- */
+function header() {
+  const own = Store.isOwner();
+  const back = R.v !== 'home' ? `<button class="hBtn back" data-act="back" aria-label="back">${LANG === 'en' ? '←' : '→'}</button>` : '';
+  $('#hd').innerHTML = `<div class="hdIn">${back}
+    <img class="logo" src="icons/icon-192.png" alt="" data-act="tap7">
+    <div class="brand"><b>PBT Help Desk</b><span>${T('sub')}</span></div>
+    ${own && R.v === 'home' ? `<button class="hBtn" data-act="goOwner" title="Developer">🛠️</button>` : ''}
+    <button class="hBtn ${LANG === 'en' ? '' : 'en'}" data-act="lang">${T('langBtn')}</button></div>
+    ${Store.mode === 'demo' ? `<div class="demo">${T('demo')}</div>` : ''}`;
+}
+function foot() {
+  return `<div class="foot">${T('foot')}<br><span class="num">📞 ${DEV_PHONE}</span> · <span class="ver" data-act="tap7">${APP_VERSION}</span></div>`;
+}
+
+/* ---------- ہوم ---------- */
+function vHome() {
+  const pub = publicList();
+  const open = pub.filter(isOpen);
+  const un = unseenMine(), mine = myList().length;
+  const hrs = (LANG === 'en' ? CFG.hoursEn : CFG.hoursUr) || T('hoursDef');
+  const tiles = APPS.map(a => {
+    const n = open.filter(i => i.app === a.id).length;
+    return `<button class="ap" data-act="app" data-id="${esc(a.id)}">${appIcon(a)}<span class="n ${/[a-z]/i.test(AN(a)) && LANG !== 'en' ? 'en' : ''}">${esc(AN(a))}</span>${n ? `<span class="bd">${n}</span>` : ''}</button>`;
+  }).join('');
+  return `
+  <div class="card stats">
+    <div class="st g"><span class="v">${weekSolved(ISSUES)}</span><span class="l">✅ ${T('solvedWeek')}</span></div>
+    <div class="st o"><span class="v">${open.length}</span><span class="l">🔧 ${T('pending')}</span></div>
+    <div class="st b"><span class="v" style="font-size:19px">${avgReply()}</span><span class="l">⏱️ ${T('avgReply')}</span></div>
+  </div>
+  ${mine ? `<button class="mineBtn" data-act="mine"><span class="i">📋</span><span class="t"><b>${T('mine')} <span class="num">(${mine})</span></b><small>${T('mineSub')}</small></span>${un ? `<span class="dot">${un}</span>` : ''}<span>${LANG === 'en' ? '›' : '‹'}</span></button>` : ''}
+  <div class="secT">📱 ${T('chooseApp')} <small>— ${T('chooseAppSub')}</small></div>
+  <div class="apps">${tiles}</div>
+  <div class="card" style="margin-top:16px">
+    <div class="info"><span class="i">🕘</span><div><b>${T('hours')}:</b> ${esc(hrs)}</div></div>
+    <div class="info" style="margin-top:6px"><span class="i">🛡️</span><div>${T('whyHere')}</div></div>
+  </div>
+  ${foot()}`;
+}
+
+/* ---------- ایپ کا صفحہ ---------- */
+let appTab = 'open', appQ = '';
+function issueCard(i, opts) {
+  opts = opts || {};
+  const mineIt = i.dev === DEV;
+  const on = (i.metoo || []).includes(DEV);
+  const n = (i.metoo || []).length;
+  const txt = opts.full ? i.text : ptext(i);
+  const isNew = opts.mine && (ls.get('seen', {})[i.id] || sig(i)) !== sig(i);
+  const steps = opts.mine && i.status !== 'dup' ? `<div class="steps">${['new', 'seen', 'work', 'done'].map((s, k, A) => {
+    const cur = A.indexOf(i.status);
+    return `<div class="s ${k <= cur ? 'on' : ''} ${k === cur && s !== 'done' ? 'cur' : ''}">${T('s_' + s)}</div>`;
+  }).join('')}</div>` : '';
+  const app = appOf(i.app);
+  return `<div class="is s-${i.status}">
+    ${isNew ? `<span class="newDot">${LANG === 'en' ? 'New' : 'نیا'}</span>` : ''}
+    <div class="top">${opts.showApp ? `${appIcon(app, 'appMini')} <b style="font-size:14px">${esc(AN(app))}</b>` : ''}${tyChip(i.type)}${stChip(i.status)}${mineIt && !opts.mine ? `<span class="chip mine">⭐ ${T('yours')}</span>` : ''}<span class="no">#${i.no}</span></div>
+    <div class="tx clamp" data-act="expand">${esc(txt)}</div>
+    ${steps}
+    ${i.reply ? `<div class="reply"><span class="rh">${T('pbtReply')}</span>${esc(i.reply)}</div>` : ''}
+    ${i.status === 'dup' && i.dupOf ? `<div class="dupNote">🔗 ${T('dupOf')} <b class="num">#${i.dupOf}</b></div>` : ''}
+    <div class="ft"><span class="when">🕒 ${ago(i.created)}</span>
+      ${opts.mine && i.status === 'new' ? `<button class="tb red" style="font-size:12.5px;padding:0 10px" data-act="withdraw" data-id="${i.id}">${T('delMine')}</button>` : ''}
+      ${mineIt ? (n ? `<span class="mt">👋 <b>${n + 1}</b> ${T('people')}</span>` : '') :
+      `<button class="mt ${on ? 'on' : ''}" data-act="metoo" data-id="${i.id}">👋 ${T('metoo')} <b>${n + 1}</b></button>`}
+    </div></div>`;
+}
+function vApp() {
+  const a = appOf(R.a);
+  const pub = publicList().filter(i => i.app === a.id);
+  const mine = myList().filter(i => i.app === a.id && !i.pub);
+  const open = pub.filter(isOpen), done = pub.filter(i => i.status === 'done');
+  const q = appQ.trim().toLowerCase();
+  let list = (appTab === 'open' ? [...mine.filter(isOpen), ...open] : done);
+  if (q) list = list.filter(i => (ptext(i) + ' ' + (i.reply || '') + ' #' + i.no).toLowerCase().includes(q));
+  list.sort(appTab === 'open' ? (x, y) => ((y.metoo || []).length - (x.metoo || []).length) || (y.created - x.created) : (x, y) => y.doneAt - x.doneAt);
+  const side = `<div class="card"><div class="appHead">${appIcon(a)}<div><b>${esc(AN(a))}</b>
+      <small>🔧 ${open.length} ${T('pending')} · ✅ ${weekSolved(pub)} ${T('solvedWeek')}</small></div></div>
+      ${weekSolved(pub) ? `<div class="goodBar">✅ ${T('solvedWeek')}: ${weekSolved(pub)}</div>` : ''}</div>
+    <button class="bigBtn" data-act="new" data-id="${esc(a.id)}">➕ ${T('tellBtn')}</button>
+    <div class="tip">${T('dupTip')}</div>`;
+  const cards = list.length ? list.map(i => issueCard(i)).join('') :
+    `<div class="empty"><span class="e">${appTab === 'open' ? '🌿' : '🗂️'}</span>${appTab === 'open' ? T('noOpen') : T('noDone')}</div>`;
+  return `<div class="two"><div class="side">${side}</div><div class="mainCol">
+    <div class="seg"><button class="${appTab === 'open' ? 'on' : ''}" data-act="atab" data-id="open">🔧 ${T('tabOpen')}<i>${open.length + mine.filter(isOpen).length}</i></button>
+      <button class="${appTab === 'done' ? 'on' : ''}" data-act="atab" data-id="done">✅ ${T('tabDone')}<i>${done.length}</i></button></div>
+    ${(open.length + done.length) > 4 ? `<label class="search">🔍<input id="appQ" value="${esc(appQ)}" placeholder="${T('search')}"></label>` : ''}
+    <div id="aList">${cards}</div></div></div>${foot()}`;
+}
+
+/* ---------- میرے مسائل / ایک مسئلہ ---------- */
+function vMine() {
+  const l = myList();
+  setTimeout(markMineSeen, 2500);
+  return `<div class="secT top">📋 ${T('mine')}</div>` +
+    (l.length ? l.map(i => issueCard(i, { mine: true, showApp: true, full: true })).join('') : `<div class="card empty"><span class="e">📭</span>${T('noMine')}</div>`) + foot();
+}
+function vOne() {
+  const i = ISSUES.find(x => x.id === R.a);
+  if (!i) return `<div class="card empty"><span class="e">🔎</span>${T('notFound')}</div>` + foot();
+  return `<div class="secT top">🧾 ${T('viewOne')} <span class="num">#${i.no}</span></div>` +
+    issueCard(i, { mine: true, showApp: true, full: i.dev === DEV }) +
+    `<button class="bigBtn blue" data-act="app" data-id="${esc(i.app)}">${appIcon(appOf(i.app), 'appMini')} ${esc(AN(appOf(i.app)))}</button>` + foot();
+}
+
+/* ---------- فارم ---------- */
+let F = null;
+function newForm(app) {
+  const me = ls.get('me', {});
+  const P = new URLSearchParams(location.search);
+  F = { app, type: 'bug', text: '', shots: [], audio: null, audioMs: 0, name: me.name || P.get('name') || '', phone: me.phone || normPhone(P.get('phone') || ''), ver: P.get('v') || '', remember: true };
+}
+function vForm() {
+  if (!F || F.app !== appOf(R.a).id) newForm(appOf(R.a).id);
+  const a = appOf(F.app);
+  const sr = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+  const opts = APPS.map(x => `<option value="${esc(x.id)}" ${x.id === F.app ? 'selected' : ''}>${esc(AN(x))}</option>`).join('');
+  return `<div class="formWrap">
+  <div class="card" style="display:flex;align-items:center;gap:12px;padding:10px 14px">${appIcon(a, 'appMini')}
+    <b style="flex:1">${T('newTitle')}</b>
+    <select class="inp" style="width:auto;max-width:55%;padding:2px 8px;font-size:14px" data-in="app" aria-label="${T('appL')}">${opts}</select></div>
+
+  <div class="fs"><div class="fh"><span class="n">1</span>${T('q1')}</div>
+    <div class="types">${['bug', 'idea', 'ask'].map(t => `<button type="button" class="ty ${F.type === t ? 'on' : ''}" data-act="type" data-id="${t}"><span class="e">${TYPES[t]}</span><b>${T(t)}</b><small>${DICT[t][LANG === 'en' ? 0 : 1]}</small></button>`).join('')}</div></div>
+
+  <div class="fs"><div class="fh"><span class="n">2</span>${T('q2')} <small>— ${T('q2s')}</small></div>
+    <textarea class="big" id="fText" data-in="text" placeholder="${T('ph')}">${esc(F.text)}</textarea>
+    <div class="tools"><button type="button" class="tb" data-act="pasteText">📋 ${T('paste')}</button>
+      ${sr ? `<button type="button" class="tb" id="spkBtn" data-act="speak">🎙️ ${T('speak')}</button>` : ''}
+      <span class="cnt" id="cnt">${F.text.length}</span></div>
+    <div class="err" id="eText">${T('errText')}</div></div>
+
+  <div class="fs"><div class="fh"><span class="n">3</span>${T('q3')} <small>— ${T('q3s')}</small></div>
+    <div class="drop" id="drop"><span class="e">🖼️</span><p>${T('dropT')}</p>
+      <div class="tools"><button type="button" class="tb pri" data-act="gallery">🖼️ ${T('gallery')}</button>
+      <button type="button" class="tb" data-act="pasteImg">📋 ${T('pasteImg')}</button></div>
+      <input type="file" id="fileIn" accept="image/*" multiple hidden></div>
+    <div class="shots" id="shots">${shotsHTML()}</div></div>
+
+  <div class="fs"><div class="fh"><span class="n">4</span>${T('q4')} <small>— ${T('q4s')}</small></div>
+    <div class="recBox" id="recBox">${recHTML()}</div></div>
+
+  <div class="fs"><div class="fh"><span class="n">5</span>${T('q5')} <small>— 🔒 ${T('q5s')}</small></div>
+    <label class="lbl">${T('name')}</label><input class="inp" data-in="name" value="${esc(F.name)}" autocomplete="name">
+    <div class="err" id="eName">${T('errName')}</div>
+    <label class="lbl">${T('phone')}</label>
+    <div class="inpRow"><input class="inp" type="tel" inputmode="tel" data-in="phone" value="${esc(F.phone)}" placeholder="03001234567" autocomplete="tel">
+      <button type="button" class="tb" data-act="pastePhone">📋 ${T('paste')}</button></div>
+    <div class="err" id="ePhone">${T('errPhone')}</div>
+    <label class="okRow"><input type="checkbox" data-in="remember" ${F.remember ? 'checked' : ''}>${T('remember')}</label>
+    <details class="more" ${F.ver ? 'open' : ''}><summary>➕ ${T('more')}</summary>
+      <label class="lbl">${T('verL')}</label><input class="inp ltr" data-in="ver" value="${esc(F.ver)}" placeholder="AIODR0111SU111"></details></div>
+
+  <div class="sendBar"><button class="bigBtn green" data-act="send">📨 ${T('send')}</button></div></div>`;
+}
+const shotsHTML = () => F.shots.map((s, k) => `<div class="shot"><img src="${s}" data-view="${k}" alt=""><b data-act="rmShot" data-id="${k}">✕</b></div>`).join('');
+function recHTML() {
+  if (REC.on) return `<button type="button" class="mic on" data-act="rec">⏹</button><div class="t"><b id="recT">0:00</b>${T('recOn')}</div>`;
+  if (F.audio) return `<button type="button" class="mic" data-act="rec" title="again">🎤</button><div class="t"><b>✅ ${fmtMs(F.audioMs)}</b>${T('recDone')}</div>
+    <audio controls src="${F.audio}"></audio><button type="button" class="tb red" data-act="rmAudio">🗑️</button>`;
+  return `<button type="button" class="mic" data-act="rec">🎤</button><div class="t">${T('recT')}</div>`;
+}
+const fmtMs = ms => Math.floor(ms / 60000) + ':' + String(Math.floor(ms / 1000) % 60).padStart(2, '0');
+
+/* تصویر چھوٹی کر کے (1MB سے بہت نیچے) */
+function loadImg(src) { return new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = src; }); }
+async function shrink(blob) {
+  const url = URL.createObjectURL(blob);
+  try {
+    const im = await loadImg(url);
+    let out = '';
+    for (const [max, q] of [[1400, .72], [1100, .6], [900, .5]]) {
+      const k = Math.min(1, max / Math.max(im.naturalWidth, im.naturalHeight));
+      const c = document.createElement('canvas'); c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k);
+      const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0, c.width, c.height);
+      out = c.toDataURL('image/jpeg', q);
+      if (out.length < 380000) break;
+    }
+    return out;
+  } finally { URL.revokeObjectURL(url); }
+}
+async function addShots(files) {
+  for (const f of files) {
+    if (!/^image\//.test(f.type)) continue;
+    if (F.shots.length >= 4) { toast(T('maxShots')); break; }
+    try { F.shots.push(await shrink(f)); } catch (e) {}
+  }
+  const s = $('#shots'); if (s) s.innerHTML = shotsHTML();
+}
+
+/* آواز */
+const REC = { on: false, mr: null, t0: 0, tm: 0, chunks: [] };
+async function toggleRec() {
+  if (REC.on) { REC.mr.stop(); return; }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const mime = ['audio/webm;codecs=opus', 'audio/ogg;codecs=opus', 'audio/mp4'].find(m => window.MediaRecorder && MediaRecorder.isTypeSupported(m)) || '';
+    const mr = new MediaRecorder(stream, Object.assign({ audioBitsPerSecond: 24000 }, mime ? { mimeType: mime } : {}));
+    REC.chunks = []; REC.mr = mr; REC.on = true; REC.t0 = Date.now();
+    mr.ondataavailable = e => e.data.size && REC.chunks.push(e.data);
+    mr.onstop = () => {
+      stream.getTracks().forEach(t => t.stop()); clearInterval(REC.tm); REC.on = false;
+      F.audioMs = Date.now() - REC.t0;
+      const b = new Blob(REC.chunks, { type: mr.mimeType || 'audio/webm' });
+      const fr = new FileReader(); fr.onload = () => { F.audio = fr.result; $('#recBox') && ($('#recBox').innerHTML = recHTML()); }; fr.readAsDataURL(b);
+    };
+    mr.start(1000);
+    $('#recBox').innerHTML = recHTML();
+    REC.tm = setInterval(() => {
+      const ms = Date.now() - REC.t0; const el = $('#recT'); if (el) el.textContent = fmtMs(ms);
+      if (ms > 120000) mr.stop();
+    }, 300);
+  } catch (e) { toast(T('micErr')); }
+}
+/* بول کر لکھیں */
+let SR = null;
+function toggleSpeak() {
+  const btn = $('#spkBtn');
+  if (SR) { SR.stop(); return; }
+  const C = window.SpeechRecognition || window.webkitSpeechRecognition;
+  SR = new C(); SR.lang = LANG === 'en' ? 'en-US' : 'ur-PK'; SR.continuous = true; SR.interimResults = false;
+  SR.onresult = e => {
+    for (let k = e.resultIndex; k < e.results.length; k++) if (e.results[k].isFinal) {
+      F.text = (F.text ? F.text.replace(/\s*$/, ' ') : '') + e.results[k][0].transcript.trim();
+      const ta = $('#fText'); if (ta) ta.value = F.text; $('#cnt') && ($('#cnt').textContent = F.text.length);
+    }
+  };
+  SR.onend = () => { SR = null; if (btn) { btn.classList.remove('rec'); btn.innerHTML = '🎙️ ' + T('speak'); } };
+  SR.onerror = () => toast(T('micErr'));
+  SR.start();
+  if (btn) { btn.classList.add('rec'); btn.innerHTML = '⏹ ' + T('stopSpeak'); }
+}
+async function clipText() {
+  try { return await navigator.clipboard.readText(); } catch (e) { toast(T('noClip'), 3500); return null; }
+}
+async function clipImages() {
+  try {
+    const items = await navigator.clipboard.read(); const out = [];
+    for (const it of items) for (const ty of it.types) if (ty.startsWith('image/')) out.push(await it.getType(ty));
+    if (!out.length) toast(T('noClipImg'), 3500);
+    return out;
+  } catch (e) { toast(T('noClipImg'), 3500); return []; }
+}
+async function send() {
+  const P = normPhone(F.phone);
+  const eT = !F.text.trim() && !F.audio && !F.shots.length, eN = !F.name.trim(), eP = !phoneOk(P);
+  $('#eText').classList.toggle('on', eT); $('#eName').classList.toggle('on', eN); $('#ePhone').classList.toggle('on', eP);
+  const bad = document.querySelector('.err.on'); if (bad) { bad.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+  if (F.remember) ls.set('me', { name: F.name.trim(), phone: P }); else ls.set('me', {});
+  busy(true, T('sending'));
+  try {
+    const blobs = F.shots.map(d => ({ kind: 'shot', data: d }));
+    if (F.audio) blobs.push({ kind: 'audio', data: F.audio });
+    const r = await Store.add({ app: F.app, type: F.type, text: F.text.trim(), name: F.name.trim(), phone: P, ver: F.ver.trim(), dev: DEV, shots: F.shots.length, audio: !!F.audio, lang: LANG }, blobs);
+    rememberMine(r.id, 'new|0');
+    const app = F.app; F = null;
+    go('#/thanks/' + r.no + '/' + encodeURIComponent(app));
+  } catch (e) { toast('⚠️ ' + (e.message || e), 4000); }
+  finally { busy(false); }
+}
+function vThanks() {
+  const parts = location.hash.split('/');
+  const app = decodeURIComponent(parts[3] || '');
+  return `<div class="card thanks"><div class="ok">✓</div><h2>${T('thanks')}</h2>
+    <div style="color:var(--mut);font-size:14px">${T('ticketL')}</div><div class="ticket">#${esc(R.a)}</div>
+    <p>${T('thanksP')}</p>
+    <button class="bigBtn blue" data-act="mine">📋 ${T('mine')}</button>
+    <button class="bigBtn" style="background:#fff;color:var(--ink);box-shadow:var(--sh)" data-act="app" data-id="${esc(app)}">${appIcon(appOf(app), 'appMini')} ${esc(AN(appOf(app)))}</button>
+  </div>${foot()}`;
+}
+
+/* ================= ڈویلپر پینل ================= */
+let O = { tab: 'new', app: '', q: '', sort: 'new' };
+let cleaned = false;
+async function cleanup() {
+  if (cleaned) return; cleaned = true;
+  const old = ISSUES.filter(i => (i.status === 'done' || i.status === 'dup') && Date.now() - (i.doneAt || i.upd) > keepDays() * 864e5);
+  for (const i of old) await Store.remove(i.id);
+  if (old.length) toast('🧹 ' + old.length + (LANG === 'en' ? ' old solved removed' : ' پرانے حل شدہ ہٹا دیے'));
+}
+function ownFiltered() {
+  const q = O.q.trim().toLowerCase();
+  let l = ISSUES.filter(i => (O.tab === 'all' || i.status === O.tab) && (!O.app || i.app === O.app));
+  if (q) l = l.filter(i => [i.text, i.ptext, i.name, i.phone, i.reply, '#' + i.no, AN(appOf(i.app))].join(' ').toLowerCase().includes(q));
+  return l.sort(O.sort === 'votes' ? (a, b) => ((b.metoo || []).length - (a.metoo || []).length) || b.created - a.created : (a, b) => b.created - a.created);
+}
+function vOwner() {
+  if (!Store.isOwner()) { setTimeout(loginSheet, 50); return `<div class="card empty"><span class="e">🔒</span>Developer</div>`; }
+  cleanup();
+  const C = s => ISSUES.filter(i => i.status === s && (!O.app || i.app === O.app)).length;
+  const tabs = [['new', '📥 ' + T('s_new')], ['seen', '👀 ' + T('s_seen')], ['work', '🔧 ' + T('s_work')], ['done', '✅ ' + T('s_done')], ['dup', '🔗 ' + T('s_dup')], ['all', LANG === 'en' ? 'All' : 'سب']];
+  const list = ownFiltered();
+  const opts = `<option value="">${LANG === 'en' ? 'All apps' : 'سب ایپس'}</option>` + APPS.map(a => {
+    const n = ISSUES.filter(i => i.app === a.id && isOpen(i)).length;
+    return `<option value="${esc(a.id)}" ${O.app === a.id ? 'selected' : ''}>${esc(AN(a))}${n ? ' (' + n + ')' : ''}</option>`;
+  }).join('');
+  const cards = list.map(i => {
+    const a = appOf(i.app), n = (i.metoo || []).length;
+    return `<div class="is s-${i.status} oi" data-act="open" data-id="${i.id}">
+      <div class="top">${appIcon(a, 'appMini')} <b style="font-size:14px">${esc(AN(a))}</b>${tyChip(i.type)}${stChip(i.status)}
+        <span class="chip ${i.pub ? 'globe' : 'lock'}">${i.pub ? '🌐' : '🔒'}</span><span class="no">#${i.no}</span></div>
+      <div class="tx clamp">${esc(i.text || (i.audio ? '🎤' : ''))}</div>
+      <div class="ft"><span class="who">👤 ${esc(i.name)} · <span class="num">${esc(i.phone)}</span></span>
+        <span class="when">🕒 ${ago(i.created)}</span>${i.shots ? `<span class="when">🖼️ ${i.shots}</span>` : ''}${i.audio ? '<span class="when">🎤</span>' : ''}
+        ${n ? `<span class="mt on">👋 <b>${n + 1}</b></span>` : ''}</div></div>`;
+  }).join('');
+  return `<div class="own">
+    <div class="card" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <b style="font-size:19px;flex:1">🛠️ ${LANG === 'en' ? 'Developer panel' : 'ڈویلپر پینل'}</b>
+      <button class="tb" data-act="settings">⚙️</button><button class="tb" data-act="logout">🚪</button></div>
+    <div class="card stats" style="grid-template-columns:repeat(4,1fr)">
+      <div class="st b"><span class="v">${C('new')}</span><span class="l">📥 ${T('s_new')}</span></div>
+      <div class="st o"><span class="v">${C('work') + C('seen')}</span><span class="l">🔧 ${T('s_work')}</span></div>
+      <div class="st g"><span class="v">${weekSolved(ISSUES.filter(i => !O.app || i.app === O.app))}</span><span class="l">✅ ${T('solvedWeek')}</span></div>
+      <div class="st"><span class="v" style="font-size:18px">${avgReply()}</span><span class="l">⏱️ ${T('avgReply')}</span></div></div>
+    <div class="oTabs">${tabs.map(([k, l]) => `<button class="${O.tab === k ? 'on' : ''}" data-act="otab" data-id="${k}">${l}${k !== 'all' ? `<i>${C(k)}</i>` : ''}</button>`).join('')}</div>
+    <div class="row"><select class="inp" data-oin="app">${opts}</select>
+      <select class="inp" data-oin="sort"><option value="new" ${O.sort === 'new' ? 'selected' : ''}>🕒 ${LANG === 'en' ? 'Newest' : 'نئے پہلے'}</option><option value="votes" ${O.sort === 'votes' ? 'selected' : ''}>👋 ${LANG === 'en' ? 'Most voted' : 'زیادہ لوگ پہلے'}</option></select>
+      <input class="inp" data-oin="q" value="${esc(O.q)}" placeholder="🔍 ${LANG === 'en' ? 'name, phone, #no, text' : 'نام، نمبر، #، متن'}"></div>
+    ${list.length ? `<button class="bigBtn" style="font-size:16px" data-act="bulkClaude">🤖 ${LANG === 'en' ? `Copy these ${list.length} for Claude` : `یہ ${list.length} مسائل Claude کے لیے کاپی`}</button>` : ''}
+    <div class="ownGrid">${cards || `<div class="card empty"><span class="e">🎉</span>${LANG === 'en' ? 'Nothing here' : 'یہاں کچھ نہیں'}</div>`}</div>
+  </div>${foot()}`;
+}
+
+/* مسئلے کی پوری تفصیل (مالک) */
+let DET = null;
+async function openDetail(id) {
+  const i = ISSUES.find(x => x.id === id); if (!i) return;
+  DET = { id, blobs: null };
+  if (i.status === 'new') Store.update(id, { status: 'seen' });
+  sheet(detailHTML());
+  DET.blobs = await Store.blobs(id);
+  if (DET && DET.id === id) sheet(detailHTML(), true);
+}
+function detailHTML() {
+  const i = ISSUES.find(x => x.id === DET.id); if (!i) return '<div class="empty">—</div>';
+  const a = appOf(i.app), n = (i.metoo || []).length;
+  const shots = (DET.blobs || []).filter(b => b.kind === 'shot'), au = (DET.blobs || []).find(b => b.kind === 'audio');
+  const E = LANG === 'en';
+  return `<div class="det"><h2>${appIcon(a, 'appMini')} ${esc(AN(a))} <span class="num" style="color:var(--mut)">#${i.no}</span><button class="x" data-act="close">✕</button></h2>
+    <div class="top" style="display:flex;gap:6px;flex-wrap:wrap">${tyChip(i.type)}${stChip(i.status)}${n ? `<span class="chip work">👋 ${n + 1} ${T('people')}</span>` : ''}</div>
+    <div class="meta"><span>👤</span><b>${esc(i.name)}</b>
+      <span>📞</span><span><a class="num" href="tel:${esc(i.phone)}">${esc(i.phone)}</a> · <a href="https://wa.me/${waNum(i.phone)}" target="_blank" rel="noopener">💬 WhatsApp</a></span>
+      <span>🕒</span><span class="num">${fullDate(i.created)}</span>
+      ${i.ver ? `<span>🏷️</span><span class="num">${esc(i.ver)}</span>` : ''}</div>
+    <div class="tx" style="white-space:pre-wrap;font-size:16.5px;overflow-wrap:anywhere">${esc(i.text) || '<i style="color:var(--mut)">—</i>'}</div>
+    ${DET.blobs == null && (i.shots || i.audio) ? '<div class="spin" style="margin:12px auto;width:30px;height:30px"></div>' : ''}
+    ${shots.length ? `<div class="shotsBig">${shots.map((b, k) => `<img src="${b.data}" data-viewsrc="1" alt="">`).join('')}</div>` : ''}
+    ${au ? `<audio controls src="${au.data}" style="width:100%;margin:6px 0"></audio>` : ''}
+
+    <h3>${E ? 'Status' : 'حالت'}</h3>
+    <div class="stBtns">${['new', 'seen', 'work', 'done'].map(s => `<button class="${s} ${i.status === s ? 'on' : ''}" data-act="setSt" data-id="${s}">${ST_IC[s]} ${T('s_' + s)}</button>`).join('')}</div>
+    <div class="tools"><button class="tb" data-act="dup">🔗 ${E ? 'Mark duplicate of #…' : 'ڈپلیکیٹ — اصل نمبر لکھیں'}</button></div>
+
+    <h3>${E ? 'Reply to customer' : 'گاہک کو جواب'}</h3>
+    <textarea class="big" id="rText" style="min-height:96px" placeholder="${E ? 'Write or paste the answer from Claude…' : 'جواب لکھیں یا Claude سے لے کر پیسٹ کریں…'}">${esc(i.reply || '')}</textarea>
+    <div class="tools"><button class="tb" data-act="pasteReply">📋 ${T('paste')}</button>
+      <button class="tb pri" data-act="saveReply">💾 ${E ? 'Save' : 'محفوظ'}</button>
+      <button class="tb grn" data-act="doneReply">✅ ${E ? 'Save + Solved' : 'محفوظ + حل ہو گیا'}</button>
+      <button class="tb" data-act="notify">📨 ${E ? 'WhatsApp customer' : 'واٹس ایپ پر اطلاع'}</button></div>
+
+    <h3>${E ? 'Public list' : 'عام فہرست'}</h3>
+    <label class="sw"><input type="checkbox" id="pubSw" ${i.pub ? 'checked' : ''} data-act="pub"><i></i>🌐 ${E ? 'Show to everyone (name & phone stay hidden)' : 'سب کو دکھائیں (نام اور نمبر چھپے رہیں گے)'}</label>
+    <label class="lbl">${E ? 'Public wording (optional — cleaner text for everyone)' : 'سب کے لیے الفاظ (اختیاری — صاف ستھرا متن)'}</label>
+    <div class="inpRow"><input class="inp" id="pText" value="${esc(i.ptext || '')}" placeholder="${esc((i.text || '').slice(0, 60))}"><button class="tb" data-act="savePtext">💾</button></div>
+
+    <div class="claude"><b>🤖 Claude</b>
+      <div class="tools"><button class="tb pri" data-act="cCopy">📋 ${E ? 'Copy text + image' : 'متن + تصویر کاپی'}</button>
+        <button class="tb" data-act="cShare">📤 ${E ? 'Share' : 'شیئر'}</button>
+        <button class="tb" data-act="cText">📝 ${E ? 'Text only' : 'صرف متن'}</button>
+        <button class="tb" data-act="cImg">🖼️ ${E ? 'Save image' : 'تصویر محفوظ'}</button></div>
+      <p>${E ? 'Paste into your Claude chat. After Firebase is connected you can also just tell Claude: «Help Desk #' + i.no + ' fix karo» — it will read the request and screenshots itself.'
+      : 'Claude کی چیٹ میں پیسٹ کریں۔ فائربیس جڑنے کے بعد Claude کو صرف اتنا لکھنا کافی ہوگا: «ہیلپ ڈیسک #' + i.no + ' حل کرو» — وہ مسئلہ اور اسکرین شاٹ خود پڑھ لے گا۔'}</p></div>
+
+    <div class="tools" style="margin-top:14px;justify-content:space-between"><button class="tb red" data-act="del">🗑️ ${E ? 'Delete' : 'حذف'}</button>
+      <button class="tb" data-act="close">✕ ${E ? 'Close' : 'بند'}</button></div></div>`;
+}
+function claudeText(i, short) {
+  const a = appOf(i.app), n = (i.metoo || []).length;
+  const L = [`🆘 PBT Help Desk — #${i.no}`,
+    `App: ${a.en}${a.repo ? '  (repo: ' + a.repo + ')' : ''}`,
+    i.ver ? `App version: ${i.ver}` : null,
+    `Type: ${DICT[i.type][1]} · Status: ${DICT['s_' + i.status][1]}${n ? ' · 👋 ' + (n + 1) + ' people' : ''}`,
+    short ? null : `Customer: ${i.name} · ${i.phone}`,
+    `Date: ${fullDate(i.created)}`,
+    '', 'Customer wrote:', i.text || '(voice note only)',
+    i.shots ? `\nScreenshots: ${i.shots}` : null, i.audio ? 'Voice note: yes (listen in Help Desk)' : null,
+    i.reply ? `\nOur reply so far: ${i.reply}` : null];
+  return L.filter(x => x !== null).join('\n').trim();
+}
+/* ایک لمبی تصویر: سر + متن + اسکرین شاٹ */
+async function issueImage(i, shots) {
+  try { await document.fonts.load('34px Noori'); } catch (e) {}
+  const W = 1080, P = 44, a = appOf(i.app);
+  const c = document.createElement('canvas'), x = c.getContext('2d');
+  const font = '34px Noori, "Noto Nastaliq Urdu", sans-serif';
+  const rtl = /[؀-ۿ]/.test(i.text || '');
+  x.font = font;
+  const wrap = t => { const out = []; String(t || '').split('\n').forEach(p => { let line = ''; p.split(/\s+/).forEach(w => { const tt = line ? line + ' ' + w : w; if (x.measureText(tt).width > W - 2 * P && line) { out.push(line); line = w; } else line = tt; }); out.push(line); }); return out; };
+  const lines = wrap(i.text || '🎤');
+  const ims = []; for (const s of shots) { try { ims.push(await loadImg(s.data)); } catch (e) {} }
+  const sh = ims.map(im => Math.round(im.naturalHeight * Math.min(1, (W - 2 * P) / im.naturalWidth)));
+  const H = 190 + lines.length * 64 + 40 + sh.reduce((s, h) => s + h + 24, 0) + 40;
+  c.width = W; c.height = Math.min(H, 16000);
+  x.fillStyle = '#fff'; x.fillRect(0, 0, W, c.height);
+  const g = x.createLinearGradient(0, 0, W, 160); g.addColorStop(0, '#1e3a8a'); g.addColorStop(1, '#0f766e');
+  x.fillStyle = g; x.fillRect(0, 0, W, 160);
+  x.fillStyle = '#fff'; x.font = 'bold 44px Arial'; x.textAlign = 'left'; x.direction = 'ltr';
+  x.fillText('PBT Help Desk  #' + i.no, P, 70);
+  x.font = '30px Arial'; x.fillText(a.en + (i.ver ? '  ·  ' + i.ver : '') + '  ·  ' + DICT[i.type][1] + '  ·  ' + fullDate(i.created), P, 122);
+  x.fillStyle = '#13203f'; x.font = font; x.direction = rtl ? 'rtl' : 'ltr'; x.textAlign = rtl ? 'right' : 'left';
+  let y = 230; lines.forEach(l => { x.fillText(l, rtl ? W - P : P, y); y += 64; });
+  y += 10;
+  ims.forEach((im, k) => { const w = Math.min(W - 2 * P, im.naturalWidth); x.drawImage(im, (W - w) / 2, y, w, sh[k]); x.strokeStyle = '#e3e8f2'; x.strokeRect((W - w) / 2, y, w, sh[k]); y += sh[k] + 24; });
+  return new Promise(r => c.toBlob(r, 'image/png'));
+}
+async function ensureBlobs() { if (DET && DET.blobs == null) DET.blobs = await Store.blobs(DET.id); return (DET.blobs || []).filter(b => b.kind === 'shot'); }
+async function claudeAct(kind) {
+  const i = ISSUES.find(x => x.id === DET.id); if (!i) return;
+  const txt = claudeText(i);
+  const ok = m => toast('✅ ' + m, 3000);
+  try {
+    if (kind === 'cText') { await navigator.clipboard.writeText(txt); return ok(LANG === 'en' ? 'Text copied — paste in Claude' : 'متن کاپی ہو گیا — Claude میں پیسٹ کریں'); }
+    busy(true);
+    const shots = await ensureBlobs();
+    const png = await issueImage(i, shots);
+    busy(false);
+    if (kind === 'cImg') return download(png, 'HelpDesk-' + i.no + '.png');
+    if (kind === 'cShare') {
+      const files = [new File([png], 'HelpDesk-' + i.no + '.png', { type: 'image/png' })];
+      if (navigator.canShare && navigator.canShare({ files })) return await navigator.share({ files, text: txt, title: 'Help Desk #' + i.no });
+      if (navigator.share) return await navigator.share({ text: txt });
+      return download(png, 'HelpDesk-' + i.no + '.png');
+    }
+    // cCopy: ایک ہی بار میں متن + تصویر
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ 'text/plain': new Blob([txt], { type: 'text/plain' }), 'image/png': png })]);
+      ok(LANG === 'en' ? 'Text + image copied — paste in Claude' : 'متن + تصویر کاپی — Claude میں پیسٹ کریں');
+    } catch (e) {
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': png })]);
+      ok(LANG === 'en' ? 'Image copied (text: use «Text only»)' : 'تصویر کاپی — متن کے لیے «صرف متن»');
+    }
+  } catch (e) { busy(false); if (e && e.name !== 'AbortError') { try { await navigator.clipboard.writeText(txt); ok(LANG === 'en' ? 'Text copied' : 'متن کاپی ہو گیا'); } catch (_) { toast('⚠️ ' + (e.message || e)); } } }
+}
+function download(blob, name) { const u = URL.createObjectURL(blob); const l = document.createElement('a'); l.href = u; l.download = name; document.body.appendChild(l); l.click(); l.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000); }
+function notifyWA(i) {
+  const a = appOf(i.app), link = location.origin + location.pathname + '#/i/' + i.id;
+  const ur = (i.lang || 'ur') !== 'en';
+  const m = ur
+    ? `السلام علیکم ${i.name}!\nPBT Help Desk — ${a.ur} — آپ کا مسئلہ #${i.no}: ${ST_IC[i.status]} ${DICT['s_' + i.status][0]}\n\n${i.reply || ''}\n\nتفصیل: ${link}\n\nشکریہ — PBT Code Labs`
+    : `Assalam o Alaikum ${i.name}!\nPBT Help Desk — ${a.en} — your request #${i.no}: ${ST_IC[i.status]} ${DICT['s_' + i.status][1]}\n\n${i.reply || ''}\n\nDetails: ${link}\n\nThank you — PBT Code Labs`;
+  window.open('https://wa.me/' + waNum(i.phone) + '?text=' + encodeURIComponent(m), '_blank');
+}
+
+/* پاپ اپ */
+function sheet(html, keepScroll) {
+  const sh = $('#sheet'), top = sh.scrollTop;
+  sh.innerHTML = '<div class="grab"></div>' + html; $('#ov').classList.add('on');
+  if (keepScroll) sh.scrollTop = top;
+}
+function closeSheet() { $('#ov').classList.remove('on'); DET = null; }
+function loginSheet() {
+  const first = Store.ownerFirst(), E = LANG === 'en';
+  sheet(`<h2>🛠️ ${E ? 'Developer' : 'ڈویلپر'}<button class="x" data-act="close">✕</button></h2>
+    <p style="color:var(--mut);font-size:14px;margin:0">${first ? (E ? 'Create a password for this phone' : 'اس فون کے لیے پاس ورڈ بنائیں') : (E ? 'Enter password' : 'پاس ورڈ لکھیں')}</p>
+    <div class="inpRow" style="margin:10px 0"><input class="inp ltr" type="password" id="pw" autocomplete="current-password"><button class="tb" data-act="eye">👁️</button></div>
+    <button class="bigBtn blue" data-act="login">🔓 ${E ? 'Open' : 'کھولیں'}</button>`);
+  setTimeout(() => $('#pw') && $('#pw').focus(), 100);
+}
+function settingsSheet() {
+  const E = LANG === 'en';
+  sheet(`<h2>⚙️ ${E ? 'Settings' : 'سیٹنگ'}<button class="x" data-act="close">✕</button></h2>
+    <label class="lbl">🕘 ${T('hours')} (اردو)</label><input class="inp" id="hUr" value="${esc(CFG.hoursUr || '')}" placeholder="${DICT.hoursDef[0]}">
+    <label class="lbl">🕘 ${T('hours')} (English)</label><input class="inp" id="hEn" value="${esc(CFG.hoursEn || '')}" placeholder="${DICT.hoursDef[1]}" dir="ltr">
+    <label class="lbl">🧹 ${E ? 'Remove solved after (days)' : 'حل شدہ کتنے دن بعد خود ہٹیں'}</label><input class="inp ltr" id="kDays" inputmode="numeric" value="${keepDays()}">
+    <button class="bigBtn blue" style="margin-top:14px" data-act="saveCfg">💾 ${E ? 'Save' : 'محفوظ'}</button>
+    <div class="card" style="box-shadow:none;background:var(--soft)">
+      <b>🔗 ${E ? 'Link for customers' : 'گاہکوں کے لیے لنک'}</b>
+      <div class="num" style="font-size:13.5px;word-break:break-all">${esc(location.origin + location.pathname)}</div>
+      <div class="tools"><button class="tb" data-act="copyLink">📋 ${E ? 'Copy' : 'کاپی'}</button><button class="tb" data-act="shareLink">💬 WhatsApp</button></div>
+      <p style="font-size:12.5px;color:var(--mut);margin:6px 0 0">${E ? 'From inside an app:' : 'کسی ایپ کے اندر سے:'} <span class="num">…/help/?app=SM&amp;v=SM0111SU300</span></p></div>
+    ${Store.mode === 'demo' ? `<button class="tb red" data-act="wipe">🧪 ${E ? 'Clear demo data' : 'ڈیمو ڈیٹا مٹائیں'}</button>` : ''}`);
+}
+
+/* ---------- رینڈر ---------- */
+function render() {
+  header();
+  const V = { home: vHome, app: vApp, new: vForm, thanks: vThanks, mine: vMine, i: vOne, owner: vOwner }[R.v] || vHome;
+  $('#main').innerHTML = V();
+  if (R.v === 'new') bindForm();
+  if (DET && $('#ov').classList.contains('on')) sheet(detailHTML(), true);
+}
+let rT = 0;
+function softRender() {
+  // لکھتے وقت پوری اسکرین نہ بدلے
+  const a = document.activeElement;
+  if (R.v === 'new' || (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))) { clearTimeout(rT); rT = setTimeout(softRender, 1500); return; }
+  const y = window.scrollY; render(); window.scrollTo(0, y);
+}
+function bindForm() {
+  const fi = $('#fileIn'); fi.onchange = () => { addShots([...fi.files]); fi.value = ''; };
+  const d = $('#drop');
+  d.ondragover = e => { e.preventDefault(); d.classList.add('over'); };
+  d.ondragleave = () => d.classList.remove('over');
+  d.ondrop = e => { e.preventDefault(); d.classList.remove('over'); addShots([...e.dataTransfer.files]); };
+}
+
+/* ---------- واقعات ---------- */
+let taps = 0, tapT = 0;
+document.addEventListener('click', async e => {
+  const v = e.target.closest('[data-view]'); if (v && F) { showImg(F.shots[+v.dataset.view]); return; }
+  const vs = e.target.closest('[data-viewsrc]'); if (vs) { showImg(vs.src); return; }
+  const t = e.target.closest('[data-act]'); if (!t) { if (e.target.id === 'ov') closeSheet(); return; }
+  const act = t.dataset.act, id = t.dataset.id;
+  switch (act) {
+    case 'lang': setLang(LANG === 'en' ? 'ur' : 'en'); break;
+    case 'back': if (history.length > 1) history.back(); else go('#/'); break;
+    case 'app': appTab = 'open'; appQ = ''; go('#/app/' + encodeURIComponent(id)); break;
+    case 'mine': go('#/mine'); break;
+    case 'new': go('#/new/' + encodeURIComponent(id)); break;
+    case 'atab': appTab = id; render(); break;
+    case 'expand': t.classList.toggle('clamp'); break;
+    case 'metoo': {
+      const i = ISSUES.find(x => x.id === id); if (!i) break;
+      const on = !(i.metoo || []).includes(DEV);
+      t.classList.add('pop');
+      await Store.metoo(id, DEV, on);
+      if (on) toast(LANG === 'en' ? '👋 Added — we will prioritise it' : '👋 شامل ہو گیا — زیادہ لوگوں والا مسئلہ پہلے حل ہوتا ہے');
+      break;
+    }
+    case 'withdraw': if (confirm(T('delMineQ'))) await Store.remove(id); break;
+    case 'type': F.type = id; document.querySelectorAll('.ty').forEach(b => b.classList.toggle('on', b.dataset.id === id)); break;
+    case 'pasteText': { const s = await clipText(); if (s) { F.text = (F.text ? F.text + '\n' : '') + s; $('#fText').value = F.text; $('#cnt').textContent = F.text.length; toast('📋 ' + T('pasted')); } break; }
+    case 'speak': toggleSpeak(); break;
+    case 'gallery': $('#fileIn').click(); break;
+    case 'pasteImg': { const b = await clipImages(); if (b.length) { await addShots(b.map(x => new File([x], 'p.png', { type: x.type }))); toast('📋 ' + T('pasted')); } break; }
+    case 'rmShot': F.shots.splice(+id, 1); $('#shots').innerHTML = shotsHTML(); break;
+    case 'rec': toggleRec(); break;
+    case 'rmAudio': F.audio = null; F.audioMs = 0; $('#recBox').innerHTML = recHTML(); break;
+    case 'pastePhone': { const s = await clipText(); if (s) { F.phone = normPhone(s); document.querySelector('[data-in=phone]').value = F.phone; } break; }
+    case 'send': send(); break;
+    case 'tap7': {
+      const n = Date.now(); taps = n - tapT < 900 ? taps + 1 : 1; tapT = n;
+      if (Store.isOwner() && taps >= 2 && act === 'tap7' && t.classList.contains('logo')) { taps = 0; go('#/owner'); break; }
+      if (taps >= 7) { taps = 0; Store.isOwner() ? go('#/owner') : loginSheet(); }
+      break;
+    }
+    case 'goOwner': go('#/owner'); break;
+    case 'eye': { const p = $('#pw'); p.type = p.type === 'password' ? 'text' : 'password'; break; }
+    case 'login': {
+      const pw = $('#pw').value; if (pw.length < 4) { toast(LANG === 'en' ? 'At least 4 characters' : 'کم از کم 4 حروف'); break; }
+      if (await Store.ownerLogin(pw)) { closeSheet(); go('#/owner'); } else toast(LANG === 'en' ? '❌ Wrong password' : '❌ غلط پاس ورڈ');
+      break;
+    }
+    case 'logout': Store.ownerLogout(); go('#/'); break;
+    case 'settings': settingsSheet(); break;
+    case 'saveCfg': await Store.setCfg({ hoursUr: $('#hUr').value.trim(), hoursEn: $('#hEn').value.trim(), keepDays: Math.max(1, +digits($('#kDays').value) || 7) }); closeSheet(); toast('✅'); break;
+    case 'copyLink': try { await navigator.clipboard.writeText(location.origin + location.pathname); toast('📋 ✅'); } catch (_) {} break;
+    case 'shareLink': window.open('https://wa.me/?text=' + encodeURIComponent('السلام علیکم! PBT Code Labs کی کسی بھی ایپ میں مسئلہ ہو یا کوئی مشورہ دینا ہو تو یہاں لکھیں — جواب یہیں آئے گا:\n' + location.origin + location.pathname), '_blank'); break;
+    case 'wipe': if (confirm('Demo data?')) { await Store.wipeDemo(); localStorage.removeItem('pbthd_demo_seeded'); closeSheet(); } break;
+    case 'otab': O.tab = id; render(); break;
+    case 'open': openDetail(id); break;
+    case 'close': closeSheet(); break;
+    case 'setSt': {
+      const p = { status: id }; if (id === 'done') p.doneAt = Date.now(); else p.doneAt = 0;
+      await Store.update(DET.id, p); break;
+    }
+    case 'dup': {
+      const n = prompt(LANG === 'en' ? 'Original request number (#)?' : 'اصل مسئلے کا نمبر (#)؟'); if (!n) break;
+      const no = +digits(n).replace(/\D/g, ''); const orig = ISSUES.find(x => x.no === no);
+      if (!orig) { toast('❌ #' + no); break; }
+      const me = ISSUES.find(x => x.id === DET.id);
+      await Store.update(DET.id, { status: 'dup', dupOf: no, doneAt: Date.now() });
+      if (me && me.dev && me.dev !== orig.dev) await Store.metoo(orig.id, me.dev, true);
+      toast('🔗 → #' + no); break;
+    }
+    case 'pasteReply': { const s = await clipText(); if (s) { const r = $('#rText'); r.value = (r.value ? r.value + '\n' : '') + s; } break; }
+    case 'saveReply': case 'doneReply': {
+      const r = $('#rText').value.trim(); const p = { reply: r, replyAt: r ? Date.now() : 0 };
+      if (act === 'doneReply') { p.status = 'done'; p.doneAt = Date.now(); }
+      await Store.update(DET.id, p); toast('✅ ' + (LANG === 'en' ? 'Saved — customer sees it now' : 'محفوظ — گاہک کو ابھی نظر آ گیا')); break;
+    }
+    case 'notify': { const i = ISSUES.find(x => x.id === DET.id); if (i) notifyWA(i); break; }
+    case 'pub': await Store.update(DET.id, { pub: t.checked }); break;
+    case 'savePtext': await Store.update(DET.id, { ptext: $('#pText').value.trim() }); toast('✅'); break;
+    case 'cCopy': case 'cShare': case 'cText': case 'cImg': claudeAct(act); break;
+    case 'bulkClaude': {
+      const l = ownFiltered(); const txt = l.map(i => claudeText(i, true)).join('\n\n────────\n\n');
+      try { await navigator.clipboard.writeText(`PBT Help Desk — ${l.length} requests\n\n` + txt); toast('🤖 ✅ ' + l.length); } catch (_) { toast('⚠️'); }
+      break;
+    }
+    case 'del': if (confirm(LANG === 'en' ? 'Delete permanently?' : 'ہمیشہ کے لیے حذف کریں؟')) { const id2 = DET.id; closeSheet(); await Store.remove(id2); } break;
+  }
+});
+document.addEventListener('input', e => {
+  const k = e.target.dataset.in;
+  if (k && F) {
+    F[k] = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+    if (k === 'text') $('#cnt').textContent = F.text.length;
+    if (k === 'app') { F.app = e.target.value; history.replaceState(null, '', '#/new/' + encodeURIComponent(F.app)); parse(); render(); }
+  }
+  const o = e.target.dataset.oin;
+  if (o) { O[o] = e.target.value; if (o === 'q') { clearTimeout(rT); rT = setTimeout(() => { const el = document.activeElement; render(); const n = document.querySelector('[data-oin=q]'); if (n && el && el.dataset.oin === 'q') { n.focus(); n.setSelectionRange(n.value.length, n.value.length); } }, 250); } else render(); }
+  if (e.target.id === 'appQ') { appQ = e.target.value; const a = appOf(R.a); const tmp = document.createElement('div'); tmp.innerHTML = vApp(); $('#aList').innerHTML = tmp.querySelector('#aList').innerHTML; }
+});
+document.addEventListener('change', e => { if (e.target.dataset.oin || e.target.dataset.in === 'app') e.target.dispatchEvent(new Event('input', { bubbles: true })); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { if ($('#viewer').classList.contains('on')) $('#viewer').classList.remove('on'); else closeSheet(); }
+  if (e.key === 'Enter' && e.target.id === 'pw') document.querySelector('[data-act=login]').click();
+});
+// کہیں بھی پیسٹ: فارم کھلا ہو تو تصویر خود لگ جائے
+document.addEventListener('paste', e => {
+  if (R.v !== 'new' || !F) return;
+  const files = [...(e.clipboardData && e.clipboardData.files || [])].filter(f => /^image\//.test(f.type));
+  if (files.length) { e.preventDefault(); addShots(files); toast('🖼️ ' + T('pasted')); }
+});
+function showImg(src) { $('#vimg').src = src; $('#viewer').classList.add('on'); }
+$('#viewer').addEventListener('click', () => $('#viewer').classList.remove('on'));
+
+/* ---------- شروع ---------- */
+(async function boot() {
+  document.documentElement.lang = LANG === 'en' ? 'en' : 'ur';
+  document.documentElement.dir = LANG === 'en' ? 'ltr' : 'rtl';
+  const P = new URLSearchParams(location.search);
+  if (P.get('lang') === 'en' || P.get('lang') === 'ur') { LANG = P.get('lang'); try { localStorage.setItem('pbthd_lang', LANG); } catch (e) {} document.documentElement.lang = LANG; document.documentElement.dir = LANG === 'en' ? 'ltr' : 'rtl'; }
+  if (P.get('app') && !location.hash) history.replaceState(null, '', location.search + '#/app/' + encodeURIComponent(appOf(P.get('app')).id));
+  parse();
+  busy(true);
+  try { await Store.init(); } catch (e) { toast('⚠️ ' + e.message, 5000); }
+  busy(false);
+  let first = true;
+  Store.watch((list, cfg) => {
+    ISSUES = list; CFG = cfg || {};
+    if (first) { first = false; render(); const u = unseenMine(); if (u && R.v !== 'mine') setTimeout(() => toast(T('updatedMine'), 4000), 600); return; }
+    softRender();
+  });
+})();
+
+/* ---------- اپڈیٹ (یکساں نظام) ---------- */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js', { scope: './' }).then(reg => {
+      reg.addEventListener('updatefound', () => { if (navigator.serviceWorker.controller) { try { if (!AppUpd.isWaiting()) AppUpd.waiting(); } catch (e) {} } });
+      setInterval(() => reg.update().catch(() => {}), 60e3);
+    }).catch(() => {});
+  });
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshing) return; refreshing = true;
+    const busyIn = () => { const a = document.activeElement; return a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName); };
+    const tryReload = () => { if (busyIn() || (R.v === 'new' && F && (F.text || F.shots.length))) { setTimeout(tryReload, 3000); return; } location.reload(); };
+    tryReload();
+  });
+}
+(function () {
+  let old = '';
+  try { old = localStorage.getItem('pbthd_updSeenVer') || ''; localStorage.setItem('pbthd_updSeenVer', APP_VERSION); } catch (e) {}
+  if (old && old !== APP_VERSION) { const show = () => { try { AppUpd.done(old, APP_VERSION, UPDATE_NOTE); } catch (e) {} }; if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', show); else show(); }
+})();
