@@ -48,16 +48,19 @@
       ['SM', 'bug', 'رات بارہ بجے کے بعد کل کی بکری آج میں دکھ رہی ہے۔', 'seen', 1, 50, 3, ''],
       ['AIO', 'ask', 'دوسرے فون کو دکان سے کیسے جوڑیں؟', 'done', 1, 90, 1, 'Settings → 👥 Staff & Devices میں «Shop Code» کاپی کریں، دوسرے فون پر لاگ ان میں «🔗 Join a shop» دبا کر لگا دیں۔'],
       ['AB', 'bug', 'پرچی کی تصویر میں بیوپاری کا نمبر نظر نہیں آتا۔', 'done', 1, 120, 4, 'ٹھیک کر دیا — نئے ورژن میں پرچی کی تصویر پر نمبر آ گیا ہے۔ ایپ ایک بار تازہ کر لیں۔'],
-      ['FM', 'idea', 'ڈیش بورڈ پر پچھلے مہینے کا منافع بھی دکھائیں۔', 'new', 0, 3, 0, '']
+      ['FM', 'idea', 'ڈیش بورڈ پر پچھلے مہینے کا منافع بھی دکھائیں۔', 'new', 0, 3, 0, ''],
+      ['SM', 'bug', 'رپورٹ میں مہینے کا کل حساب غلط آ رہا ہے۔', 'work', 0, 10, 0, '']
     ];
     let no = 0;
     for (const [app, type, text, status, pub, hrs, mt, reply] of S) {
       no++;
       const t = now - hrs * H;
       await rq(tx('issues', 'readwrite').put({
-        id: rid(), no, app, type, text, ptext: '', name: ['احمد', 'بلال', 'یوسف', 'حماد', 'عثمان', 'زبیر'][no - 1],
+        id: rid(), no, app, type, text, ptext: '', name: ['احمد', 'بلال', 'یوسف', 'حماد', 'عثمان', 'زبیر', 'سلیم'][no - 1],
         phone: '0300' + String(1234560 + no), ver: '', dev: 'demo' + no, shots: 0, audio: false,
         created: t, upd: t, status, pub: !!pub, metoo: Array.from({ length: mt }, (_, i) => 'd' + no + i),
+        hold: type === 'idea' && status === 'new' ? 'decide' : (no === 7 ? 'approve' : ''),
+        review: no === 7 ? 'مہینے کے حساب میں آخری دن شامل نہیں ہو رہا تھا — ٹھیک کر دیا، 3 مہینوں کے حساب سے جانچ لیا۔ (SM ورژن تیار)' : '',
         reply, replyAt: reply ? t + 20 * H : 0, doneAt: status === 'done' ? Math.min(now - H, t + 20 * H) : 0, dupOf: 0
       }));
     }

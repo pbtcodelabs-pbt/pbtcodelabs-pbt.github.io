@@ -1,0 +1,34 @@
+// PBT Help Desk — فائربیس کے حفاظتی اصول (مسودہ — فائربیس جڑتے وقت مکمل ہوں گے)
+// گاہک: Anonymous لاگ اِن؛ مالک: ای میل/پاس ورڈ (owner = piarybhai@gmail.com یا pbtcodelabs@gmail.com)
+// issues/{id}        — عام حصہ: app, type, ptext/text, status, pub, metoo, reply, created, no …
+// issues/{id}/priv/c — صرف مالک + لکھنے والا: name, phone, dev
+// blobs/{id}         — تصویر / آواز (صرف مالک + لکھنے والا)
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function owner() { return request.auth != null && request.auth.token.email in ['piarybhai@gmail.com', 'pbtcodelabs@gmail.com'] && request.auth.token.email_verified; }
+    function signed() { return request.auth != null; }
+    match /issues/{id} {
+      allow read: if owner() || (signed() && (resource.data.pub == true || resource.data.uid == request.auth.uid));
+      allow create: if signed() && request.resource.data.uid == request.auth.uid && request.resource.data.status == 'new'
+                    && request.resource.data.pub == false && request.resource.data.text.size() < 5000;
+      // گاہک صرف «میرا بھی» بدل سکتا ہے
+      allow update: if owner() || (signed() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['metoo']));
+      allow delete: if owner() || (signed() && resource.data.uid == request.auth.uid && resource.data.status == 'new');
+      match /priv/{doc} {
+        allow read: if owner() || (signed() && get(/databases/$(database)/documents/issues/$(id)).data.uid == request.auth.uid);
+        allow create: if signed();
+        allow update, delete: if owner();
+      }
+    }
+    match /blobs/{id} {
+      allow read: if owner() || (signed() && resource.data.uid == request.auth.uid);
+      allow create: if signed() && request.resource.data.uid == request.auth.uid && request.resource.data.data.size() < 900000;
+      allow delete: if owner();
+    }
+    match /meta/{doc} {
+      allow read: if signed();
+      allow write: if owner() || (doc == 'counter' && signed());
+    }
+  }
+}
