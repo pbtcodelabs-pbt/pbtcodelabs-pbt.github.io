@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0111SU003';
-const UPDATE_NOTE = 'Live on Firebase: your request reaches PBT Code Labs instantly, replies appear here live';
+const APP_VERSION = 'HD0111SU004';
+const UPDATE_NOTE = 'Phone numbers inside a request now have Call and WhatsApp buttons';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -142,6 +142,18 @@ function normPhone(s) {
 }
 const phoneOk = p => /^03\d{9}$/.test(p) || /^\d{8,15}$/.test(p);
 const waNum = p => (/^0\d{10}$/.test(p) ? '92' + p.slice(1) : p);
+/* تحریر میں جو بھی موبائل نمبر ہو (0300-1234567، +92 300 1234567، اردو ہندسے بھی) — ساتھ 📞 کال اور 💬 واٹس ایپ */
+const PH_RX = /(?:\+?92|0092|[0۰٠])?[\s-]?[3۳٣][0-9۰-۹٠-٩]{2}[\s-]?[0-9۰-۹٠-٩]{7}(?![0-9۰-۹٠-٩])/g;
+function phoneLinks(text) {
+  let out = '', last = 0;
+  String(text || '').replace(PH_RX, (m, off) => {
+    const p = normPhone(m);
+    if (!/^03\d{9}$/.test(p)) return m;
+    out += esc(text.slice(last, off)) + `<span class="phIn"><b class="num">${esc(m.trim())}</b><a class="phB" href="tel:${p}" title="Call">📞</a><a class="phB wa" href="https://wa.me/${waNum(p)}" target="_blank" rel="noopener" title="WhatsApp">💬</a></span>`;
+    last = off + m.length; return m;
+  });
+  return out + esc(String(text || '').slice(last));
+}
 function ago(t) {
   const s = (Date.now() - t) / 1000;
   if (s < 60) return T('now');
@@ -554,7 +566,7 @@ function detailHTML() {
       <span>🕒</span><span class="num">${fullDate(i.created)}</span>
       ${i.ver ? `<span>🏷️</span><span class="num">${esc(i.ver)}</span>` : ''}</div>
     ${holdBox(i)}
-    <div class="tx" style="white-space:pre-wrap;font-size:16.5px;overflow-wrap:anywhere">${esc(i.text) || '<i style="color:var(--mut)">—</i>'}</div>
+    <div class="tx" style="white-space:pre-wrap;font-size:16.5px;overflow-wrap:anywhere">${phoneLinks(i.text) || '<i style="color:var(--mut)">—</i>'}</div>
     ${DET.blobs == null && (i.shots || i.audio) ? '<div class="spin" style="margin:12px auto;width:30px;height:30px"></div>' : ''}
     ${shots.length ? `<div class="shotsBig">${shots.map((b, k) => `<img src="${b.data}" data-viewsrc="1" alt="">`).join('')}</div>` : ''}
     ${au ? `<audio controls src="${au.data}" style="width:100%;margin:6px 0"></audio>` : ''}
