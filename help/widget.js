@@ -26,7 +26,19 @@
     + '.pbthd-btn:active{transform:translateY(3px);box-shadow:0 1px 0 #10245c}'
     + '.pbthd-btn img{width:32px;height:32px;border-radius:9px;background:#fff}'
     + '.pbthd-btn small{display:block;font-weight:400;font-size:11.5px;opacity:.9}'
-    + '@keyframes pbthdF{from{opacity:0}}@keyframes pbthdU{from{transform:translateY(40px);opacity:.5}}';
+    + '@keyframes pbthdF{from{opacity:0}}@keyframes pbthdU{from{transform:translateY(40px);opacity:.5}}'
+    /* SOS نشان: گول کونے، سرخ، سفید کنارہ، ہلکی چمک — ہر ایپ کے 🆘 کی جگہ خود */
+    + '.pbthd-sos{display:inline-flex;align-items:center;justify-content:center;min-width:32px;height:22px;padding:0 7px;border-radius:12px;box-sizing:border-box;'
+    + 'background:linear-gradient(135deg,#ff5252,#c62828);color:#fff !important;font:900 11px/1 Arial,Helvetica,sans-serif;letter-spacing:.6px;'
+    + 'border:1.5px solid #fff;box-shadow:0 0 0 2px rgba(239,68,68,.4),0 2px 6px rgba(0,0,0,.3);animation:pbthdSos 2.4s ease-in-out infinite;vertical-align:middle;direction:ltr}'
+    + '@keyframes pbthdSos{50%{box-shadow:0 0 0 5px rgba(239,68,68,.12),0 2px 6px rgba(0,0,0,.3)}}'
+    + '.pbthd-host{background:transparent !important;box-shadow:none !important}'
+    /* کنارے والی پٹی (data-float): بائیں کنارے پر، درمیان میں، آدھی باہر */
+    + '.pbthd-tab{position:fixed;left:0;top:46%;z-index:2147483000;border:0;cursor:pointer;padding:8px 6px 8px 4px;border-radius:0 16px 16px 0;'
+    + 'background:linear-gradient(135deg,#1e3a8a,#0f766e);box-shadow:0 4px 14px rgba(0,0,0,.3);display:flex;flex-direction:column;align-items:center;gap:3px;'
+    + 'color:#fff;font:700 10px/1.2 Arial,sans-serif;opacity:.95}'
+    + '.pbthd-tab:active{transform:scale(.95)}'
+    + '@media print{.pbthd-tab{display:none !important}}';
   function css() {
     if (document.getElementById('pbthdCss')) return;
     var st = document.createElement('style'); st.id = 'pbthdCss'; st.textContent = CSS; document.head.appendChild(st);
@@ -69,10 +81,40 @@
   function mount() {
     var els = document.querySelectorAll('[data-pbthd-btn]');
     for (var k = 0; k < els.length; k++) if (!els[k].firstChild) els[k].appendChild(button());
+    if (S && S.getAttribute('data-float') === '1' && !document.querySelector('.pbthd-tab')) {
+      var t = document.createElement('button'); t.type = 'button'; t.className = 'pbthd-tab'; t.title = 'PBT Help Desk';
+      t.innerHTML = '<span class="pbthd-sos">SOS</span><span>Help</span>';
+      t.onclick = function () { open(); };
+      document.body.appendChild(t);
+    }
+    sos();
   }
+  /* ایپ کے ہر 🆘 (ہیلپ ڈیسک والے بٹن میں) کو گول «SOS» نشان سے بدلیں — مینیو دوبارہ بنے تب بھی */
+  var SOS_SEL = '[onclick*="elpDesk"],[data-nav-id="22"],.pbthd-host';
+  function sos() {
+    var hosts = document.querySelectorAll(SOS_SEL);
+    for (var k = 0; k < hosts.length; k++) {
+      var h = hosts[k];
+      if (h.querySelector('.pbthd-sos') || h.textContent.indexOf('\uD83C\uDD98') < 0) continue;
+      var w = document.createTreeWalker(h, NodeFilter.SHOW_TEXT, null), n, list = [];
+      while ((n = w.nextNode())) if (n.nodeValue.indexOf('\uD83C\uDD98') >= 0) list.push(n);
+      list.forEach(function (tn) {
+        var parts = tn.nodeValue.split('\uD83C\uDD98'), f = document.createDocumentFragment();
+        parts.forEach(function (p, i) {
+          if (i) { var b = document.createElement('span'); b.className = 'pbthd-sos'; b.textContent = 'SOS'; f.appendChild(b); }
+          if (p) f.appendChild(document.createTextNode(p));
+        });
+        tn.parentNode.replaceChild(f, tn);
+      });
+      if (h.tagName === 'BUTTON' && h.textContent.trim() === 'SOS') h.classList.add('pbthd-host');
+    }
+  }
+  var sosT = 0;
+  try { new MutationObserver(function () { clearTimeout(sosT); sosT = setTimeout(sos, 120); }).observe(document.documentElement, { childList: true, subtree: true }); } catch (e) {}
   window.PBTHelp = {
     open: open, close: close, button: button,
     config: function (o) { Object.assign(CFG, o || {}); }
   };
+  css();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount); else mount();
 })();
