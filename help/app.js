@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0211MO008';
-const UPDATE_NOTE = 'Developer panel: change your password inside the app (no email needed)';
+const APP_VERSION = 'HD0211MO009';
+const UPDATE_NOTE = 'Developer: each app shows its open requests (red = new, unseen) until solved';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -231,19 +231,23 @@ function foot() {
 
 /* ---------- ہوم ---------- */
 function vHome() {
+  const own = Store.isOwner();
   const pub = publicList();
-  const open = pub.filter(isOpen);
+  // مالک کو: ہر ایپ پر جب تک حل نہ ہو نمبر (نارنجی)، نیا ان دیکھا ہو تو سرخ «نئے»
+  const open = own ? ISSUES.filter(i => isOpen(i) || isHeld(i)) : pub.filter(isOpen);
   const un = unseenMine(), mine = myList().length;
   const hrs = (LANG === 'en' ? CFG.hoursEn : CFG.hoursUr) || T('hoursDef');
   const tiles = APPS.map(a => {
     const n = open.filter(i => i.app === a.id).length;
-    return `<button class="ap" data-act="app" data-id="${esc(a.id)}">${appIcon(a)}<span class="n ${/[a-z]/i.test(AN(a)) && LANG !== 'en' ? 'en' : ''}">${esc(AN(a))}</span>${n ? `<span class="bd">${n}</span>` : ''}</button>`;
+    const nn = own ? ISSUES.filter(i => i.app === a.id && i.status === 'new').length : 0;
+    return `<button class="ap" data-act="${own ? 'oapp' : 'app'}" data-id="${esc(a.id)}">${nn ? `<span class="bd2">${nn} ${LANG === 'en' ? 'new' : (nn === 1 ? 'نیا' : 'نئے')}</span>` : ''}${appIcon(a)}<span class="n ${/[a-z]/i.test(AN(a)) && LANG !== 'en' ? 'en' : ''}">${esc(AN(a))}</span>${n ? `<span class="bd">${n}</span>` : ''}</button>`;
   }).join('');
   return `
   <div class="card stats">
     <div class="st g"><span class="v">${weekSolved(ISSUES)}</span><span class="l">✅ ${T('solvedWeek')}</span></div>
     <div class="st o"><span class="v">${open.length}</span><span class="l">🔧 ${T('pending')}</span></div>
-    <div class="st b"><span class="v" style="font-size:19px">${avgReply()}</span><span class="l">⏱️ ${T('avgReply')}</span></div>
+    ${own ? `<div class="st r"><span class="v">${ISSUES.filter(i => i.status === 'new').length}</span><span class="l">📥 ${LANG === 'en' ? 'New, unseen' : 'نئے، ان دیکھے'}</span></div>`
+      : `<div class="st b"><span class="v" style="font-size:19px">${avgReply()}</span><span class="l">⏱️ ${T('avgReply')}</span></div>`}
   </div>
   ${mine ? `<button class="mineBtn" data-act="mine"><span class="i">📋</span><span class="t"><b>${T('mine')} <span class="num">(${mine})</span></b><small>${T('mineSub')}</small></span>${un ? `<span class="dot">${un}</span>` : ''}<span>${LANG === 'en' ? '›' : '‹'}</span></button>` : ''}
   <div class="secT">📱 ${T('chooseApp')} <small>— ${T('chooseAppSub')}</small></div>
@@ -502,7 +506,7 @@ async function cleanup() {
 }
 const needsSend = i => !!i.reply && i.notified !== sig(i);
 const isHeld = i => i.hold === 'decide' || i.hold === 'approve';
-function tabOk(i, t) { return t === 'all' || (t === 'hold' ? isHeld(i) : t === 'send' ? needsSend(i) : i.status === t); }
+function tabOk(i, t) { return t === 'all' || (t === 'open' ? (isOpen(i) || isHeld(i)) : t === 'hold' ? isHeld(i) : t === 'send' ? needsSend(i) : i.status === t); }
 function ownFiltered() {
   const q = O.q.trim().toLowerCase();
   let l = ISSUES.filter(i => tabOk(i, O.tab) && (!O.app || i.app === O.app));
@@ -513,7 +517,7 @@ function vOwner() {
   if (!Store.isOwner()) { setTimeout(loginSheet, 50); return `<div class="card empty"><span class="e">🔒</span>Developer</div>`; }
   cleanup();
   const C = s => ISSUES.filter(i => tabOk(i, s) && (!O.app || i.app === O.app)).length;
-  const tabs = [['hold', '⏳ ' + (LANG === 'en' ? 'Approval' : 'منظوری')], ['send', '📨 ' + (LANG === 'en' ? 'To send' : 'بھیجنا باقی')], ['new', '📥 ' + T('s_new')], ['seen', '👀 ' + T('s_seen')], ['work', '🔧 ' + T('s_work')], ['done', '✅ ' + T('s_done')], ['dup', '🔗 ' + T('s_dup')], ['all', LANG === 'en' ? 'All' : 'سب']];
+  const tabs = [['open', '🔓 ' + (LANG === 'en' ? 'Open' : 'کھلے')], ['hold', '⏳ ' + (LANG === 'en' ? 'Approval' : 'منظوری')], ['send', '📨 ' + (LANG === 'en' ? 'To send' : 'بھیجنا باقی')], ['new', '📥 ' + T('s_new')], ['seen', '👀 ' + T('s_seen')], ['work', '🔧 ' + T('s_work')], ['done', '✅ ' + T('s_done')], ['dup', '🔗 ' + T('s_dup')], ['all', LANG === 'en' ? 'All' : 'سب']];
   const list = ownFiltered();
   const opts = `<option value="">${LANG === 'en' ? 'All apps' : 'سب ایپس'}</option>` + APPS.map(a => {
     const n = ISSUES.filter(i => i.app === a.id && isOpen(i)).length;
@@ -764,6 +768,7 @@ document.addEventListener('click', async e => {
   switch (act) {
     case 'lang': setLang(LANG === 'en' ? 'ur' : 'en'); break;
     case 'back': if (EMBED || history.length <= 1) go(R.v === 'app' ? '#/' : (R.v === 'new' ? '#/app/' + encodeURIComponent(R.a) : '#/')); else history.back(); break;
+    case 'oapp': O.app = id; O.tab = ISSUES.some(i => i.app === id && i.status === 'new') ? 'new' : 'open'; go('#/owner'); break;
     case 'app': appTab = 'open'; appQ = ''; go('#/app/' + encodeURIComponent(id)); break;
     case 'mine': go('#/mine'); break;
     case 'new': go('#/new/' + encodeURIComponent(id)); break;
