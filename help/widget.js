@@ -84,7 +84,18 @@
     if (S && S.getAttribute('data-float') === '1' && !document.querySelector('.pbthd-tab')) {
       var t = document.createElement('button'); t.type = 'button'; t.className = 'pbthd-tab'; t.title = 'PBT Help Desk';
       t.innerHTML = '<span class="pbthd-sos">SOS</span><span>Help</span>';
-      t.onclick = function () { open(); };
+      // انگلی سے اوپر نیچے سرکائیں (ہر ایپ اپنی جگہ یاد رکھے)؛ ہلکا سا چھونا = کھولیں
+      var key = 'pbthd_tabY_' + (CFG.app || location.pathname), moved = false, y0 = 0, t0 = 0;
+      try { var sv = parseFloat(localStorage.getItem(key)); if (sv >= 5 && sv <= 90) t.style.top = sv + '%'; } catch (e) {}
+      t.addEventListener('pointerdown', function (e) { moved = false; y0 = e.clientY; t0 = t.getBoundingClientRect().top; try { t.setPointerCapture(e.pointerId); } catch (x) {} });
+      t.addEventListener('pointermove', function (e) {
+        if (!e.buttons && e.pointerType === 'mouse') return;
+        if (Math.abs(e.clientY - y0) > 6) moved = true;
+        if (moved) { var top = Math.min(innerHeight - 70, Math.max(10, t0 + e.clientY - y0)); t.style.top = (top / innerHeight * 100) + '%'; }
+      });
+      t.addEventListener('pointerup', function () { if (moved) { try { localStorage.setItem(key, parseFloat(t.style.top)); } catch (e) {} } });
+      t.onclick = function (e) { if (moved) { e.preventDefault(); moved = false; return; } open(); };
+      t.style.touchAction = 'none';
       document.body.appendChild(t);
     }
     sos();
