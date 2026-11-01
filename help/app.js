@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0211MO009';
-const UPDATE_NOTE = 'Developer: each app shows its open requests (red = new, unseen) until solved';
+const APP_VERSION = 'HD0211MO010';
+const UPDATE_NOTE = 'App badges: blue = being worked on, red = new';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -238,8 +238,8 @@ function vHome() {
   const un = unseenMine(), mine = myList().length;
   const hrs = (LANG === 'en' ? CFG.hoursEn : CFG.hoursUr) || T('hoursDef');
   const tiles = APPS.map(a => {
-    const n = open.filter(i => i.app === a.id).length;
     const nn = own ? ISSUES.filter(i => i.app === a.id && i.status === 'new').length : 0;
+    const n = open.filter(i => i.app === a.id).length - nn; // نیلا = جن پر کام چل رہا ہے (نئے الگ سرخ میں)
     return `<button class="ap" data-act="${own ? 'oapp' : 'app'}" data-id="${esc(a.id)}">${nn ? `<span class="bd2">${nn} ${LANG === 'en' ? 'new' : (nn === 1 ? 'نیا' : 'نئے')}</span>` : ''}${appIcon(a)}<span class="n ${/[a-z]/i.test(AN(a)) && LANG !== 'en' ? 'en' : ''}">${esc(AN(a))}</span>${n ? `<span class="bd">${n}</span>` : ''}</button>`;
   }).join('');
   return `
