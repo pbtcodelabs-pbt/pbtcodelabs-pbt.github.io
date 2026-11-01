@@ -1,3 +1,127 @@
+/* ================= فائربیس (pbt-help-desk) — لائیو =================
+   گاہک: Anonymous؛ مالک: piarybhai@gmail.com (UID OWNER_UID)
+   issues/{id} (مسئلہ) · issues/{id}/priv/c (نام، فون) · blobs/{id} (تصویر/آواز) · meta/counter · meta/cfg
+   onSnapshot سے لائیو — صرف بدلی چیز دوبارہ آتی ہے (فائربیس کا خرچ کم) */
+(function () {
+  'use strict';
+  const V = '10.14.1';
+  const P = new URLSearchParams(location.search);
+  const CDN = window.PBTHD_FB_CDN || 'https://www.gstatic.com/firebasejs/' + V + '/';
+  const OWNER_UID = 's6L0FAs6krVDRAHKf70ggM3LamH2', OWNER_EMAIL = 'piarybhai@gmail.com';
+  let Au, F, auth, db, user = null, subs = [], offs = [];
+  let all = new Map(), pub = new Map(), mine = new Map(), priv = new Map(), cfg = {};
+  const isOwner = () => !!(user && user.uid === OWNER_UID);
+
+  function emit() {
+    let list;
+    if (isOwner()) list = [...all.values()];
+    else { const m = new Map(pub); mine.forEach((v, k) => m.set(k, v)); list = [...m.values()]; }
+    list = list.map(i => Object.assign({ metoo: [], reply: '', ptext: '' }, i, priv.get(i.id) || {}));
+    subs.forEach(f => { try { f(list, cfg); } catch (e) { console.error(e); } });
+  }
+  const docs = (snap, map) => { map.clear(); snap.forEach(d => map.set(d.id, Object.assign({ id: d.id }, d.data()))); };
+  function listen() {
+    offs.forEach(f => f()); offs = []; all.clear(); pub.clear(); mine.clear(); priv.clear();
+    const err = e => console.warn('[helpdesk]', e && e.code, e && e.message);
+    offs.push(F.onSnapshot(F.doc(db, 'meta', 'cfg'), s => { cfg = s.exists() ? s.data() : {}; emit(); }, err));
+    if (isOwner()) {
+      // نام/فون ہر مسئلے کی اپنی priv/c سے (ایک بار پڑھ کر یاد) — collectionGroup کو فائربیس انڈیکس چاہیے، اس سے بچا
+      offs.push(F.onSnapshot(F.collection(db, 'issues'), s => {
+        docs(s, all); emit();
+        all.forEach((v, id) => {
+          if (priv.has(id)) return;
+          priv.set(id, {});
+          F.getDoc(F.doc(db, 'issues', id, 'priv', 'c')).then(d => {
+            if (d.exists()) { priv.set(id, { name: d.data().name || '', phone: d.data().phone || '' }); emit(); }
+          }).catch(err);
+        });
+      }, err));
+    } else {
+      offs.push(F.onSnapshot(F.query(F.collection(db, 'issues'), F.where('pub', '==', true)), s => { docs(s, pub); emit(); }, err));
+      offs.push(F.onSnapshot(F.query(F.collection(db, 'issues'), F.where('uid', '==', user.uid)), s => { docs(s, mine); emit(); }, err));
+    }
+    emit();
+  }
+
+  const Store = {
+    mode: 'cloud',
+    async init() {
+      const [A, au, f] = await Promise.all([import(CDN + 'firebase-app.js'), import(CDN + 'firebase-auth.js'), import(CDN + 'firebase-firestore.js')]);
+      Au = au; F = f;
+      const app = A.initializeApp(window.PBTHD_FIREBASE, 'pbthd');
+      auth = Au.getAuth(app); db = F.getFirestore(app);
+      if (P.get('emu') === '1') { Au.connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true }); F.connectFirestoreEmulator(db, '127.0.0.1', 8080); }
+      await new Promise(res => {
+        let done = false; const fin = () => { if (!done) { done = true; res(); } };
+        Au.onAuthStateChanged(auth, u => {
+          user = u;
+          if (!u) { Au.signInAnonymously(auth).catch(e => { console.error(e); fin(); }); return; }
+          listen(); fin();
+        });
+        setTimeout(fin, 15000);
+      });
+    },
+    watch(f) { subs.push(f); emit(); return () => { subs = subs.filter(x => x !== f); }; },
+    cfg() { return cfg; },
+    async setCfg(p) { await F.setDoc(F.doc(db, 'meta', 'cfg'), p, { merge: true }); },
+    async add(f, blobs) {
+      if (!user) throw new Error('offline');
+      const cref = F.doc(db, 'meta', 'counter');
+      const no = await F.runTransaction(db, async t => {
+        const s = await t.get(cref); const n = (s.exists() ? s.data().v : 0) + 1; t.set(cref, { v: n }); return n;
+      });
+      const ref = F.doc(F.collection(db, 'issues')), id = ref.id, t = Date.now();
+      const { name, phone } = f;
+      const d = {
+        no, app: f.app || 'other', type: f.type || 'bug', text: f.text || '', ptext: '', ver: f.ver || '', dev: f.dev || '',
+        shots: f.shots || 0, audio: !!f.audio, lang: f.lang || 'ur', hold: f.hold || '', uid: user.uid,
+        created: t, upd: t, status: 'new', pub: false, metoo: [], reply: '', replyAt: 0, doneAt: 0, dupOf: 0
+      };
+      const b = F.writeBatch(db);
+      b.set(ref, d);
+      b.set(F.doc(db, 'issues', id, 'priv', 'c'), { name: name || '', phone: phone || '', uid: user.uid });
+      (blobs || []).forEach(x => b.set(F.doc(F.collection(db, 'blobs')), { issue: id, kind: x.kind, data: x.data, uid: user.uid, created: t }));
+      await b.commit();
+      return { id, no };
+    },
+    async update(id, patch) {
+      const p = Object.assign({}, patch, { upd: Date.now() });
+      const pv = {};
+      ['name', 'phone'].forEach(k => { if (k in p) { pv[k] = p[k]; delete p[k]; } });
+      await F.updateDoc(F.doc(db, 'issues', id), p);
+      if (Object.keys(pv).length) await F.updateDoc(F.doc(db, 'issues', id, 'priv', 'c'), pv);
+    },
+    async metoo(id, dev, on) {
+      await F.updateDoc(F.doc(db, 'issues', id), { metoo: on ? F.arrayUnion(dev) : F.arrayRemove(dev) });
+    },
+    async blobs(id) {
+      const c = [F.where('issue', '==', id)];
+      if (!isOwner()) c.push(F.where('uid', '==', user.uid));
+      const s = await F.getDocs(F.query(F.collection(db, 'blobs'), ...c));
+      return s.docs.map(d => Object.assign({ id: d.id }, d.data()));
+    },
+    async remove(id) {
+      const c = [F.where('issue', '==', id)];
+      if (!isOwner()) c.push(F.where('uid', '==', user.uid));
+      const s = await F.getDocs(F.query(F.collection(db, 'blobs'), ...c));
+      const b = F.writeBatch(db);
+      s.docs.forEach(d => b.delete(d.ref));
+      b.delete(F.doc(db, 'issues', id, 'priv', 'c'));
+      b.delete(F.doc(db, 'issues', id));
+      await b.commit();
+    },
+    async wipeDemo() {},
+    async ownerLogin(pw) {
+      try { await Au.signInWithEmailAndPassword(auth, OWNER_EMAIL, pw); return isOwner(); }
+      catch (e) { console.warn(e && e.code); return false; }
+    },
+    ownerFirst() { return false; },
+    async ownerLogout() { await Au.signOut(auth); },
+    isOwner
+  };
+  window.CloudStore = Store;
+})();
+
 /* PBT Help Desk — ڈیٹا کا خانہ (Store)
    ابھی «ڈیمو» حالت: اسی فون/براؤزر کے IndexedDB `pbthd_demo_v1` میں، کئی ٹیب میں لائیو (BroadcastChannel)۔
    فائربیس (پروجیکٹ pbt-help-desk) جڑتے ہی یہی Store کلاؤڈ سے چلے گا — app.js کو کچھ بدلنا نہیں پڑے گا۔
@@ -125,5 +249,7 @@
     const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
     return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
   }
-  window.Store = Store;
+  window.DemoStore = Store;
+  const P = new URLSearchParams(location.search);
+  window.Store = (window.PBTHD_FIREBASE && P.get('demo') !== '1') ? window.CloudStore : Store;
 })();

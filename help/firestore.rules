@@ -1,34 +1,57 @@
-// PBT Help Desk — فائربیس کے حفاظتی اصول (مسودہ — فائربیس جڑتے وقت مکمل ہوں گے)
-// گاہک: Anonymous لاگ اِن؛ مالک: ای میل/پاس ورڈ (owner = piarybhai@gmail.com یا pbtcodelabs@gmail.com)
-// issues/{id}        — عام حصہ: app, type, ptext/text, status, pub, metoo, reply, created, no …
-// issues/{id}/priv/c — صرف مالک + لکھنے والا: name, phone, dev
-// blobs/{id}         — تصویر / آواز (صرف مالک + لکھنے والا)
+// PBT Help Desk — فائربیس (pbt-help-desk) کے حفاظتی اصول
+// کنسول: Firestore Database → Rules → یہ پورا متن → Publish
+// گاہک: Anonymous لاگ اِن؛ مالک: piarybhai@gmail.com (UID نیچے) — صرف یہی سب کچھ دیکھ / بدل سکتا ہے
+// issues/{id}          — مسئلہ (نام/فون نہیں)
+// issues/{id}/priv/c   — نام + فون: صرف مالک اور لکھنے والا
+// blobs/{id}           — اسکرین شاٹ / آواز: صرف مالک اور لکھنے والا
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    function owner() { return request.auth != null && request.auth.token.email in ['piarybhai@gmail.com', 'pbtcodelabs@gmail.com'] && request.auth.token.email_verified; }
+    function owner() { return request.auth != null && request.auth.uid == 's6L0FAs6krVDRAHKf70ggM3LamH2'; }
     function signed() { return request.auth != null; }
+    function me() { return request.auth.uid; }
+
     match /issues/{id} {
-      allow read: if owner() || (signed() && (resource.data.pub == true || resource.data.uid == request.auth.uid));
-      allow create: if signed() && request.resource.data.uid == request.auth.uid && request.resource.data.status == 'new'
-                    && request.resource.data.pub == false && request.resource.data.text.size() < 5000;
-      // گاہک صرف «میرا بھی» بدل سکتا ہے
-      allow update: if owner() || (signed() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['metoo']));
-      allow delete: if owner() || (signed() && resource.data.uid == request.auth.uid && resource.data.status == 'new');
+      allow read: if owner() || (signed() && (resource.data.pub == true || resource.data.uid == me()));
+      allow create: if signed()
+        && request.resource.data.keys().hasOnly(['no', 'app', 'type', 'text', 'ptext', 'ver', 'dev', 'shots', 'audio', 'lang', 'hold', 'uid',
+             'created', 'upd', 'status', 'pub', 'metoo', 'reply', 'replyAt', 'doneAt', 'dupOf'])
+        && request.resource.data.uid == me() && request.resource.data.status == 'new' && request.resource.data.pub == false
+        && request.resource.data.reply == '' && request.resource.data.metoo.size() == 0
+        && request.resource.data.text is string && request.resource.data.text.size() < 6000
+        && request.resource.data.hold in ['', 'decide'];
+      // گاہک صرف «👋 میرا بھی» (ایک وقت میں ایک) بدل سکتا ہے
+      allow update: if owner() || (signed() && (resource.data.pub == true || resource.data.uid == me())
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['metoo'])
+        && request.resource.data.metoo.size() <= resource.data.metoo.size() + 1
+        && request.resource.data.metoo.size() >= resource.data.metoo.size() - 1);
+      allow delete: if owner() || (signed() && resource.data.uid == me() && resource.data.status == 'new');
+
       match /priv/{doc} {
-        allow read: if owner() || (signed() && get(/databases/$(database)/documents/issues/$(id)).data.uid == request.auth.uid);
-        allow create: if signed();
-        allow update, delete: if owner();
+        allow read: if owner() || (signed() && resource.data.uid == me());
+        allow create: if signed() && request.resource.data.uid == me()
+          && getAfter(/databases/$(database)/documents/issues/$(id)).data.uid == me();
+        allow update: if owner();
+        allow delete: if owner() || (signed() && resource.data.uid == me());
       }
     }
-    match /blobs/{id} {
-      allow read: if owner() || (signed() && resource.data.uid == request.auth.uid);
-      allow create: if signed() && request.resource.data.uid == request.auth.uid && request.resource.data.data.size() < 900000;
-      allow delete: if owner();
+    match /{path=**}/priv/{doc} {
+      allow read: if owner() || (signed() && resource.data.uid == me());
     }
-    match /meta/{doc} {
+    match /blobs/{id} {
+      allow read: if owner() || (signed() && resource.data.uid == me());
+      allow create: if signed() && request.resource.data.uid == me() && request.resource.data.kind in ['shot', 'audio']
+        && request.resource.data.data is string && request.resource.data.data.size() < 1000000;
+      allow delete: if owner() || (signed() && resource.data.uid == me());
+    }
+    match /meta/cfg {
+      allow read: if true;
+      allow write: if owner();
+    }
+    match /meta/counter {
       allow read: if signed();
-      allow write: if owner() || (doc == 'counter' && signed());
+      allow create: if signed() && request.resource.data.v == 1;
+      allow update: if signed() && request.resource.data.v == resource.data.v + 1;
     }
   }
 }
