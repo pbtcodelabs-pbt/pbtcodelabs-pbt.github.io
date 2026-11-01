@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0211MO010';
-const UPDATE_NOTE = 'App badges: blue = being worked on, red = new';
+const APP_VERSION = 'HD0211MO011';
+const UPDATE_NOTE = 'Developer: most / fewest requests this month, with a full per-app list';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -250,6 +250,7 @@ function vHome() {
       : `<div class="st b"><span class="v" style="font-size:19px">${avgReply()}</span><span class="l">⏱️ ${T('avgReply')}</span></div>`}
   </div>
   ${mine ? `<button class="mineBtn" data-act="mine"><span class="i">📋</span><span class="t"><b>${T('mine')} <span class="num">(${mine})</span></b><small>${T('mineSub')}</small></span>${un ? `<span class="dot">${un}</span>` : ''}<span>${LANG === 'en' ? '›' : '‹'}</span></button>` : ''}
+  ${own ? rankBtns() : ''}
   <div class="secT">📱 ${T('chooseApp')} <small>— ${T('chooseAppSub')}</small></div>
   <div class="apps">${tiles}</div>
   <div class="card" style="margin-top:16px">
@@ -498,8 +499,61 @@ function vThanks() {
 /* ================= ڈویلپر پینل ================= */
 let O = { tab: 'new', app: '', q: '', sort: 'new' };
 let cleaned = false;
+/* 📊 مہینے کی گنتی — حل شدہ 7 دن بعد مٹ جاتے ہیں، اس لیے ہر مسئلے کا نمبر مہینہ وار cfg.stats میں محفوظ (صرف مالک لکھتا ہے) */
+const monthKey = t => { const d = new Date((t || Date.now()) + 5 * 3600e3); return d.getUTCFullYear() + '_' + String(d.getUTCMonth() + 1).padStart(2, '0'); };
+const MONTHS_UR = ['جنوری', 'فروری', 'مارچ', 'اپریل', 'مئی', 'جون', 'جولائی', 'اگست', 'ستمبر', 'اکتوبر', 'نومبر', 'دسمبر'];
+const MONTHS_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const monthName = m => { const [y, mm] = m.split('_'); return (LANG === 'en' ? MONTHS_EN : MONTHS_UR)[+mm - 1] + ' ' + y; };
+let statBusy = false;
+async function recordStats() {
+  if (!Store.isOwner() || statBusy || !ISSUES.length) return;
+  statBusy = true;
+  try {
+    const st = JSON.parse(JSON.stringify(CFG.stats || {})); let ch = false;
+    ISSUES.forEach(i => {
+      if (!i.no) return;
+      const m = monthKey(i.created), o = st[m] = st[m] || {}, a = o[i.app] = o[i.app] || [];
+      if (!a.includes(i.no)) { a.push(i.no); ch = true; }
+    });
+    if (ch) await Store.setCfg({ stats: st });
+  } catch (e) { console.warn(e); }
+  statBusy = false;
+}
+function monthCounts(m) {
+  const sets = {};
+  Object.entries((CFG.stats || {})[m] || {}).forEach(([a, l]) => { sets[a] = new Set(l); });
+  ISSUES.forEach(i => { if (i.no && monthKey(i.created) === m) (sets[i.app] = sets[i.app] || new Set()).add(i.no); });
+  const out = {}; Object.entries(sets).forEach(([a, x]) => { if (x.size) out[a] = x.size; });
+  return out;
+}
+function rankBtns() {
+  const m = monthKey(), arr = Object.entries(monthCounts(m)).sort((x, y) => y[1] - x[1]);
+  if (!arr.length) return '';
+  const E = LANG === 'en';
+  const b = ([id, n], hi) => { const a = appOf(id); return `<button class="rk ${hi ? 'hi' : 'lo'}" data-act="rank" data-id="${m}">
+    <span class="rl">${hi ? '📈 ' + (E ? 'Most requests' : 'سب سے زیادہ مسائل') : '📉 ' + (E ? 'Fewest requests' : 'سب سے کم مسائل')}</span>
+    <span class="rr">${appIcon(a, 'appMini')}<b>${esc(AN(a))}</b><i class="num">${n}</i></span></button>`; };
+  return `<div class="rkRow">${b(arr[0], true)}${b(arr[arr.length - 1], false)}</div>
+    <div class="rkSub">${E ? 'This month' : 'اس مہینے'} — ${monthName(m)}</div>`;
+}
+function rankSheet(m) {
+  const c = monthCounts(m), E = LANG === 'en';
+  const list = APPS.map(a => [a, c[a.id] || 0]).sort((x, y) => y[1] - x[1]);
+  const max = Math.max(1, ...list.map(x => x[1])), tot = list.reduce((s2, x) => s2 + x[1], 0);
+  const [y, mm] = m.split('_').map(Number);
+  const prev = mm === 1 ? (y - 1) + '_12' : y + '_' + String(mm - 1).padStart(2, '0');
+  const next = mm === 12 ? (y + 1) + '_01' : y + '_' + String(mm + 1).padStart(2, '0');
+  sheet(`<h2>📊 ${E ? 'Requests per app' : 'ایپ وار مسائل'}<button class="x" data-act="close">✕</button></h2>
+    <div class="tools" style="justify-content:space-between;align-items:center;margin:0 0 8px">
+      <button class="tb" data-act="rank" data-id="${prev}">${E ? '‹ Previous' : '→ پچھلا'}</button>
+      <b>${monthName(m)} <span class="num" style="color:var(--mut)">(${tot})</span></b>
+      <button class="tb" data-act="rank" data-id="${next}" ${m >= monthKey() ? 'disabled style="opacity:.4"' : ''}>${E ? 'Next ›' : 'اگلا ←'}</button></div>
+    ${list.map(([a, n]) => `<div class="rkLine">${appIcon(a, 'appMini')}<span class="rn">${esc(AN(a))}</span>
+      <span class="rb"><i style="width:${n / max * 100}%"></i></span><b class="num">${n}</b></div>`).join('')}`);
+}
 async function cleanup() {
   if (cleaned) return; cleaned = true;
+  await recordStats(); // مٹانے سے پہلے مہینے کی گنتی محفوظ
   const old = ISSUES.filter(i => (i.status === 'done' || i.status === 'dup') && Date.now() - (i.doneAt || i.upd) > keepDays() * 864e5);
   for (const i of old) await Store.remove(i.id);
   if (old.length) toast('🧹 ' + old.length + (LANG === 'en' ? ' old solved removed' : ' پرانے حل شدہ ہٹا دیے'));
@@ -768,6 +822,7 @@ document.addEventListener('click', async e => {
   switch (act) {
     case 'lang': setLang(LANG === 'en' ? 'ur' : 'en'); break;
     case 'back': if (EMBED || history.length <= 1) go(R.v === 'app' ? '#/' : (R.v === 'new' ? '#/app/' + encodeURIComponent(R.a) : '#/')); else history.back(); break;
+    case 'rank': rankSheet(id); break;
     case 'oapp': O.app = id; O.tab = ISSUES.some(i => i.app === id && i.status === 'new') ? 'new' : 'open'; go('#/owner'); break;
     case 'app': appTab = 'open'; appQ = ''; go('#/app/' + encodeURIComponent(id)); break;
     case 'mine': go('#/mine'); break;
@@ -912,6 +967,7 @@ $('#viewer').addEventListener('click', () => $('#viewer').classList.remove('on')
     ISSUES = list; CFG = cfg || {};
     if (first) { first = false; render(); const u = unseenMine(); if (u && R.v !== 'mine') setTimeout(() => toast(T('updatedMine'), 4000), 600); return; }
     softRender();
+    if (Store.isOwner()) { clearTimeout(recordStats.t); recordStats.t = setTimeout(recordStats, 3000); }
   });
 })();
 
