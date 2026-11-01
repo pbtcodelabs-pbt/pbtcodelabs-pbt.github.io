@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0111SU001';
-const UPDATE_NOTE = 'First release: choose app, report problem with screenshot & voice, me-too, developer panel';
+const APP_VERSION = 'HD0111SU002';
+const UPDATE_NOTE = 'Camera button, next review time (2 AM / 2 PM), approval list, in-app Help Desk button';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -40,7 +40,11 @@ const DICT = {
   mine: ['میرے مسائل', 'My requests'],
   mineSub: ['جو آپ نے بھیجے — حالت اور جواب', 'what you sent — status & reply'],
   hours: ['جواب کا وقت', 'Reply hours'],
-  hoursDef: ['روزانہ شام 9 سے رات 11 بجے تک — ہر مسئلہ باری سے دیکھا جاتا ہے', 'Daily 9 PM – 11 PM — every request is handled in turn'],
+  hoursDef: ['روزانہ رات 2 بجے اور دوپہر 2 بجے — ہر مسئلہ باری سے دیکھا اور حل کیا جاتا ہے', 'Daily at 2 AM and 2 PM — every request is reviewed and fixed in turn'],
+  nextRev: ['اگلا جائزہ', 'Next review'],
+  slotToday2pm: ['آج دوپہر 2 بجے', 'today 2 PM'], slotTonight: ['آج رات 2 بجے', 'tonight 2 AM'],
+  camera: ['کیمرہ', 'Camera'],
+  close: ['بند کریں', 'Close'],
   whyHere: ['یہاں لکھا ہر مسئلہ محفوظ رہتا ہے، گم نہیں ہوتا، اور حل ہوتے ہی جواب یہیں آ جاتا ہے۔ واٹس ایپ پر بھیجنے کی ضرورت نہیں۔',
     'Everything written here is saved, never lost, and the answer appears right here once solved. No need to send it on WhatsApp.'],
   tellBtn: ['اپنا مسئلہ یا مشورہ بتائیں', 'Report a problem or suggestion'],
@@ -114,6 +118,9 @@ function setLang(l) {
   render();
 }
 
+const EMBED = new URLSearchParams(location.search).get('embed') === '1'; // کسی ایپ کے اندر پاپ اپ (widget.js)
+if (EMBED) document.documentElement.classList.add('embed');
+
 /* ---------- مددگار ---------- */
 const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -171,6 +178,13 @@ function unseenMine() { const seen = ls.get('seen', {}); return myList().filter(
 function markMineSeen() { const seen = ls.get('seen', {}); myList().forEach(i => seen[i.id] = sig(i)); ls.set('seen', seen); }
 function rememberMine(id, s) { const seen = ls.get('seen', {}); seen[id] = s; ls.set('seen', seen); }
 
+/* اگلا جائزہ: رات 2 بجے اور دوپہر 2 بجے (پاکستانی وقت) — Claude کی لمٹ خرچ نہیں، صرف حساب */
+function nextReview() {
+  const h = new Date(Date.now() + 5 * 3600e3).getUTCHours(); // PKT = UTC+5
+  return (h >= 2 && h < 14) ? T('slotToday2pm') : T('slotTonight');
+}
+const revLine = () => `<div class="rev">⏰ ${T('nextRev')}: <b>${nextReview()}</b></div>`;
+
 /* ---------- راستہ ---------- */
 let R = { v: 'home' };
 function parse() {
@@ -178,13 +192,19 @@ function parse() {
   const v = h[0] || 'home';
   R = { v, a: decodeURIComponent(h[1] || '') };
 }
-function go(h) { if (location.hash === h) { parse(); render(); } else location.hash = h; }
+function go(h) {
+  if (location.hash === h) { parse(); render(); return; }
+  if (EMBED) { location.replace(h); return; } // ایپ کے اندر: تاریخ نہ بڑھے، تاکہ فون کا «پیچھے» پاپ اپ بند کرے
+  location.hash = h;
+}
 window.addEventListener('hashchange', () => { parse(); render(); window.scrollTo(0, 0); });
 
 /* ---------- سر ---------- */
 function header() {
   const own = Store.isOwner();
-  const back = R.v !== 'home' ? `<button class="hBtn back" data-act="back" aria-label="back">${LANG === 'en' ? '←' : '→'}</button>` : '';
+  const showBack = EMBED ? !['home', 'app'].includes(R.v) : R.v !== 'home';
+  const back = (EMBED ? `<button class="hBtn back" data-act="embedClose" aria-label="${T('close')}">✕</button>` : '') +
+    (showBack ? `<button class="hBtn back" data-act="back" aria-label="back">${LANG === 'en' ? '←' : '→'}</button>` : '');
   $('#hd').innerHTML = `<div class="hdIn">${back}
     <img class="logo" src="icons/icon-192.png" alt="" data-act="tap7">
     <div class="brand"><b>PBT Help Desk</b><span>${T('sub')}</span></div>
@@ -241,6 +261,7 @@ function issueCard(i, opts) {
     <div class="top">${opts.showApp ? `${appIcon(app, 'appMini')} <b style="font-size:14px">${esc(AN(app))}</b>` : ''}${tyChip(i.type)}${stChip(i.status)}${mineIt && !opts.mine ? `<span class="chip mine">⭐ ${T('yours')}</span>` : ''}<span class="no">#${i.no}</span></div>
     <div class="tx clamp" data-act="expand">${esc(txt)}</div>
     ${steps}
+    ${opts.mine && (i.status === 'new' || i.status === 'seen') ? revLine() : ''}
     ${i.reply ? `<div class="reply"><span class="rh">${T('pbtReply')}</span>${esc(i.reply)}</div>` : ''}
     ${i.status === 'dup' && i.dupOf ? `<div class="dupNote">🔗 ${T('dupOf')} <b class="num">#${i.dupOf}</b></div>` : ''}
     <div class="ft"><span class="when">🕒 ${ago(i.created)}</span>
@@ -317,8 +338,9 @@ function vForm() {
   <div class="fs"><div class="fh"><span class="n">3</span>${T('q3')} <small>— ${T('q3s')}</small></div>
     <div class="drop" id="drop"><span class="e">🖼️</span><p>${T('dropT')}</p>
       <div class="tools"><button type="button" class="tb pri" data-act="gallery">🖼️ ${T('gallery')}</button>
+      <button type="button" class="tb" data-act="camera">📷 ${T('camera')}</button>
       <button type="button" class="tb" data-act="pasteImg">📋 ${T('pasteImg')}</button></div>
-      <input type="file" id="fileIn" accept="image/*" multiple hidden></div>
+      <input type="file" id="fileIn" accept="image/*" multiple hidden><input type="file" id="camIn" accept="image/*" capture="environment" hidden></div>
     <div class="shots" id="shots">${shotsHTML()}</div></div>
 
   <div class="fs"><div class="fh"><span class="n">4</span>${T('q4')} <small>— ${T('q4s')}</small></div>
@@ -435,7 +457,7 @@ async function send() {
   try {
     const blobs = F.shots.map(d => ({ kind: 'shot', data: d }));
     if (F.audio) blobs.push({ kind: 'audio', data: F.audio });
-    const r = await Store.add({ app: F.app, type: F.type, text: F.text.trim(), name: F.name.trim(), phone: P, ver: F.ver.trim(), dev: DEV, shots: F.shots.length, audio: !!F.audio, lang: LANG }, blobs);
+    const r = await Store.add({ app: F.app, type: F.type, text: F.text.trim(), name: F.name.trim(), phone: P, ver: F.ver.trim(), dev: DEV, shots: F.shots.length, audio: !!F.audio, lang: LANG, hold: F.type === 'idea' ? 'decide' : '' }, blobs);
     rememberMine(r.id, 'new|0');
     const app = F.app; F = null;
     go('#/thanks/' + r.no + '/' + encodeURIComponent(app));
@@ -447,6 +469,7 @@ function vThanks() {
   const app = decodeURIComponent(parts[3] || '');
   return `<div class="card thanks"><div class="ok">✓</div><h2>${T('thanks')}</h2>
     <div style="color:var(--mut);font-size:14px">${T('ticketL')}</div><div class="ticket">#${esc(R.a)}</div>
+    ${revLine()}
     <p>${T('thanksP')}</p>
     <button class="bigBtn blue" data-act="mine">📋 ${T('mine')}</button>
     <button class="bigBtn" style="background:#fff;color:var(--ink);box-shadow:var(--sh)" data-act="app" data-id="${esc(app)}">${appIcon(appOf(app), 'appMini')} ${esc(AN(appOf(app)))}</button>
@@ -462,17 +485,20 @@ async function cleanup() {
   for (const i of old) await Store.remove(i.id);
   if (old.length) toast('🧹 ' + old.length + (LANG === 'en' ? ' old solved removed' : ' پرانے حل شدہ ہٹا دیے'));
 }
+const needsSend = i => !!i.reply && i.notified !== sig(i);
+const isHeld = i => i.hold === 'decide' || i.hold === 'approve';
+function tabOk(i, t) { return t === 'all' || (t === 'hold' ? isHeld(i) : t === 'send' ? needsSend(i) : i.status === t); }
 function ownFiltered() {
   const q = O.q.trim().toLowerCase();
-  let l = ISSUES.filter(i => (O.tab === 'all' || i.status === O.tab) && (!O.app || i.app === O.app));
+  let l = ISSUES.filter(i => tabOk(i, O.tab) && (!O.app || i.app === O.app));
   if (q) l = l.filter(i => [i.text, i.ptext, i.name, i.phone, i.reply, '#' + i.no, AN(appOf(i.app))].join(' ').toLowerCase().includes(q));
   return l.sort(O.sort === 'votes' ? (a, b) => ((b.metoo || []).length - (a.metoo || []).length) || b.created - a.created : (a, b) => b.created - a.created);
 }
 function vOwner() {
   if (!Store.isOwner()) { setTimeout(loginSheet, 50); return `<div class="card empty"><span class="e">🔒</span>Developer</div>`; }
   cleanup();
-  const C = s => ISSUES.filter(i => i.status === s && (!O.app || i.app === O.app)).length;
-  const tabs = [['new', '📥 ' + T('s_new')], ['seen', '👀 ' + T('s_seen')], ['work', '🔧 ' + T('s_work')], ['done', '✅ ' + T('s_done')], ['dup', '🔗 ' + T('s_dup')], ['all', LANG === 'en' ? 'All' : 'سب']];
+  const C = s => ISSUES.filter(i => tabOk(i, s) && (!O.app || i.app === O.app)).length;
+  const tabs = [['hold', '⏳ ' + (LANG === 'en' ? 'Approval' : 'منظوری')], ['send', '📨 ' + (LANG === 'en' ? 'To send' : 'بھیجنا باقی')], ['new', '📥 ' + T('s_new')], ['seen', '👀 ' + T('s_seen')], ['work', '🔧 ' + T('s_work')], ['done', '✅ ' + T('s_done')], ['dup', '🔗 ' + T('s_dup')], ['all', LANG === 'en' ? 'All' : 'سب']];
   const list = ownFiltered();
   const opts = `<option value="">${LANG === 'en' ? 'All apps' : 'سب ایپس'}</option>` + APPS.map(a => {
     const n = ISSUES.filter(i => i.app === a.id && isOpen(i)).length;
@@ -482,7 +508,7 @@ function vOwner() {
     const a = appOf(i.app), n = (i.metoo || []).length;
     return `<div class="is s-${i.status} oi" data-act="open" data-id="${i.id}">
       <div class="top">${appIcon(a, 'appMini')} <b style="font-size:14px">${esc(AN(a))}</b>${tyChip(i.type)}${stChip(i.status)}
-        <span class="chip ${i.pub ? 'globe' : 'lock'}">${i.pub ? '🌐' : '🔒'}</span><span class="no">#${i.no}</span></div>
+        <span class="chip ${i.pub ? 'globe' : 'lock'}">${i.pub ? '🌐' : '🔒'}</span>${isHeld(i) ? '<span class="chip work">⏳</span>' : ''}${needsSend(i) ? '<span class="chip mine">📨</span>' : ''}<span class="no">#${i.no}</span></div>
       <div class="tx clamp">${esc(i.text || (i.audio ? '🎤' : ''))}</div>
       <div class="ft"><span class="who">👤 ${esc(i.name)} · <span class="num">${esc(i.phone)}</span></span>
         <span class="when">🕒 ${ago(i.created)}</span>${i.shots ? `<span class="when">🖼️ ${i.shots}</span>` : ''}${i.audio ? '<span class="when">🎤</span>' : ''}
@@ -527,6 +553,7 @@ function detailHTML() {
       <span>📞</span><span><a class="num" href="tel:${esc(i.phone)}">${esc(i.phone)}</a> · <a href="https://wa.me/${waNum(i.phone)}" target="_blank" rel="noopener">💬 WhatsApp</a></span>
       <span>🕒</span><span class="num">${fullDate(i.created)}</span>
       ${i.ver ? `<span>🏷️</span><span class="num">${esc(i.ver)}</span>` : ''}</div>
+    ${holdBox(i)}
     <div class="tx" style="white-space:pre-wrap;font-size:16.5px;overflow-wrap:anywhere">${esc(i.text) || '<i style="color:var(--mut)">—</i>'}</div>
     ${DET.blobs == null && (i.shots || i.audio) ? '<div class="spin" style="margin:12px auto;width:30px;height:30px"></div>' : ''}
     ${shots.length ? `<div class="shotsBig">${shots.map((b, k) => `<img src="${b.data}" data-viewsrc="1" alt="">`).join('')}</div>` : ''}
@@ -558,6 +585,21 @@ function detailHTML() {
 
     <div class="tools" style="margin-top:14px;justify-content:space-between"><button class="tb red" data-act="del">🗑️ ${E ? 'Delete' : 'حذف'}</button>
       <button class="tb" data-act="close">✕ ${E ? 'Close' : 'بند'}</button></div></div>`;
+}
+/* منظوری: مشورہ (کام کریں؟) یا Claude کا تیار کام (لائیو کریں؟) */
+function holdBox(i) {
+  const E = LANG === 'en';
+  if (i.hold === 'decide') return `<div class="hold"><b>💡 ${E ? 'Waiting for your decision: work on this suggestion?' : 'آپ کے فیصلے کا منتظر: اس مشورے پر کام کریں؟'}</b>
+    <div class="tools"><button class="tb grn" data-act="hold" data-id="go">✅ ${E ? 'Yes, work on it' : 'ہاں، کام کریں'}</button>
+    <button class="tb red" data-act="hold" data-id="no">❌ ${E ? 'Not now' : 'ابھی نہیں'}</button></div></div>`;
+  if (i.hold === 'approve') return `<div class="hold"><b>⏳ ${E ? 'Ready — waiting for your approval to go live' : 'کام تیار ہے — لائیو کرنے کے لیے آپ کی منظوری کا منتظر'}</b>
+    ${i.review ? `<div style="white-space:pre-wrap;font-size:14.5px;margin-top:4px">${esc(i.review)}</div>` : ''}
+    <div class="tools">${i.pr ? `<a class="tb" href="${esc(i.pr)}" target="_blank" rel="noopener">🔗 ${E ? 'See changes' : 'تبدیلی دیکھیں'}</a>` : ''}
+    <button class="tb grn" data-act="hold" data-id="merge">✅ ${E ? 'Approve — go live' : 'منظور — لائیو کریں'}</button>
+    <button class="tb red" data-act="hold" data-id="stop">❌ ${E ? 'Stop' : 'رکیں'}</button></div></div>`;
+  if (i.hold === 'go') return `<div class="hold ok">✅ ${E ? 'Approved — Claude will work on it in the next review' : 'منظور — اگلے جائزے میں Claude اس پر کام کرے گا'}</div>`;
+  if (i.hold === 'merge') return `<div class="hold ok">✅ ${E ? 'Approved to go live — goes live in the next review' : 'لائیو کی منظوری — اگلے جائزے میں لائیو ہو جائے گا'}</div>`;
+  return '';
 }
 function claudeText(i, short) {
   const a = appOf(i.app), n = (i.metoo || []).length;
@@ -683,6 +725,7 @@ function softRender() {
 }
 function bindForm() {
   const fi = $('#fileIn'); fi.onchange = () => { addShots([...fi.files]); fi.value = ''; };
+  const ci = $('#camIn'); ci.onchange = () => { addShots([...ci.files]); ci.value = ''; };
   const d = $('#drop');
   d.ondragover = e => { e.preventDefault(); d.classList.add('over'); };
   d.ondragleave = () => d.classList.remove('over');
@@ -698,7 +741,7 @@ document.addEventListener('click', async e => {
   const act = t.dataset.act, id = t.dataset.id;
   switch (act) {
     case 'lang': setLang(LANG === 'en' ? 'ur' : 'en'); break;
-    case 'back': if (history.length > 1) history.back(); else go('#/'); break;
+    case 'back': if (EMBED || history.length <= 1) go(R.v === 'app' ? '#/' : (R.v === 'new' ? '#/app/' + encodeURIComponent(R.a) : '#/')); else history.back(); break;
     case 'app': appTab = 'open'; appQ = ''; go('#/app/' + encodeURIComponent(id)); break;
     case 'mine': go('#/mine'); break;
     case 'new': go('#/new/' + encodeURIComponent(id)); break;
@@ -717,6 +760,8 @@ document.addEventListener('click', async e => {
     case 'pasteText': { const s = await clipText(); if (s) { F.text = (F.text ? F.text + '\n' : '') + s; $('#fText').value = F.text; $('#cnt').textContent = F.text.length; toast('📋 ' + T('pasted')); } break; }
     case 'speak': toggleSpeak(); break;
     case 'gallery': $('#fileIn').click(); break;
+    case 'camera': $('#camIn').click(); break;
+    case 'embedClose': try { parent.postMessage({ pbthd: 'close' }, '*'); } catch (_) {} break;
     case 'pasteImg': { const b = await clipImages(); if (b.length) { await addShots(b.map(x => new File([x], 'p.png', { type: x.type }))); toast('📋 ' + T('pasted')); } break; }
     case 'rmShot': F.shots.splice(+id, 1); $('#shots').innerHTML = shotsHTML(); break;
     case 'rec': toggleRec(); break;
@@ -764,7 +809,12 @@ document.addEventListener('click', async e => {
       if (act === 'doneReply') { p.status = 'done'; p.doneAt = Date.now(); }
       await Store.update(DET.id, p); toast('✅ ' + (LANG === 'en' ? 'Saved — customer sees it now' : 'محفوظ — گاہک کو ابھی نظر آ گیا')); break;
     }
-    case 'notify': { const i = ISSUES.find(x => x.id === DET.id); if (i) notifyWA(i); break; }
+    case 'notify': { const i = ISSUES.find(x => x.id === DET.id); if (i) { notifyWA(i); Store.update(i.id, { notified: sig(i) }); } break; }
+    case 'hold': {
+      const p = { hold: id };
+      if (id === 'no') { const i = ISSUES.find(x => x.id === DET.id); p.status = 'done'; p.doneAt = Date.now(); if (i && !i.reply) { p.reply = i.lang === 'en' ? 'Thank you for the suggestion! We have noted it for the future.' : 'آپ کے مشورے کا شکریہ! اسے آئندہ کے لیے نوٹ کر لیا ہے۔'; p.replyAt = Date.now(); } }
+      await Store.update(DET.id, p); toast('✅'); break;
+    }
     case 'pub': await Store.update(DET.id, { pub: t.checked }); break;
     case 'savePtext': await Store.update(DET.id, { ptext: $('#pText').value.trim() }); toast('✅'); break;
     case 'cCopy': case 'cShare': case 'cText': case 'cImg': claudeAct(act); break;
