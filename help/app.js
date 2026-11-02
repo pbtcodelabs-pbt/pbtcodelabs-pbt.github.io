@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0211MO016';
-const UPDATE_NOTE = 'Developer: 🔔 notifications + icon badge — new / in progress / waiting approval, even when the app is closed';
+const APP_VERSION = 'HD0211MO017';
+const UPDATE_NOTE = 'Developer: new big ⚡ Urgent switch (clear on / off) — sends the job straight to Claude; no hourly checks';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -322,7 +322,7 @@ function issueCard(i, opts) {
     <div class="top">${opts.showApp ? `${appIcon(app, 'appMini')} <b style="font-size:14px">${esc(AN(app))}</b>` : ''}${tyChip(i.type)}${stChip(i.status)}${mineIt && !opts.mine ? `<span class="chip mine">⭐ ${T('yours')}</span>` : ''}<span class="no">#${i.no}</span></div>
     <div class="tx clamp" dir="auto" data-act="expand">${esc(txt)}</div>
     ${steps}
-    ${opts.mine && (i.status === 'new' || i.status === 'seen') ? (i.urgent ? `<div class="rev" style="background:#fff7ed;color:#c2410c">⚡ ${LANG === 'en' ? 'Priority — within the hour' : 'فوری — ایک گھنٹے کے اندر'}</div>` : revLine()) : ''}
+    ${opts.mine && (i.status === 'new' || i.status === 'seen') ? (i.urgent ? `<div class="rev" style="background:#fff7ed;color:#c2410c">⚡ ${LANG === 'en' ? 'Priority — being handled first' : 'فوری — سب سے پہلے دیکھا جا رہا ہے'}</div>` : revLine()) : ''}
     ${i.reply ? `<div class="reply" dir="auto"><span class="rh">${T('pbtReply')}</span>${esc(i.reply)}</div>` : ''}
     ${i.status === 'dup' && i.dupOf ? `<div class="dupNote">🔗 ${T('dupOf')} <b class="num">#${i.dupOf}</b></div>` : ''}
     <div class="ft"><span class="when">🕒 ${ago(i.created)}</span>
@@ -522,7 +522,6 @@ async function send() {
     if (F.audio) blobs.push({ kind: 'audio', data: F.audio });
     const r = await Store.add({ app: F.app, type: F.type, text: F.text.trim(), name: F.name.trim(), phone: P, ver: F.ver.trim(), dev: DEV, shots: F.shots.length, audio: !!F.audio, lang: LANG, hold: F.type === 'idea' ? 'decide' : '' }, blobs);
     rememberMine(r.id, 'new|0');
-    if (Store.isOwner()) { try { await Store.update(r.id, { urgent: true }); } catch (e) {} } // ⚡ ڈویلپر کا اپنا مسئلہ — فوری باری
     const app = F.app; F = null;
     go('#/thanks/' + r.no + '/' + encodeURIComponent(app));
   } catch (e) { toast('⚠️ ' + (e.message || e), 4000); }
@@ -534,6 +533,7 @@ function vThanks() {
   return `<div class="card thanks"><div class="ok">✓</div><h2>${T('thanks')}</h2>
     <div style="color:var(--mut);font-size:14px">${T('ticketL')}</div><div class="ticket">#${esc(R.a)}</div>
     ${revLine()}
+    ${Store.isOwner() ? (() => { const i = ISSUES.find(x => String(x.no) === String(R.a)); return i ? urgSwitch(i) : ''; })() : ''}
     <p>${T('thanksP')}</p>
     <button class="bigBtn blue" data-act="mine">📋 ${T('mine')}</button>
     <button class="bigBtn" style="background:#fff;color:var(--ink);box-shadow:var(--sh)" data-act="app" data-id="${esc(app)}">${appIcon(appOf(app), 'appMini')} ${esc(AN(appOf(app)))}</button>
@@ -667,6 +667,25 @@ async function enablePush() {
     toast(/permission/i.test(String(e && (e.code || e.message))) ? (E ? '❌ Publish the new Firestore rules first' : '❌ پہلے فائربیس میں نئے اصول Publish کریں') : '❌ ' + (e && e.message || e), 7000);
   }
 }
+/* HD0211MO017 — ⚡ فوری کا نیا بٹن (مالک کا حکم): صاف آن / بند سوئچ؛ آن ہو تو کام سیدھا Claude کی چیٹ میں — ہر گھنٹے کی باری ختم */
+const CLAUDE_CHAT = 'https://claude.ai/code/session_01RNzHHzEYnZigJB5pMdM5Te';
+function urgSwitch(i) {
+  const E = LANG === 'en', on = !!i.urgent;
+  return `<button class="urgSw ${on ? 'on' : ''}" data-act="urgent" data-id="${i.id}" aria-pressed="${on}">
+    <span class="uI">⚡</span>
+    <span class="uT"><b>${on ? (E ? 'URGENT — ON' : 'فوری — آن ہے') : (E ? 'Make it urgent' : 'فوری کروائیں')}</b>
+      <small>${on ? (E ? 'Claude does this first · tap again to turn off' : 'Claude یہ سب سے پہلے کرے گا · بند کرنے کے لیے دوبارہ دبائیں') : (E ? 'Now: off — will be done at 2 o\'clock' : 'ابھی بند ہے — یہ دوپہر/رات 2 بجے ہوگا')}</small></span>
+    <span class="uK"><i></i></span></button>`;
+}
+function urgMsg(i) { const a = appOf(i.app); return `⚡ فوری: ہیلپ ڈیسک #${i.no} (${AN(a)}) — ابھی حل کر کے لائیو کریں`; }
+function urgSheet(i) {
+  const E = LANG === 'en';
+  sheet(`<h2>⚡ ${E ? 'Urgent is ON' : 'فوری آن ہو گیا'} — #${i.no}<button class="x" data-act="close">✕</button></h2>
+    <p style="font-size:15px;line-height:2">${E ? 'To start right now, send this one line to Claude:' : 'ابھی اسی وقت کام شروع کروانے کے لیے یہ ایک لائن Claude کو بھیج دیں:'}</p>
+    <div class="card" style="box-shadow:none;background:#fff7ed;border:1.5px solid #fb923c;font-weight:700" dir="auto">${esc(urgMsg(i))}</div>
+    <button class="bigBtn" style="background:linear-gradient(135deg,#f97316,#ea580c)" data-act="urgTell" data-id="${i.id}">📋 ${E ? 'Copy & open Claude chat' : 'کاپی کر کے Claude کی چیٹ کھولیں'}</button>
+    <p style="font-size:13px;color:var(--mut);margin:8px 0 0">${E ? 'Not sent now? It will still be done first in the next 2 o\'clock round.' : 'ابھی نہ بھیجیں تو بھی 2 بجے کی باری میں سب سے پہلے یہی ہوگا۔'}</p>`);
+}
 const pushOn = () => { try { return window.Notification && Notification.permission === 'granted' && localStorage.getItem('pbthd_push') === '1'; } catch (e) { return false; } };
 function tabOk(i, t) { return t === 'all' || (t === 'open' ? (isOpen(i) || isHeld(i)) : t === 'hold' ? isHeld(i) : t === 'send' ? needsSend(i) : i.status === t); }
 function ownFiltered() {
@@ -738,7 +757,7 @@ function detailHTML() {
     ${shots.length ? `<div class="shotsBig">${shots.map((b, k) => `<img src="${b.data}" data-viewsrc="1" alt="">`).join('')}</div>` : ''}
     ${au ? `<audio controls src="${au.data}" style="width:100%;margin:6px 0"></audio>` : ''}
 
-    <div class="tools" style="margin:10px 0 0"><button class="tb ${i.urgent ? 'grn' : ''}" data-act="urgent" style="${i.urgent ? '' : 'border-color:#f59e0b;color:#b45309;font-weight:700'}">⚡ ${i.urgent ? (E ? 'Priority on — fixed within the hour' : 'فوری لگا ہے — ایک گھنٹے کے اندر') : (E ? 'Fix now (priority)' : 'فوری حل کرو')}</button></div>
+    ${urgSwitch(i)}
     <h3>${E ? 'Status' : 'حالت'}</h3>
     <div class="stBtns">${['new', 'seen', 'work', 'done'].map(s => `<button class="${s} ${i.status === s ? 'on' : ''}" data-act="setSt" data-id="${s}">${ST_IC[s]} ${T('s_' + s)}</button>`).join('')}</div>
     <div class="tools"><button class="tb" data-act="dup">🔗 ${E ? 'Mark duplicate of #…' : 'ڈپلیکیٹ — اصل نمبر لکھیں'}</button></div>
@@ -930,7 +949,20 @@ document.addEventListener('click', async e => {
     case 'lang': setLang(LANG === 'en' ? 'ur' : 'en'); break;
     case 'back': if (EMBED || history.length <= 1) go(R.v === 'app' ? '#/' : (R.v === 'new' ? '#/app/' + encodeURIComponent(R.a) : '#/')); else history.back(); break;
     case 'rank': rankSheet(id); break;
-    case 'urgent': { const i = ISSUES.find(x => x.id === DET.id); if (i) { await Store.update(i.id, { urgent: !i.urgent }); toast(!i.urgent ? (LANG === 'en' ? '⚡ Priority — Claude will start within the hour' : '⚡ فوری — Claude ایک گھنٹے کے اندر کام شروع کرے گا') : '✓'); } break; }
+    case 'urgent': {
+      const i = ISSUES.find(x => x.id === (id || (DET && DET.id))); if (!i) break;
+      const on = !i.urgent;
+      i.urgent = on; // فوراً رنگ بدلے (فائربیس کا انتظار نہیں)
+      document.querySelectorAll(`[data-act="urgent"][data-id="${i.id}"]`).forEach(b => b.outerHTML = urgSwitch(i));
+      try { await Store.update(i.id, { urgent: on }); } catch (e) { i.urgent = !on; toast('⚠️ ' + (e.message || e), 4000); break; }
+      if (on) urgSheet(i); else toast(LANG === 'en' ? '⏸️ Urgent off — it will be done in the 2 o\'clock round' : '⏸️ فوری بند — اب یہ دوپہر/رات 2 بجے کی باری میں ہوگا', 4000);
+      break; }
+    case 'urgTell': { const i = ISSUES.find(x => x.id === id); if (!i) break;
+      const msg = urgMsg(i);
+      try { await navigator.clipboard.writeText(msg); } catch (e) {}
+      toast(LANG === 'en' ? '📋 Copied — paste it in the Claude chat and send' : '📋 کاپی ہو گیا — Claude کی چیٹ میں پیسٹ کر کے بھیج دیں', 6000);
+      setTimeout(() => window.open(CLAUDE_CHAT, '_blank'), 700);
+      break; }
     case 'vplay': playVideo(id); break;
     case 'vshare': shareVideo(id); break;
     case 'copyPost': try { await navigator.clipboard.writeText(POST_TEXT); toast('📋 ✅'); } catch (_) { toast('⚠️'); } break;
@@ -1092,8 +1124,9 @@ if ('serviceWorker' in navigator) {
     }).catch(() => {});
   });
   let refreshing = false;
+  const hadCtl = !!navigator.serviceWorker.controller; // پہلی بار کھلنے پر (پرانا ورژن نہیں تھا) دوبارہ لوڈ نہیں — لاگ اِن بیچ میں نہ ٹوٹے
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (refreshing) return; refreshing = true;
+    if (refreshing || !hadCtl) return; refreshing = true;
     const busyIn = () => { const a = document.activeElement; return a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName); };
     const tryReload = () => { if (busyIn() || (R.v === 'new' && F && (F.text || F.shots.length))) { setTimeout(tryReload, 3000); return; } location.reload(); };
     tryReload();
