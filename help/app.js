@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0211MO015';
-const UPDATE_NOTE = 'Developer: ⚡ priority button — your own requests are fixed within the hour';
+const APP_VERSION = 'HD0211MO016';
+const UPDATE_NOTE = 'Developer: 🔔 notifications + icon badge — new / in progress / waiting approval, even when the app is closed';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -284,12 +284,13 @@ function vHome() {
     return `<button class="ap" data-act="${own ? 'oapp' : 'app'}" data-id="${esc(a.id)}">${nn ? `<span class="bd2">${nn} ${LANG === 'en' ? 'new' : (nn === 1 ? 'نیا' : 'نئے')}</span>` : ''}${appIcon(a)}<span class="n ${/[a-z]/i.test(AN(a)) && LANG !== 'en' ? 'en' : ''}">${esc(AN(a))}</span>${n ? `<span class="bd">${n}</span>` : ''}</button>`;
   }).join('');
   return `
+  ${own ? `<div class="card stats" data-act="goOwner" style="cursor:pointer;grid-template-columns:repeat(4,1fr)">${countsHTML(hdCounts())}<div class="st g"><span class="v">${weekSolved(ISSUES)}</span><span class="l">✅ ${T('solvedWeek')}</span></div></div>` : `
   <div class="card stats">
     <div class="st g"><span class="v">${weekSolved(ISSUES)}</span><span class="l">✅ ${T('solvedWeek')}</span></div>
     <div class="st o"><span class="v">${open.length}</span><span class="l">🔧 ${T('pending')}</span></div>
     ${own ? `<div class="st r"><span class="v">${ISSUES.filter(i => i.status === 'new').length}</span><span class="l">📥 ${LANG === 'en' ? 'New, unseen' : 'نئے، ان دیکھے'}</span></div>`
       : `<div class="st b"><span class="v" style="font-size:19px">${avgReply()}</span><span class="l">⏱️ ${T('avgReply')}</span></div>`}
-  </div>
+  </div>`}
   ${mine ? `<button class="mineBtn" data-act="mine"><span class="i">📋</span><span class="t"><b>${T('mine')} <span class="num">(${mine})</span></b><small>${T('mineSub')}</small></span>${un ? `<span class="dot">${un}</span>` : ''}<span>${LANG === 'en' ? '›' : '‹'}</span></button>` : ''}
   ${own ? rankBtns() : ''}
   <div class="secT">📱 ${T('chooseApp')} <small>— ${T('chooseAppSub')}</small></div>
@@ -603,6 +604,70 @@ async function cleanup() {
 }
 const needsSend = i => !!i.reply && i.notified !== sig(i);
 const isHeld = i => i.hold === 'decide' || i.hold === 'approve';
+/* HD0211MO016 — 🔔 مالک کے لیے تین گنتیاں: 🔴 نئے (ان دیکھے)، 🔵 کام جاری، ⏳ منظوری کے منتظر (hd.py notify بھی یہی حساب کرتا ہے) */
+function hdCounts(list) {
+  list = list || ISSUES;
+  const live = i => !['done', 'dup'].includes(i.status);
+  const appr = list.filter(i => live(i) && isHeld(i)).length;
+  const nw = list.filter(i => i.status === 'new' && !isHeld(i)).length;
+  const wk = list.filter(i => ['seen', 'work'].includes(i.status) && !isHeld(i)).length;
+  return { nw, wk, appr };
+}
+function countsHTML(c) {
+  const E = LANG === 'en';
+  return `<div class="st r"><span class="v">${c.nw}</span><span class="l">🔴 ${E ? 'New' : 'نئے'}</span></div>
+      <div class="st b"><span class="v">${c.wk}</span><span class="l">🔵 ${E ? 'In progress' : 'کام جاری'}</span></div>
+      <div class="st o"><span class="v">${c.appr}</span><span class="l">⏳ ${E ? 'Approval' : 'منظوری'}</span></div>`;
+}
+/* آئیکن پر نمبر (کروم بک / کمپیوٹر؛ فون پر اطلاع والا نشان) + ایپ پیچھے ہو تو نیا مسئلہ آتے ہی اطلاع */
+let lastBadge = null;
+function ownerBadge() {
+  if (!Store.isOwner()) return;
+  const c = hdCounts(), n = c.nw + c.appr;
+  try { if (navigator.setAppBadge) { n ? navigator.setAppBadge(n) : navigator.clearAppBadge(); } } catch (e) {}
+  const maxNo = Math.max(0, ...ISSUES.filter(i => i.status === 'new').map(i => i.no || 0));
+  if (lastBadge && document.hidden && maxNo > lastBadge.maxNo && 'serviceWorker' in navigator && window.Notification && Notification.permission === 'granted') {
+    navigator.serviceWorker.ready.then(r => r.showNotification('🆘 PBT Help Desk', { body: pushBody(c), tag: 'pbthd', renotify: true, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', data: { url: './#/owner' } })).catch(() => {});
+  }
+  lastBadge = { maxNo };
+}
+function pushBody(c) { return `🔴 ${c.nw} نئے · 🔵 ${c.wk} پر کام جاری · ⏳ ${c.appr} منظوری کے منتظر`; }
+// 🔔 اطلاعات چالو: اجازت، VAPID چابی (پہلی بار براؤزر میں بنتی ہے، فائربیس push/owner میں صرف مالک کے لیے)، فون کی رکنیت محفوظ
+const b64u = b => btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const unb64u = s => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4)), c => c.charCodeAt(0));
+async function enablePush() {
+  const E = LANG === 'en';
+  if (!('serviceWorker' in navigator) || !('PushManager' in window) || !window.Notification) { toast(E ? '❌ This browser cannot show notifications — open in Chrome' : '❌ یہ براؤزر اطلاع نہیں دکھاتا — کروم میں کھولیں', 5000); return; }
+  if (Store.mode !== 'cloud') { toast('demo'); return; }
+  const perm = await Notification.requestPermission();
+  if (perm !== 'granted') { toast(E ? '❌ Notifications blocked — allow them in Chrome site settings' : '❌ اطلاع کی اجازت نہیں ملی — کروم میں اس سائٹ کی سیٹنگ سے Allow کریں', 6000); return; }
+  try {
+    let P = await Store.pushGet();
+    if (!P.vpub || !P.vd) {
+      const k = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']);
+      const jwk = await crypto.subtle.exportKey('jwk', k.privateKey);
+      P = { vpub: b64u(await crypto.subtle.exportKey('raw', k.publicKey)), vd: jwk.d, subs: '[]' };
+      await Store.pushSave({ vpub: P.vpub, vd: P.vd });
+    }
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if (sub && b64u(sub.options.applicationServerKey || new ArrayBuffer(0)) !== P.vpub) { await sub.unsubscribe(); sub = null; }
+    if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: unb64u(P.vpub) });
+    const j = sub.toJSON();
+    let subs = []; try { subs = JSON.parse(P.subs || '[]'); } catch (e) {}
+    subs = subs.filter(x => x.endpoint !== j.endpoint);
+    subs.push({ endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth, ua: navigator.userAgent.slice(0, 120), at: Date.now() });
+    await Store.pushSave({ subs: JSON.stringify(subs.slice(-6)), sig: '' });
+    try { localStorage.setItem('pbthd_push', '1'); } catch (e) {}
+    reg.showNotification('🆘 PBT Help Desk', { body: '✅ ' + (E ? 'Notifications on — ' : 'اطلاعات چالو — ') + pushBody(hdCounts()), tag: 'pbthd', icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', data: { url: './#/owner' } });
+    ownerBadge(); render();
+    toast(E ? '✅ Notifications on' : '✅ اطلاعات چالو ہو گئیں', 4000);
+  } catch (e) {
+    console.warn(e);
+    toast(/permission/i.test(String(e && (e.code || e.message))) ? (E ? '❌ Publish the new Firestore rules first' : '❌ پہلے فائربیس میں نئے اصول Publish کریں') : '❌ ' + (e && e.message || e), 7000);
+  }
+}
+const pushOn = () => { try { return window.Notification && Notification.permission === 'granted' && localStorage.getItem('pbthd_push') === '1'; } catch (e) { return false; } };
 function tabOk(i, t) { return t === 'all' || (t === 'open' ? (isOpen(i) || isHeld(i)) : t === 'hold' ? isHeld(i) : t === 'send' ? needsSend(i) : i.status === t); }
 function ownFiltered() {
   const q = O.q.trim().toLowerCase();
@@ -633,12 +698,10 @@ function vOwner() {
   return `<div class="own">
     <div class="card" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
       <b style="font-size:19px;flex:1">🛠️ ${LANG === 'en' ? 'Developer panel' : 'ڈویلپر پینل'}</b>
-      <button class="tb" data-act="settings">⚙️</button><button class="tb" data-act="logout">🚪</button></div>
+      <button class="tb ${pushOn() ? 'grn' : 'pri'}" data-act="push" title="Notifications">🔔${pushOn() ? ' ✓' : ` ${LANG === 'en' ? 'Turn on alerts' : 'اطلاعات چالو کریں'}`}</button><button class="tb" data-act="settings">⚙️</button><button class="tb" data-act="logout">🚪</button></div>
     <div class="card stats" style="grid-template-columns:repeat(4,1fr)">
-      <div class="st b"><span class="v">${C('new')}</span><span class="l">📥 ${T('s_new')}</span></div>
-      <div class="st o"><span class="v">${C('work') + C('seen')}</span><span class="l">🔧 ${T('s_work')}</span></div>
-      <div class="st g"><span class="v">${weekSolved(ISSUES.filter(i => !O.app || i.app === O.app))}</span><span class="l">✅ ${T('solvedWeek')}</span></div>
-      <div class="st"><span class="v" style="font-size:18px">${avgReply()}</span><span class="l">⏱️ ${T('avgReply')}</span></div></div>
+      ${countsHTML(hdCounts(ISSUES.filter(i => !O.app || i.app === O.app)))}
+      <div class="st g"><span class="v">${weekSolved(ISSUES.filter(i => !O.app || i.app === O.app))}</span><span class="l">✅ ${T('solvedWeek')}</span></div></div>
     <div class="oTabs">${tabs.map(([k, l]) => `<button class="${O.tab === k ? 'on' : ''}" data-act="otab" data-id="${k}">${l}${k !== 'all' ? `<i>${C(k)}</i>` : ''}</button>`).join('')}</div>
     <div class="row"><select class="inp" data-oin="app">${opts}</select>
       <select class="inp" data-oin="sort"><option value="new" ${O.sort === 'new' ? 'selected' : ''}>🕒 ${LANG === 'en' ? 'Newest' : 'نئے پہلے'}</option><option value="votes" ${O.sort === 'votes' ? 'selected' : ''}>👋 ${LANG === 'en' ? 'Most voted' : 'زیادہ لوگ پہلے'}</option></select>
@@ -905,6 +968,7 @@ document.addEventListener('click', async e => {
       break;
     }
     case 'goOwner': go('#/owner'); break;
+    case 'push': enablePush(); break;
     case 'eye': { const p = $('#pw'); p.type = p.type === 'password' ? 'text' : 'password'; break; }
     case 'login': {
       const pw = $('#pw').value; if (pw.length < 4) { toast(LANG === 'en' ? 'At least 4 characters' : 'کم از کم 4 حروف'); break; }
@@ -1015,7 +1079,7 @@ $('#viewer').addEventListener('click', () => $('#viewer').classList.remove('on')
     ISSUES = list; CFG = cfg || {};
     if (first) { first = false; render(); const u = unseenMine(); if (u && R.v !== 'mine') setTimeout(() => toast(T('updatedMine'), 4000), 600); return; }
     softRender();
-    if (Store.isOwner()) { clearTimeout(recordStats.t); recordStats.t = setTimeout(recordStats, 3000); }
+    if (Store.isOwner()) { clearTimeout(recordStats.t); recordStats.t = setTimeout(recordStats, 3000); ownerBadge(); }
   });
 })();
 

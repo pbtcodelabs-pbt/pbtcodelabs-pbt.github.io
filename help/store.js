@@ -64,6 +64,9 @@
     watch(f) { subs.push(f); emit(); return () => { subs = subs.filter(x => x !== f); }; },
     cfg() { return cfg; },
     async setCfg(p) { await F.setDoc(F.doc(db, 'meta', 'cfg'), p, { merge: true }); },
+    // 🔔 HD0211MO016: اطلاعات — push/owner (صرف مالک پڑھ/لکھ سکتا ہے، firestore.rules)
+    async pushGet() { const d = await F.getDoc(F.doc(db, 'push', 'owner')); return d.exists() ? d.data() : {}; },
+    async pushSave(p) { await F.setDoc(F.doc(db, 'push', 'owner'), p, { merge: true }); },
     async add(f, blobs) {
       if (!user) throw new Error('offline');
       const cref = F.doc(db, 'meta', 'counter');

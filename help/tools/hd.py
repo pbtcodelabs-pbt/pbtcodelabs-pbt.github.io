@@ -11,6 +11,7 @@
   python3 help/tools/hd.py set <no|id> status=done reply="…"          # doneAt / replyAt خود
   python3 help/tools/hd.py set <no|id> hold=approve review="…" pr=https://github.com/…
   python3 help/tools/hd.py set <no|id> status=dup dupOf=12
+  python3 help/tools/hd.py notify [--force]  # 🔔 مالک کے فون پر اطلاع (نئے / کام جاری / منظوری) — صرف تبدیلی پر
 
 HD_EMU=1 ہو تو مقامی فائربیس ایمولیٹر (127.0.0.1:9099 / 8080) — جانچ کے لیے۔
 """
@@ -147,6 +148,102 @@ def cmd_set(tok, key, pairs):
     print('ok', i.get('no'), {k: v for k, v in patch.items() if k != 'upd'})
 
 
+# ---------- 🔔 HD0211MO016: Web Push (RFC 8291 aes128gcm + VAPID) — صرف cryptography لائبریری ----------
+def b64u(b): return base64.urlsafe_b64encode(b).rstrip(b'=').decode()
+def unb64u(s): return base64.urlsafe_b64decode(s + '=' * (-len(s) % 4))
+
+
+def hkdf(salt, ikm, info, n):
+    import hmac, hashlib
+    prk = hmac.new(salt, ikm, hashlib.sha256).digest()
+    return hmac.new(prk, info + b'\x01', hashlib.sha256).digest()[:n]
+
+
+def wp_encrypt(p256dh, auth, plain):
+    from cryptography.hazmat.primitives.asymmetric import ec
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+    ua_pub = unb64u(p256dh)
+    ua = ec.EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(), ua_pub)
+    eph = ec.generate_private_key(ec.SECP256R1())
+    as_pub = eph.public_key().public_bytes(serialization.Encoding.X962, serialization.PublicFormat.UncompressedPoint)
+    shared = eph.exchange(ec.ECDH(), ua)
+    ikm = hkdf(unb64u(auth), shared, b'WebPush: info\x00' + ua_pub + as_pub, 32)
+    salt = os.urandom(16)
+    cek = hkdf(salt, ikm, b'Content-Encoding: aes128gcm\x00', 16)
+    nonce = hkdf(salt, ikm, b'Content-Encoding: nonce\x00', 12)
+    ct = AESGCM(cek).encrypt(nonce, plain + b'\x02', None)
+    return salt + (4096).to_bytes(4, 'big') + bytes([len(as_pub)]) + as_pub + ct
+
+
+def vapid_jwt(endpoint, d_b64, pub_b64):
+    from urllib.parse import urlparse
+    from cryptography.hazmat.primitives.asymmetric import ec
+    from cryptography.hazmat.primitives import hashes
+    from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
+    u = urlparse(endpoint)
+    head = b64u(json.dumps({'typ': 'JWT', 'alg': 'ES256'}).encode())
+    body = b64u(json.dumps({'aud': f'{u.scheme}://{u.netloc}', 'exp': int(time.time()) + 12 * 3600,
+                            'sub': 'https://pbtcodelabs-pbt.github.io/help/'}).encode())
+    key = ec.derive_private_key(int.from_bytes(unb64u(d_b64), 'big'), ec.SECP256R1())
+    r, s_ = decode_dss_signature(key.sign(f'{head}.{body}'.encode(), ec.ECDSA(hashes.SHA256())))
+    return f'{head}.{body}.' + b64u(r.to_bytes(32, 'big') + s_.to_bytes(32, 'big'))
+
+
+def wp_send(sub, P, payload):
+    body = wp_encrypt(sub['p256dh'], sub['auth'], json.dumps(payload, ensure_ascii=False).encode())
+    tmp = f'/tmp/hd_push_{os.getpid()}.bin'
+    open(tmp, 'wb').write(body)
+    cmd = ['curl', '-sS', '-o', '/dev/null', '-w', '%{http_code}', '-X', 'POST', sub['endpoint'],
+           '-H', 'Authorization: vapid t=' + vapid_jwt(sub['endpoint'], P['vd'], P['vpub']) + ', k=' + P['vpub'],
+           '-H', 'Content-Encoding: aes128gcm', '-H', 'Content-Type: application/octet-stream',
+           '-H', 'TTL: 86400', '-H', 'Urgency: high', '--data-binary', '@' + tmp]
+    r = subprocess.run(cmd, capture_output=True, timeout=60)
+    os.remove(tmp)
+    try: return int(r.stdout.decode() or 0)
+    except ValueError: return 0
+
+
+def counts(L):
+    held = lambda i: i.get('hold') in ('decide', 'approve')
+    live = lambda i: i.get('status') not in ('done', 'dup')
+    return {'nw': sum(1 for i in L if i.get('status') == 'new' and not held(i)),
+            'wk': sum(1 for i in L if i.get('status') in ('seen', 'work') and not held(i)),
+            'appr': sum(1 for i in L if live(i) and held(i))}
+
+
+def cmd_notify(tok, force=False):
+    L = all_issues(tok)
+    c = counts(L)
+    newest = max([i.get('no') or 0 for i in L if i.get('status') == 'new'] or [0])
+    sig = f"{c['nw']}|{c['appr']}|{newest}"
+    try:
+        P = doc(curl('GET', f'{FS}/push/owner', token=tok))
+    except SystemExit:
+        print('🔔 اطلاعات چالو نہیں (push/owner نہیں ملا — مالک ڈویلپر پینل میں 🔔 دبائے، یا اصول Publish نہیں ہوئے)'); return
+    subs = json.loads(P.get('subs') or '[]')
+    if not subs or not P.get('vd'):
+        print('🔔 کوئی فون رجسٹر نہیں'); return
+    if not force and P.get('sig') == sig:
+        print('🔔 کوئی تبدیلی نہیں', c); return
+    if not force and c['nw'] == 0 and c['appr'] == 0 and not P.get('sig'):
+        print('🔔 بتانے کو کچھ نہیں', c); return
+    body = f"🔴 {c['nw']} نئے · 🔵 {c['wk']} پر کام جاری · ⏳ {c['appr']} منظوری کے منتظر"
+    if c['nw'] == 0 and c['appr'] == 0: body = f"✅ کوئی نیا نہیں · 🔵 {c['wk']} پر کام جاری"
+    payload = {'title': '🆘 PBT Help Desk', 'body': body, 'count': c['nw'] + c['appr'], 'url': './#/owner'}
+    keep, sent = [], 0
+    for s_ in subs:
+        code = wp_send(s_, P, payload)
+        print('push', code, s_['endpoint'][:60])
+        if code in (404, 410): continue
+        keep.append(s_)
+        if 200 <= code < 300: sent += 1
+    patch = {'sig': sig, 'subs': json.dumps(keep), 'sentAt': str(int(time.time() * 1000))}
+    mask = '&'.join('updateMask.fieldPaths=' + k for k in patch)
+    curl('PATCH', f'{FS}/push/owner?{mask}', {'fields': {k: {'stringValue': v} for k, v in patch.items()}}, tok)
+    print(f'🔔 بھیجا: {sent}/{len(subs)} — {body}')
+
+
 if __name__ == '__main__':
     a = sys.argv[1:]
     if not a: sys.exit(__doc__)
@@ -154,4 +251,5 @@ if __name__ == '__main__':
     if a[0] == 'list': cmd_list(t, '--all' in a, '--urgent' in a)
     elif a[0] == 'show': cmd_show(t, a[1])
     elif a[0] == 'set': cmd_set(t, a[1], a[2:])
+    elif a[0] == 'notify': cmd_notify(t, '--force' in a)
     else: sys.exit(__doc__)
