@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0211MO019';
-const UPDATE_NOTE = 'Developer: clearer help when Chrome blocks notifications';
+const APP_VERSION = 'HD0211MO020';
+const UPDATE_NOTE = 'My requests: a simple live progress bar — received, seen, our engineers working, testing, update released, solved';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -304,6 +304,34 @@ function vHome() {
   ${foot()}`;
 }
 
+/* HD0211MO020 — گاہک کی پیش رفت پٹی (مالک کا حکم): سادہ الفاظ، کوئی تکنیکی نام نہیں — «ہماری ٹیم / ہمارے انجینئر» */
+const CSTEPS = [
+  ['new', 10, '📥', 'آپ کی بات ہم تک پہنچ گئی', 'We received it'],
+  ['seen', 25, '👀', 'ہماری ٹیم نے دیکھ لیا', 'Our team has seen it'],
+  ['work', 45, '🛠️', 'ہمارے انجینئر کام کر رہے ہیں', 'Our engineers are working on it'],
+  ['test', 70, '🔍', 'درستگی کی جانچ ہو رہی ہے', 'Checking that it works right'],
+  ['push', 85, '📦', 'ایپ میں لگایا جا رہا ہے', 'Adding it to the app'],
+  ['live', 95, '🚀', 'نئی اپڈیٹ جاری ہو گئی', 'New update released'],
+  ['done', 100, '✅', 'حل ہو گیا — ایپ ایک بار تازہ کر کے دیکھیں', 'Solved — refresh the app once to see it']
+];
+function custStep(i) {
+  if (i.status === 'done') return 'done';
+  const st = i.stage;
+  if (['test', 'push', 'live'].includes(st)) return st;
+  if (i.status === 'work' || ['seen', 'claude', 'work'].includes(st)) return 'work';
+  return i.status === 'seen' ? 'seen' : 'new';
+}
+function custProgress(i) {
+  const E = LANG === 'en', st = custStep(i), k = CSTEPS.findIndex(x => x[0] === st), cur = CSTEPS[k], done = st === 'done';
+  const think = !done && i.hold === 'decide' && st !== 'work';
+  const head = think ? ['💭', E ? 'We are considering your suggestion' : 'آپ کے مشورے پر غور ہو رہا ہے'] : [cur[2], E ? cur[4] : cur[3]];
+  return `<div class="cProg ${done ? 'fin' : ''}">
+    <div class="cpHead"><b>${head[0]} ${head[1]}</b><span class="num">${cur[1]}%</span></div>
+    <div class="cpBar"><i style="width:${cur[1]}%"></i></div>
+    <div class="cpDots">${CSTEPS.map((x, j) => `<span class="${j < k || done ? 'ok' : j === k ? 'now' : ''}" title="${E ? x[4] : x[3]}">${j < k || done ? '✓' : x[2]}</span>`).join('')}</div>
+    ${!done && k + 1 < CSTEPS.length ? `<div class="cpNext">${E ? 'Next' : 'اگلا مرحلہ'}: ${CSTEPS[k + 1][2]} ${E ? CSTEPS[k + 1][4] : CSTEPS[k + 1][3]}</div>` : ''}</div>`;
+}
+
 /* ---------- ایپ کا صفحہ ---------- */
 let appTab = 'open', appQ = '';
 function issueCard(i, opts) {
@@ -313,10 +341,7 @@ function issueCard(i, opts) {
   const n = (i.metoo || []).length;
   const txt = opts.full ? i.text : ptext(i);
   const isNew = opts.mine && (ls.get('seen', {})[i.id] || sig(i)) !== sig(i);
-  const steps = opts.mine && i.status !== 'dup' ? `<div class="steps">${['new', 'seen', 'work', 'done'].map((s, k, A) => {
-    const cur = A.indexOf(i.status);
-    return `<div class="s ${k <= cur ? 'on' : ''} ${k === cur && s !== 'done' ? 'cur' : ''}">${T('s_' + s)}</div>`;
-  }).join('')}</div>` : '';
+  const steps = opts.mine && i.status !== 'dup' ? custProgress(i) : '';
   const app = appOf(i.app);
   return `<div class="is s-${i.status}">
     ${isNew ? `<span class="newDot">${LANG === 'en' ? 'New' : 'نیا'}</span>` : ''}
