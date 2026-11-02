@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0211MO020';
-const UPDATE_NOTE = 'My requests: a simple live progress bar — received, seen, our engineers working, testing, update released, solved';
+const APP_VERSION = 'HD0211MO021';
+const UPDATE_NOTE = 'Developer: 🖼️ beautiful «solved» post for each request — problem, 100% bar, reply — straight to the customer\'s WhatsApp chat';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -786,6 +786,7 @@ function vOwner() {
         <span class="chip ${i.pub ? 'globe' : 'lock'}">${i.pub ? '🌐' : '🔒'}</span>${isHeld(i) ? '<span class="chip work">⏳</span>' : ''}${i.urgent ? '<span class="chip work">⚡</span>' : ''}${needsSend(i) ? '<span class="chip mine">📨</span>' : ''}<span class="no">#${i.no}</span></div>
       <div class="tx clamp" dir="auto">${esc(i.text || (i.audio ? '🎤' : ''))}</div>
       ${i.urgent ? urgProgress(i, true) : ''}
+      ${i.status === 'done' ? `<button class="tb grn" style="font-size:13px;margin:6px 0 0" data-act="poster" data-id="${i.id}">🖼️ ${LANG === 'en' ? 'Solved post → WhatsApp' : 'حل کی پوسٹ ← واٹس ایپ'}${needsSend(i) ? ' 📨' : ' ✓'}</button>` : ''}
       <div class="ft"><span class="who">👤 ${esc(i.name)} · <span class="num">${esc(i.phone)}</span></span>
         <span class="when">🕒 ${ago(i.created)}</span>${i.shots ? `<span class="when">🖼️ ${i.shots}</span>` : ''}${i.audio ? '<span class="when">🎤</span>' : ''}
         ${n ? `<span class="mt on">👋 <b>${n + 1}</b></span>` : ''}</div></div>`;
@@ -843,7 +844,8 @@ function detailHTML() {
     <div class="tools"><button class="tb" data-act="pasteReply">📋 ${T('paste')}</button>
       <button class="tb pri" data-act="saveReply">💾 ${E ? 'Save' : 'محفوظ'}</button>
       <button class="tb grn" data-act="doneReply">✅ ${E ? 'Save + Solved' : 'محفوظ + حل ہو گیا'}</button>
-      <button class="tb" data-act="notify">📨 ${E ? 'WhatsApp customer' : 'واٹس ایپ پر اطلاع'}</button></div>
+      <button class="tb" data-act="notify">📨 ${E ? 'WhatsApp customer' : 'واٹس ایپ پر اطلاع'}</button>
+      <button class="tb grn" data-act="poster" data-id="${i.id}">🖼️ ${E ? 'Solved post → WhatsApp' : 'حل کی پوسٹ ← واٹس ایپ'}</button></div>
 
     <h3>${E ? 'Public list' : 'عام فہرست'}</h3>
     <label class="sw"><input type="checkbox" id="pubSw" ${i.pub ? 'checked' : ''} data-act="pub"><i></i>🌐 ${E ? 'Show to everyone (name & phone stay hidden)' : 'سب کو دکھائیں (نام اور نمبر چھپے رہیں گے)'}</label>
@@ -942,6 +944,84 @@ async function claudeAct(kind) {
       ok(LANG === 'en' ? 'Image copied (text: use «Text only»)' : 'تصویر کاپی — متن کے لیے «صرف متن»');
     }
   } catch (e) { busy(false); if (e && e.name !== 'AbortError') { try { await navigator.clipboard.writeText(txt); ok(LANG === 'en' ? 'Text copied' : 'متن کاپی ہو گیا'); } catch (_) { toast('⚠️ ' + (e.message || e)); } } }
+}
+/* HD0211MO021 (ہیلپ ڈیسک #16، مالک کا حکم): حل شدہ مسئلے کی خوبصورت پوسٹ — مسئلہ، 100% پٹی، جواب، «لائیو — ایپ تازہ کریں» — سیدھی گاہک کی واٹس ایپ چیٹ میں */
+async function solvedPoster(i) {
+  try { await document.fonts.load('40px Noori'); await document.fonts.load('40px NooriK'); } catch (e) {}
+  const en = (i.lang || 'ur') === 'en', a = appOf(i.app), W = 1080, P = 56;
+  const c = document.createElement('canvas'), x = c.getContext('2d');
+  const UF = n => `${n}px Noori, "Noto Nastaliq Urdu", serif`, EF = (n, b) => `${b ? 'bold ' : ''}${n}px system-ui, Arial, sans-serif`;
+  const tf = (n, b) => en ? EF(n, b) : UF(n);
+  const wrapW = (t, f, w, max) => { x.font = f; const out = []; String(t || '').split('\n').forEach(p => { let line = ''; p.split(/\s+/).forEach(wd => { const tt = line ? line + ' ' + wd : wd; if (x.measureText(tt).width > w && line) { out.push(line); line = wd; } else line = tt; }); if (line) out.push(line); }); if (max && out.length > max) { out.length = max; out[max - 1] += ' …'; } return out; };
+  const isRtl = t => /[\u0600-\u06FF]/.test(t || '');
+  const L = en ? { t: '✅ Your request is solved', y: 'Your request', r: 'Our reply', d: 'Solved — new update is live', u: '🔄 Refresh the app once — the new version loads by itself', f: 'Software for every business — mobile, Windows, Android, Chromebook — PBT Code Labs' }
+    : { t: '✅ آپ کا مسئلہ حل ہو گیا', y: '📝 آپ کا مسئلہ', r: '💬 ہمارا جواب', d: 'حل ہو گیا — نئی اپڈیٹ لائیو ہے', u: '🔄 ایپ ایک بار تازہ کر لیں — نیا ورژن خود آ جائے گا', f: 'ہر کاروبار کا سافٹ ویئر — موبائل، ونڈوز، اینڈرائیڈ، کروم بک — پی بی ٹی کوڈ لیبز' };
+  const qF = isRtl(i.text) ? UF(36) : EF(34), rF = isRtl(i.reply) ? UF(36) : EF(34);
+  const q = wrapW(i.text || '🎤', qF, W - 2 * P - 40, 9), r = wrapW(i.reply || (en ? 'Done.' : 'ہو گیا۔'), rF, W - 2 * P - 40, 12);
+  const LH = 66, hH = 250, qH = 90 + q.length * LH, pH = 210, rH = 90 + r.length * LH, uH = 110, fH = 150;
+  const H = hH + 40 + qH + 30 + pH + 30 + rH + 30 + uH + 40 + fH;
+  c.width = W; c.height = H;
+  const rr = (X, Y, w, h, rad) => { x.beginPath(); x.moveTo(X + rad, Y); x.arcTo(X + w, Y, X + w, Y + h, rad); x.arcTo(X + w, Y + h, X, Y + h, rad); x.arcTo(X, Y + h, X, Y, rad); x.arcTo(X, Y, X + w, Y, rad); x.closePath(); };
+  const T = (t, X, Y, f, col, align) => { x.font = f; x.fillStyle = col; x.textAlign = align; x.direction = isRtl(t) ? 'rtl' : 'ltr'; x.fillText(t, X, Y); };
+  const side = en ? 'left' : 'right', SX = en ? P + 30 : W - P - 30;
+  x.fillStyle = '#f1f5f9'; x.fillRect(0, 0, W, H);
+  let g = x.createLinearGradient(0, 0, W, hH); g.addColorStop(0, '#1e3a8a'); g.addColorStop(1, '#0f766e'); x.fillStyle = g; x.fillRect(0, 0, W, hH);
+  try { if (a.img) { const im = await loadImg(a.img); const ix = en ? W - P - 130 : P; x.save(); rr(ix, 60, 130, 130, 30); x.clip(); x.fillStyle = '#fff'; x.fillRect(ix, 60, 130, 130); x.drawImage(im, ix, 60, 130, 130); x.restore(); } } catch (e) {}
+  T(L.t, en ? P : W - P, 120, en ? EF(56, 1) : 'bold 62px NooriK, Noori, serif', '#fff', side);
+  T(`PBT Help Desk  ·  ${en ? a.en : a.ur}  ·  #${i.no}`, en ? P : W - P, 190, en ? EF(32) : UF(34), 'rgba(255,255,255,.88)', side);
+  let y = hH + 40;
+  const card = (h, fill, stroke) => { x.save(); x.shadowColor = 'rgba(15,23,42,.12)'; x.shadowBlur = 24; x.shadowOffsetY = 6; rr(P, y, W - 2 * P, h, 28); x.fillStyle = fill; x.fill(); x.restore(); if (stroke) { rr(P, y, W - 2 * P, h, 28); x.strokeStyle = stroke; x.lineWidth = 3; x.stroke(); } };
+  card(qH, '#fff', '#dbeafe'); T(L.y, SX, y + 62, tf(38, 1), '#1e3a8a', side);
+  q.forEach((l, k) => T(l, isRtl(l) ? W - P - 30 : P + 30, y + 130 + k * LH, qF, '#334155', isRtl(l) ? 'right' : 'left')); y += qH + 30;
+  card(pH, '#ecfdf5', '#6ee7b7');
+  T('✅ ' + L.d, SX, y + 66, tf(38, 1), '#047857', side); T('100%', en ? W - P - 30 : P + 30, y + 66, EF(46, 1), '#047857', en ? 'right' : 'left');
+  rr(P + 30, y + 92, W - 2 * P - 60, 26, 13); x.fillStyle = '#10b981'; x.fill();
+  for (let k = 0; k < 7; k++) { const cx = P + 70 + k * ((W - 2 * P - 140) / 6); x.beginPath(); x.arc(cx, y + 165, 24, 0, 7); x.fillStyle = '#10b981'; x.fill(); T('✓', cx, y + 176, EF(30, 1), '#fff', 'center'); }
+  y += pH + 30;
+  card(rH, '#fff', '#c7d2fe'); T(L.r, SX, y + 62, tf(38, 1), '#4338ca', side);
+  r.forEach((l, k) => T(l, isRtl(l) ? W - P - 30 : P + 30, y + 130 + k * LH, rF, '#1f2937', isRtl(l) ? 'right' : 'left')); y += rH + 30;
+  card(uH, '#fffbeb', '#fcd34d'); T(L.u, W / 2, y + 70, tf(36, 1), '#92400e', 'center'); y += uH + 40;
+  g = x.createLinearGradient(0, y, W, H); g.addColorStop(0, '#0f172a'); g.addColorStop(1, '#1e3a8a'); x.fillStyle = g; x.fillRect(0, y, W, H - y);
+  T(L.f, W / 2, y + 62, en ? EF(26) : UF(30), '#e2e8f0', 'center');
+  T('📞 0320 6793793  ·  pbtcodelabs-pbt.github.io', W / 2, y + 112, EF(30, 1), '#fde68a', 'center');
+  return new Promise(res => c.toBlob(res, 'image/png'));
+}
+let POSTER = null;
+async function posterSheet(id) {
+  const i = ISSUES.find(x => x.id === id); if (!i) return;
+  const E = LANG === 'en';
+  busy(true); let png; try { png = await solvedPoster(i); } finally { busy(false); }
+  if (POSTER && POSTER.url) URL.revokeObjectURL(POSTER.url);
+  POSTER = { id, png, url: URL.createObjectURL(png) };
+  sheet(`<h2>🖼️ ${E ? 'Solved post' : 'حل کی پوسٹ'} — #${i.no}<button class="x" data-act="close">✕</button></h2>
+    <img src="${POSTER.url}" alt="" style="width:100%;max-width:520px;display:block;margin:0 auto;border-radius:16px;box-shadow:var(--sh)">
+    ${i.status !== 'done' ? `<p style="color:#b45309;font-size:13px">⚠️ ${E ? 'This request is not marked solved yet' : 'یہ مسئلہ ابھی «حل ہو گیا» پر نہیں'}</p>` : ''}
+    <button class="bigBtn" style="background:linear-gradient(135deg,#16a34a,#15803d);margin-top:12px" data-act="posterWa" data-id="${i.id}">💬 ${E ? 'Open' : ''} ${esc(i.name || '')} ${E ? 'WhatsApp chat (image copied — paste)' : 'کی واٹس ایپ چیٹ — تصویر کاپی، وہاں پیسٹ کریں'}</button>
+    <div class="tools" style="justify-content:center"><button class="tb grn" data-act="posterShare" data-id="${i.id}">📤 ${E ? 'Share image' : 'تصویر شیئر'}</button>
+      <button class="tb" data-act="posterSave" data-id="${i.id}">⬇️ ${E ? 'Save' : 'محفوظ'}</button></div>`);
+}
+function posterMsg(i) {
+  const a = appOf(i.app);
+  return (i.lang || 'ur') === 'en' ? `Assalam o Alaikum ${i.name || ''}! Your request #${i.no} (${a.en}) is solved ✅ — details in the picture. Please refresh the app once. Thank you — PBT Code Labs`
+    : `السلام علیکم ${i.name || ''}! آپ کا مسئلہ #${i.no} (${a.ur}) حل ہو گیا ✅ — تفصیل تصویر میں ہے۔ ایپ ایک بار تازہ کر لیں۔ شکریہ — پی بی ٹی کوڈ لیبز`;
+}
+async function posterAct(kind, id) {
+  const i = ISSUES.find(x => x.id === id); if (!i || !POSTER || POSTER.id !== id) return;
+  const E = LANG === 'en', name = 'PBT-HelpDesk-' + i.no + '.png';
+  try {
+    if (kind === 'posterSave') return download(POSTER.png, name);
+    if (kind === 'posterShare') {
+      const files = [new File([POSTER.png], name, { type: 'image/png' })];
+      if (navigator.canShare && navigator.canShare({ files })) await navigator.share({ files, text: posterMsg(i) }); else download(POSTER.png, name);
+    } else {
+      let copied = false;
+      try { await navigator.clipboard.write([new ClipboardItem({ 'image/png': POSTER.png })]); copied = true; } catch (e) {}
+      toast(copied ? (E ? '📋 Image copied — paste it in the chat' : '📋 تصویر کاپی — چیٹ میں پیسٹ کر دیں') : (E ? 'Saving image — attach it in the chat' : 'تصویر محفوظ ہو رہی ہے — چیٹ میں لگا دیں'), 5000);
+      if (!copied) download(POSTER.png, name);
+      window.open('https://wa.me/' + waNum(i.phone) + '?text=' + encodeURIComponent(posterMsg(i)), '_blank');
+    }
+    Store.update(i.id, { notified: sig(i) }).catch(() => {});
+  } catch (e) { if (e && e.name !== 'AbortError') toast('⚠️ ' + (e.message || e)); }
 }
 function download(blob, name) { const u = URL.createObjectURL(blob); const l = document.createElement('a'); l.href = u; l.download = name; document.body.appendChild(l); l.click(); l.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000); }
 function notifyWA(i) {
@@ -1125,6 +1205,8 @@ document.addEventListener('click', async e => {
       if (act === 'doneReply') { p.status = 'done'; p.doneAt = Date.now(); }
       await Store.update(DET.id, p); toast('✅ ' + (LANG === 'en' ? 'Saved — customer sees it now' : 'محفوظ — گاہک کو ابھی نظر آ گیا')); break;
     }
+    case 'poster': posterSheet(id); break;
+    case 'posterWa': case 'posterShare': case 'posterSave': posterAct(act, id); break;
     case 'notify': { const i = ISSUES.find(x => x.id === DET.id); if (i) { notifyWA(i); Store.update(i.id, { notified: sig(i) }); } break; }
     case 'hold': {
       const p = { hold: id };
