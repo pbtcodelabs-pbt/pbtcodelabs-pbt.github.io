@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0311TU023';
-const UPDATE_NOTE = 'Replies and WhatsApp posts for the developer\'s own requests no longer show the developer\'s name';
+const APP_VERSION = 'HD0311TU024';
+const UPDATE_NOTE = 'Developer: the ⚡ Urgent switch is hidden on solved requests';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -741,7 +741,9 @@ function urgHome() {
     ${L.map(i => `<div class="uh" data-act="open" data-id="${i.id}"><span class="t">${appIcon(appOf(i.app), 'appMini')} <b class="num">#${i.no}</b> <span class="clamp" dir="auto">${esc(i.text || '🎤')}</span></span>${urgProgress(i, true)}</div>`).join('')}</div>`;
 }
 function urgSwitch(i) {
-  return `<div class="urgBox" data-urgbox="${i.id}">${urgBtn(i)}${i.urgent || (i.stage && i.status !== 'new') ? urgProgress(i) : ''}</div>`;
+  // HD0311TU024 (مالک کا حکم): حل شدہ / ڈپلیکیٹ مسئلے پر ⚡ سوئچ نہیں (دبانے سے کام دوبارہ شروع ہوتا تھا) — صرف مکمل پیش رفت
+  const closed = i.status === 'done' || i.status === 'dup';
+  return `<div class="urgBox" data-urgbox="${i.id}">${closed ? '' : urgBtn(i)}${i.urgent || (i.stage && i.status !== 'new') ? urgProgress(i) : ''}</div>`;
 }
 function urgBtn(i) {
   const E = LANG === 'en', on = !!i.urgent;
