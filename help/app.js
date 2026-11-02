@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0211MO013';
-const UPDATE_NOTE = 'Footer: software for every business — mobile, Windows, Android, Chromebook';
+const APP_VERSION = 'HD0211MO014';
+const UPDATE_NOTE = 'Intro videos on the home page: play, download to gallery, or share to WhatsApp status';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -230,6 +230,47 @@ function foot() {
 }
 
 /* ---------- ہوم ---------- */
+/* 🎬 تعارفی ویڈیوز — چلائیں، فون میں محفوظ (گیلری)، یا سیدھا شیئر (واٹس ایپ اسٹیٹس وغیرہ) */
+const VIDEOS = [
+  { id: 'tariqa', file: 'media/pbt-help-desk-tariqa.mp4', poster: 'media/tariqa.jpg', ur: 'مسئلہ کیسے بتائیں؟ — مکمل طریقہ', en: 'How to report a problem — step by step', dur: '0:55' },
+  { id: 'sos', file: 'media/pbt-help-desk-sos.mp4', poster: 'media/sos.jpg', ur: 'ہر ایپ میں SOS — تعارف', en: 'SOS in every app — introduction', dur: '0:38' }
+];
+const POST_TEXT = "🆘 *نئی سہولت — PBT Help Desk*\n\nالسلام علیکم! 🌹\nاب آپ کو کوئی مسئلہ بتانے کے لیے واٹس ایپ یا کسی اور ذریعے کی ضرورت نہیں۔\n\n📱 ہماری ہر ایپ کے اندر اب ایک سرخ *SOS* بٹن ہے۔\nایپ میں کوئی بھی مسئلہ نظر آئے تو:\n1️⃣ *SOS* دبائیں\n2️⃣ اپنا مسئلہ لکھیں، اسکرین شاٹ لگائیں یا آواز ریکارڈ کریں — کسی بھی زبان میں\n3️⃣ بھیج دیں ✅\n\n🔔 پھر ہر قدم کی خبر آپ کو ایپ ہی میں ملتی رہے گی:\n📥 موصول ← 👀 دیکھ لیا ← 🔧 کام جاری ← ✅ حل ہو گیا\n\n🗂️ آپ کا ہر مسئلہ ریکارڈ میں محفوظ رہے گا، اور بہترین طریقے سے جلد حل ہوگا۔\n💡 اگر کوئی اور بھی یہی مسئلہ بتا چکا ہو تو بس «👋 میرا بھی یہی مسئلہ ہے» دبا دیں۔\n\n🔗 https://pbtcodelabs-pbt.github.io/help/\n\n*PBT Code Labs* — آپ کی رائے سے ہماری ایپس بہتر ہوتی ہیں\n📞 0320-6793793";
+function videosHTML() {
+  const E = LANG === 'en';
+  return `<div class="secT">🎬 ${E ? 'Intro videos' : 'تعارفی ویڈیوز'} <small>— ${E ? 'watch, save or share' : 'دیکھیں، محفوظ کریں یا شیئر کریں'}</small></div>
+  <div class="vids">${VIDEOS.map(v => `<div class="vid card">
+    <button class="vth" data-act="vplay" data-id="${v.id}"><img src="${v.poster}" alt="" loading="lazy"><span class="vpl">▶</span><span class="vdur num">${v.dur}</span></button>
+    <b class="vt">${esc(E ? v.en : v.ur)}</b>
+    <div class="tools"><button class="tb pri" data-act="vplay" data-id="${v.id}">▶️ ${E ? 'Play' : 'چلائیں'}</button>
+      <a class="tb" href="${v.file}" download="PBT-Help-Desk-${v.id}.mp4">⬇️ ${E ? 'Download' : 'ڈاؤن لوڈ'}</a>
+      <button class="tb grn" data-act="vshare" data-id="${v.id}">📤 ${E ? 'Share' : 'شیئر'}</button></div></div>`).join('')}</div>
+  <button class="tb" style="margin:2px 0 6px" data-act="copyPost">📋 ${E ? 'Copy the post message' : 'ساتھ والا پیغام کاپی کریں'}</button>`;
+}
+async function shareVideo(id) {
+  const v = VIDEOS.find(x => x.id === id); if (!v) return;
+  const E = LANG === 'en';
+  busy(true, E ? 'Preparing video…' : 'ویڈیو تیار ہو رہی ہے…');
+  try {
+    const blob = await (await fetch(v.file)).blob();
+    const file = new File([blob], 'PBT-Help-Desk-' + id + '.mp4', { type: 'video/mp4' });
+    busy(false);
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], text: 'PBT Help Desk — ' + (E ? 'SOS in every app' : 'ہر ایپ میں SOS') + ' 🆘\nhttps://pbtcodelabs-pbt.github.io/help/' });
+    } else {
+      const a = document.createElement('a'); a.href = v.file; a.download = file.name; document.body.appendChild(a); a.click(); a.remove();
+      toast(E ? 'Sharing not supported here — video downloaded' : 'یہاں سیدھا شیئر نہیں ہو سکتا — ویڈیو ڈاؤن لوڈ ہو گئی', 4000);
+    }
+  } catch (e) { busy(false); if (e && e.name !== 'AbortError') toast('⚠️ ' + (e.message || e)); }
+}
+function playVideo(id) {
+  const v = VIDEOS.find(x => x.id === id); if (!v) return;
+  const E = LANG === 'en';
+  sheet(`<h2>🎬 ${esc(E ? v.en : v.ur)}<button class="x" data-act="close">✕</button></h2>
+    <video src="${v.file}" poster="${v.poster}" controls autoplay playsinline style="width:100%;max-height:70vh;border-radius:14px;background:#000"></video>
+    <div class="tools" style="justify-content:center"><a class="tb" href="${v.file}" download="PBT-Help-Desk-${v.id}.mp4">⬇️ ${E ? 'Download' : 'ڈاؤن لوڈ'}</a>
+      <button class="tb grn" data-act="vshare" data-id="${v.id}">📤 ${E ? 'Share (WhatsApp status…)' : 'شیئر (واٹس ایپ اسٹیٹس…)'}</button></div>`);
+}
 function vHome() {
   const own = Store.isOwner();
   const pub = publicList();
@@ -253,6 +294,7 @@ function vHome() {
   ${own ? rankBtns() : ''}
   <div class="secT">📱 ${T('chooseApp')} <small>— ${T('chooseAppSub')}</small></div>
   <div class="apps">${tiles}</div>
+  ${videosHTML()}
   <div class="card" style="margin-top:16px">
     <div class="info"><span class="i">🕘</span><div><b>${T('hours')}:</b> ${esc(hrs)}</div></div>
     <div class="info" style="margin-top:6px"><span class="i">🛡️</span><div>${T('whyHere')}</div></div>
@@ -757,7 +799,7 @@ function sheet(html, keepScroll) {
   sh.innerHTML = '<div class="grab"></div>' + html; $('#ov').classList.add('on');
   if (keepScroll) sh.scrollTop = top;
 }
-function closeSheet() { $('#ov').classList.remove('on'); DET = null; }
+function closeSheet() { const vd = document.querySelector('#sheet video'); if (vd) vd.pause(); $('#ov').classList.remove('on'); DET = null; }
 function loginSheet() {
   const first = Store.ownerFirst(), E = LANG === 'en';
   sheet(`<h2>🛠️ ${E ? 'Developer' : 'ڈویلپر'}<button class="x" data-act="close">✕</button></h2>
@@ -823,6 +865,9 @@ document.addEventListener('click', async e => {
     case 'lang': setLang(LANG === 'en' ? 'ur' : 'en'); break;
     case 'back': if (EMBED || history.length <= 1) go(R.v === 'app' ? '#/' : (R.v === 'new' ? '#/app/' + encodeURIComponent(R.a) : '#/')); else history.back(); break;
     case 'rank': rankSheet(id); break;
+    case 'vplay': playVideo(id); break;
+    case 'vshare': shareVideo(id); break;
+    case 'copyPost': try { await navigator.clipboard.writeText(POST_TEXT); toast('📋 ✅'); } catch (_) { toast('⚠️'); } break;
     case 'oapp': O.app = id; O.tab = ISSUES.some(i => i.app === id && i.status === 'new') ? 'new' : 'open'; go('#/owner'); break;
     case 'app': appTab = 'open'; appQ = ''; go('#/app/' + encodeURIComponent(id)); break;
     case 'mine': go('#/mine'); break;

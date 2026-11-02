@@ -1,5 +1,5 @@
 // PBT Help Desk — صرف اپنا کیش (pbt-helpdesk-) چھیڑتا ہے، اسی ویب سائٹ کی دوسری ایپس کا نہیں
-const CACHE_NAME = 'pbt-helpdesk-HD0211MO013';
+const CACHE_NAME = 'pbt-helpdesk-HD0211MO014';
 const FILES = ['./', './index.html', './app.js', './store.js', './cloud-config.js', './upd.js', './widget.js', './manifest.json', './icons/icon-192.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(FILES)).catch(() => {}));
@@ -11,6 +11,7 @@ self.addEventListener('activate', e => e.waitUntil(
 self.addEventListener('fetch', e => {
   const r = e.request;
   if (r.method !== 'GET' || new URL(r.url).origin !== self.location.origin) return;
+  if (/\/media\//.test(r.url)) return; // بڑی ویڈیوز سیدھی نیٹ سے (کیش نہیں، Range درخواستیں)
   if (r.url.includes('/fonts/')) { e.respondWith(caches.match(r).then(h => h || fetch(r).then(x => { const c = x.clone(); caches.open(CACHE_NAME).then(k => k.put(r, c)); return x; }))); return; }
   e.respondWith(fetch(r, { cache: 'no-cache' }).then(x => {
     if (x.ok) { const c = x.clone(); caches.open(CACHE_NAME).then(k => k.put(r, c)); }
