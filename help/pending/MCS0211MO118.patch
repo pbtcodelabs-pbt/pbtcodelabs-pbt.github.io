@@ -1,0 +1,117 @@
+From 39099a69f546e8827847de263f5aafd686c2c9ef Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Mon, 2 Nov 2026 08:38:39 +0000
+Subject: [PATCH] =?UTF-8?q?MCS0211MO118:=20=D8=AA=D9=84=D8=A7=D8=B4=20?=
+ =?UTF-8?q?=D8=B3=D8=A8=20=D8=B4=DB=81=D8=B1=D9=88=DA=BA=20=D9=85=DB=8C?=
+ =?UTF-8?q?=DA=BA=D8=8C=20SOS=20=D8=A8=D9=B9=D9=86=20=D8=A8=D8=A7=DB=81?=
+ =?UTF-8?q?=D8=B1=20(HD=20#7=20#8=20#11)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ index.html | 20 ++++++++++----------
+ sw.js      |  6 +++---
+ 2 files changed, 13 insertions(+), 13 deletions(-)
+
+diff --git a/index.html b/index.html
+index ecfff2f..845b429 100644
+--- a/index.html
++++ b/index.html
+@@ -5,8 +5,8 @@
+ <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+ <title>مائی سٹی شائنز</title>
+ <link rel="manifest" href="manifest.json">
+-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=MCS0211MO117">
+-<link rel="apple-touch-icon" href="icons/icon-192.png?v=MCS0211MO117">
++<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=MCS0211MO118">
++<link rel="apple-touch-icon" href="icons/icon-192.png?v=MCS0211MO118">
+ <meta name="theme-color" content="#0d3b66">
+ <script>/* MCS3010FR078: رات کا رنگ — خودکار (فون کے مطابق) / دن / رات؛ صفحہ بننے سے پہلے لگے تاکہ سفید جھلک نہ آئے */
+ (function(){ try{ var t = localStorage.getItem('mcsTheme') || 'auto';
+@@ -153,7 +153,7 @@ body.tkr-hidden #app{padding-top:0;}
+   height:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));padding:6px 14px calc(6px + env(safe-area-inset-bottom,0px));
+   background:linear-gradient(180deg,#f4f8f7,#e3ecea);border-top:1px solid #cfdcd9;box-shadow:0 -4px 14px rgba(13,59,102,.14);direction:ltr;}
+ body.nav-on .bnav{display:flex;}
+-.bnav .bn-sos{background:none !important;padding:0;width:auto;height:auto;margin-inline-end:4px} /* 🆘 MCS0211MO116: PBT Help Desk */
++.bnav .bn-sos{background:none !important;padding:0;width:auto;height:auto;position:absolute;left:8px;top:-46px;z-index:2} /* 🆘 MCS0211MO116: PBT Help Desk */
+ .bnav button{border:none;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;
+   -webkit-user-select:none;user-select:none;touch-action:manipulation;
+   transition:transform .08s ease, box-shadow .08s ease, filter .08s ease;}
+@@ -3520,9 +3520,9 @@ html.mcs-dark .hs-filter:not(.on){background:#173438 !important;color:#9fe3d6 !i
+    (MCS+DD+MM+DAYLETTERS+3-digit serial, e.g. MCS1110SU001; the serial never resets) — used in the code AND shown on the
+    home page badge, so the on-screen text always matches the zip/GitHub
+    file that produced it. Update this to match the zip name on every release. */
+-const APP_VERSION = "MCS0211MO117";
++const APP_VERSION = "MCS0211MO118";
+ /* ہر ریلیز پر ایک چھوٹی لائن — اپڈیٹ مکمل والے کارڈ میں دکھتی ہے */
+-const UPDATE_NOTE = "پروفائل کی مفت آزمائش اب 15 دن";
++const UPDATE_NOTE = "تلاش اب سب شہروں میں؛ SOS بٹن لاگ اِن بٹن کے نیچے سے باہر";
+ const DEFAULT_CONTACT = { whatsapp:"0320-6793793", gmail:"pbtcodelabs@gmail.com" };
+ 
+ /* ---------- Location data: Country > Province > District (fixed geography) ----------
+@@ -3970,7 +3970,7 @@ function hlRenderSoon(){ clearTimeout(hlT); hlT = setTimeout(hlRender, 220); }
+ function hlItems(){
+   const q = ((document.getElementById('homeSearchBox')||{}).value||'').trim();
+   let list = q ? searchAllRecords(q).map(x=>({kind:x.kind, cat: x.kind==='doctor' ? 'doctor' : x.rec.category, rec:x.rec})) : ubAllRecords();
+-  list = list.filter(it=>ubPassF(it, ['group','cat'].concat(HF_LOC), hf) && it.cat !== 'emergencyNumbers' && it.cat !== 'govOffices');
++  list = list.filter(it=>ubPassF(it, q ? ['group','cat'] : ['group','cat'].concat(HF_LOC), hf) && /* MCS0211MO118: تلاش لکھی ہو تو شہر کا فلٹر نہیں — سب شہروں میں */ it.cat !== 'emergencyNumbers' && it.cat !== 'govOffices');
+   /* MCS0211MO116: پروفائل والے سب سے اوپر */
+   list = list.map((it,i)=>[it,i]).sort((a,b)=>(pfActive(b[0].rec)?1:0)-(pfActive(a[0].rec)?1:0) || a[1]-b[1]).map(x=>x[0]);
+   return {q, list};
+@@ -3980,7 +3980,7 @@ function hlCap(it){
+   const own = it.kind==='doctor' ? {owner:''} : splitOwnerIntro(r.intro);
+   const num = normalizePkNumber(r.whatsapp||''), d = num.replace(/[^0-9]/g,'');
+   const pi = it.cat==='doctor' ? 0 : Math.max(0, CATEGORY_KEYS.indexOf(it.cat)+1) % UB_PALETTE.length, pal = UB_PALETTE[pi];
+-  const sub = [own.owner ? '👤 ' + own.owner : '', cm.ur, r.area].filter(Boolean).join(' • ');
++  const sub = [own.owner ? '👤 ' + own.owner : '', cm.ur, r.area, (r.city && (hf.city||hf.area||hf.district||hf.province) ? r.city : '')].filter(Boolean).join(' • ');
+   return `<div class="hl-cap${pfActive(r) ? ' pf-gold' : ''}" style="--rc:${pal[0]};--rbg:${pal[1]}" data-k="${it.kind}" data-id="${escapeAttr(r.id)}"><span class="hl-ic">${cm.emoji}</span>
+     <div class="hl-tx"><b>${escapeHtml(r.nameUr||r.name||'')}${pfActive(r) ? '<span class="pf-star">⭐</span>' : ''}</b><small>${escapeHtml(sub)}</small>${r.nameEn ? `<em>${escapeHtml(r.nameEn)}</em>` : ''}</div>
+     ${d ? `<span class="hl-num">${escapeHtml(num)}</span><a class="hl-a c" href="tel:${d}" aria-label="Call">📞</a><a class="hl-a w" href="https://wa.me/92${d.replace(/^0/,'')}" target="_blank" rel="noopener" aria-label="WhatsApp">💬</a>` : ''}</div>`;
+@@ -6289,7 +6289,7 @@ function buildShareCanvasOld(kind, item, opts){
+       drawRest();
+     };
+     headerLogo.onerror = drawRest;
+-    headerLogo.src = 'icons/icon-192.png?v=MCS0211MO117';
++    headerLogo.src = 'icons/icon-192.png?v=MCS0211MO118';
+ 
+     function finishFooter(){
+     // footer CTA banner — bold gold ribbon
+@@ -6450,7 +6450,7 @@ function buildAppPromoCanvas(customText, opts){
+       drawRest();
+     };
+     headerLogo.onerror = drawRest;
+-    headerLogo.src = 'icons/icon-192.png?v=MCS0211MO117';
++    headerLogo.src = 'icons/icon-192.png?v=MCS0211MO118';
+ 
+     function finishFooter(){
+       const fY = 770, fH = 220;
+@@ -11388,6 +11388,6 @@ if('serviceWorker' in navigator){
+     window.dispatchEvent(new Event('mcs-firebase-ready'));
+   }catch(e){ /* no internet on first load, or SDK blocked — app keeps working fully offline */ }
+ </script>
+-<script src="https://pbtcodelabs-pbt.github.io/help/widget.js" data-app="MCS" data-ver="MCS0211MO116" defer></script> <!-- 🆘 MCS0211MO116: PBT Help Desk -->
++<script src="https://pbtcodelabs-pbt.github.io/help/widget.js" data-app="MCS" data-ver="MCS0211MO118" defer></script> <!-- 🆘 MCS0211MO116: PBT Help Desk -->
+ </body>
+ </html>
+diff --git a/sw.js b/sw.js
+index 48c3ee2..c7d6f40 100644
+--- a/sw.js
++++ b/sw.js
+@@ -7,10 +7,10 @@
+    ========================================================= */
+ 
+ /* Same version string as index.html's APP_VERSION and the release zip
+-   filename (MCS+DD+MM+DAYLETTERS+3-digit serial, e.g. MCS0211MO117) — keep these three in sync
++   filename (MCS+DD+MM+DAYLETTERS+3-digit serial, e.g. MCS0211MO118) — keep these three in sync
+    on every release so it's always clear which files go together. */
+-const CACHE_NAME = 'mcs-cache-MCS0211MO117';
+-/* MCS0211MO117: فونٹ (10-13MB) الگ مستقل کیش میں — ہر ورژن پر مٹتے نہیں تھے تو ہر اپڈیٹ کے بعد دوبارہ
++const CACHE_NAME = 'mcs-cache-MCS0211MO118';
++/* MCS0211MO118: فونٹ (10-13MB) الگ مستقل کیش میں — ہر ورژن پر مٹتے نہیں تھے تو ہر اپڈیٹ کے بعد دوبارہ
+    ڈاؤن لوڈ ہوتے اور تب تک نوری نستعلیق/کشیدہ نظر نہیں آتا تھا۔ */
+ const FONT_CACHE = 'mcs-fonts-v1';
+ const isFontReq = (url) => /\.(ttf|otf|woff2?)$/i.test(url.pathname);
+-- 
+2.43.0
+
