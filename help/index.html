@@ -198,6 +198,18 @@ textarea.big:focus,.inp:focus{outline:0;border-color:var(--b2);box-shadow:0 0 0 
 .urgHome{border:2px solid #fb923c;background:linear-gradient(180deg,#fff7ed,#fff)}.urgHome>b{font-size:16px;color:#9a3412}
 .urgHome .uh{padding:8px 4px;border-top:1px dashed #fed7aa;cursor:pointer}.urgHome .uh:first-of-type{border-top:0}
 .urgHome .uh .t{display:flex;align-items:center;gap:6px;font-size:14px}.urgHome .uh .t .clamp{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cProg{margin:10px 0 4px;padding:10px 12px;border-radius:14px;background:#eff6ff;border:1.5px solid #bfdbfe}
+.cProg.fin{background:#ecfdf5;border-color:#6ee7b7}
+.cpHead{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14.5px;color:#1e3a8a}.cProg.fin .cpHead{color:#047857}
+.cpHead .num{font-family:var(--en);font-weight:800;font-size:18px}
+.cpBar{height:11px;border-radius:99px;background:#dbeafe;overflow:hidden;margin:6px 0;direction:ltr}
+.cpBar i{display:block;height:100%;border-radius:99px;background:repeating-linear-gradient(45deg,#2563eb 0 10px,#3b82f6 10px 20px);background-size:28px 28px;animation:upMove 1.2s linear infinite;transition:width .8s}
+.fin .cpBar{background:#a7f3d0}.fin .cpBar i{background:#10b981;animation:none}
+.cpDots{display:flex;justify-content:space-between;gap:4px;direction:ltr;flex-direction:row-reverse}
+.cpDots span{flex:0 0 auto;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:13px;background:#fff;border:1.5px solid #e2e8f0;filter:grayscale(1);opacity:.6}
+.cpDots span.ok{background:#10b981;border-color:#10b981;color:#fff;font-weight:900;filter:none;opacity:1}
+.cpDots span.now{border-color:#2563eb;filter:none;opacity:1;box-shadow:0 0 0 3px rgba(37,99,235,.2);animation:urgP 1.6s infinite}
+.cpNext{font-size:12.5px;color:#475569;margin-top:6px}
 @keyframes urgP{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.7)}50%{box-shadow:0 0 0 8px rgba(255,255,255,0)}}
 .tb.grn{background:var(--done);border-color:var(--done);color:#fff}
 .tb.red{color:var(--red);border-color:#fecaca}
