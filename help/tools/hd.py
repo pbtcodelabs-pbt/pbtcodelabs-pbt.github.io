@@ -12,6 +12,7 @@
   python3 help/tools/hd.py set <no|id> hold=approve review="…" pr=https://github.com/…
   python3 help/tools/hd.py set <no|id> status=dup dupOf=12
   python3 help/tools/hd.py set <no|id> stage=work          # ⚡ فوری کی پیش رفت: seen → work → test → push → live → done
+  python3 help/tools/hd.py add <app> <bug|idea|ask> "متن" [urgent] [done "جواب"]   # مالک نے چیٹ میں جو کام کہا، ہیلپ ڈیسک میں درج
   python3 help/tools/hd.py notify [--force]  # 🔔 مالک کے فون پر اطلاع (نئے / کام جاری / منظوری) — صرف تبدیلی پر
 
 HD_EMU=1 ہو تو مقامی فائربیس ایمولیٹر (127.0.0.1:9099 / 8080) — جانچ کے لیے۔
@@ -150,6 +151,27 @@ def cmd_set(tok, key, pairs):
     print('ok', i.get('no'), {k: v for k, v in patch.items() if k != 'upd'})
 
 
+# ---------- HD0311TU022: مالک کا چیٹ والا کام ہیلپ ڈیسک میں درج (نیا نمبر، مالک کے نام) ----------
+def cmd_add(tok, app, typ, text, extra):
+    c = curl('GET', f'{FS}/meta/counter', token=tok)
+    v = int(dec(c['fields']['v'])) + 1
+    curl('PATCH', f"{FS}/meta/counter?updateMask.fieldPaths=v&currentDocument.updateTime={c['updateTime']}",
+         {'fields': {'v': {'integerValue': str(v)}}}, tok)
+    now = int(time.time() * 1000)
+    S = lambda x: {'stringValue': x}; I = lambda x: {'integerValue': str(x)}; B = lambda x: {'booleanValue': x}
+    f = {'no': I(v), 'app': S(app), 'type': S(typ), 'text': S(text), 'ptext': S(''), 'ver': S(''), 'dev': S('claude-chat'),
+         'shots': I(0), 'audio': B(False), 'lang': S('ur'), 'hold': S(''), 'uid': S(OWNER_UID), 'created': I(now), 'upd': I(now),
+         'status': S('new'), 'pub': B(False), 'metoo': {'arrayValue': {}}, 'reply': S(''), 'replyAt': I(0), 'doneAt': I(0), 'dupOf': I(0)}
+    d = curl('POST', f'{FS}/issues', {'fields': f}, tok)
+    iid = d['name'].rsplit('/', 1)[1]
+    curl('PATCH', f'{FS}/issues/{iid}/priv/c', {'fields': {'name': S('مالک (چیٹ)'), 'phone': S('03206793793'), 'uid': S(OWNER_UID)}}, tok)
+    pairs = ['status=work', 'stage=seen'] + (['urgent=true'] if 'urgent' in extra else [])
+    if 'done' in extra:
+        k = extra.index('done'); pairs = ['status=done', 'stage=done'] + ([f'reply={extra[k + 1]}'] if len(extra) > k + 1 else [])
+    cmd_set(tok, iid, pairs)
+    print('added', v, iid)
+
+
 # ---------- 🔔 HD0211MO016: Web Push (RFC 8291 aes128gcm + VAPID) — صرف cryptography لائبریری ----------
 def b64u(b): return base64.urlsafe_b64encode(b).rstrip(b'=').decode()
 def unb64u(s): return base64.urlsafe_b64decode(s + '=' * (-len(s) % 4))
@@ -253,5 +275,6 @@ if __name__ == '__main__':
     if a[0] == 'list': cmd_list(t, '--all' in a, '--urgent' in a)
     elif a[0] == 'show': cmd_show(t, a[1])
     elif a[0] == 'set': cmd_set(t, a[1], a[2:])
+    elif a[0] == 'add': cmd_add(t, a[1], a[2], a[3], a[4:])
     elif a[0] == 'notify': cmd_notify(t, '--force' in a)
     else: sys.exit(__doc__)
