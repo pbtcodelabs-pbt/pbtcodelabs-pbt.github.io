@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0211MO021';
-const UPDATE_NOTE = 'Developer: 🖼️ beautiful «solved» post for each request — problem, 100% bar, reply — straight to the customer\'s WhatsApp chat';
+const APP_VERSION = 'HD0311TU023';
+const UPDATE_NOTE = 'Replies and WhatsApp posts for the developer\'s own requests no longer show the developer\'s name';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -1000,10 +1000,15 @@ async function posterSheet(id) {
     <div class="tools" style="justify-content:center"><button class="tb grn" data-act="posterShare" data-id="${i.id}">📤 ${E ? 'Share image' : 'تصویر شیئر'}</button>
       <button class="tb" data-act="posterSave" data-id="${i.id}">⬇️ ${E ? 'Save' : 'محفوظ'}</button></div>`);
 }
+// HD0311TU023 (مالک کا حکم): مالک / ڈویلپر کا اپنا مسئلہ ہو تو نام اور «جناب» نہیں — یہی پیغام وہ آگے کسی کو بھیجتے ہیں؛ گاہک کو نام کے ساتھ سلام
+const isOwnIssue = i => i.uid === 's6L0FAs6krVDRAHKf70ggM3LamH2' || i.dev === 'claude-chat' || waNum(i.phone || '').endsWith('3206793793');
+const greetName = i => isOwnIssue(i) ? '' : (i.name || '').trim();
 function posterMsg(i) {
-  const a = appOf(i.app);
-  return (i.lang || 'ur') === 'en' ? `Assalam o Alaikum ${i.name || ''}! Your request #${i.no} (${a.en}) is solved ✅ — details in the picture. Please refresh the app once. Thank you — PBT Code Labs`
-    : `السلام علیکم ${i.name || ''}! آپ کا مسئلہ #${i.no} (${a.ur}) حل ہو گیا ✅ — تفصیل تصویر میں ہے۔ ایپ ایک بار تازہ کر لیں۔ شکریہ — پی بی ٹی کوڈ لیبز`;
+  const a = appOf(i.app), n = greetName(i);
+  if (isOwnIssue(i)) return (i.lang || 'ur') === 'en' ? `Your request #${i.no} (${a.en}) has been solved ✅ — details in the picture. Please refresh the app once. — PBT Code Labs`
+    : `آپ کا مسئلہ #${i.no} (${a.ur}) حل کر دیا گیا ہے ✅ — تفصیل تصویر میں ہے۔ ایپ ایک بار تازہ کر لیں۔ — پی بی ٹی کوڈ لیبز`;
+  return (i.lang || 'ur') === 'en' ? `Assalam o Alaikum ${n}! Your request #${i.no} (${a.en}) is solved ✅ — details in the picture. Please refresh the app once. Thank you — PBT Code Labs`
+    : `السلام علیکم ${n}! آپ کا مسئلہ #${i.no} (${a.ur}) حل ہو گیا ✅ — تفصیل تصویر میں ہے۔ ایپ ایک بار تازہ کر لیں۔ شکریہ — پی بی ٹی کوڈ لیبز`;
 }
 async function posterAct(kind, id) {
   const i = ISSUES.find(x => x.id === id); if (!i || !POSTER || POSTER.id !== id) return;
@@ -1028,8 +1033,8 @@ function notifyWA(i) {
   const a = appOf(i.app), link = location.origin + location.pathname + '#/i/' + i.id;
   const ur = (i.lang || 'ur') !== 'en';
   const m = ur
-    ? `السلام علیکم ${i.name}!\nPBT Help Desk — ${a.ur} — آپ کا مسئلہ #${i.no}: ${ST_IC[i.status]} ${DICT['s_' + i.status][0]}\n\n${i.reply || ''}\n\nتفصیل: ${link}\n\nشکریہ — PBT Code Labs`
-    : `Assalam o Alaikum ${i.name}!\nPBT Help Desk — ${a.en} — your request #${i.no}: ${ST_IC[i.status]} ${DICT['s_' + i.status][1]}\n\n${i.reply || ''}\n\nDetails: ${link}\n\nThank you — PBT Code Labs`;
+    ? `${isOwnIssue(i) ? '' : `السلام علیکم ${greetName(i)}!\n`}PBT Help Desk — ${a.ur} — آپ کا مسئلہ #${i.no}: ${ST_IC[i.status]} ${DICT['s_' + i.status][0]}\n\n${i.reply || ''}\n\nتفصیل: ${link}\n\nشکریہ — PBT Code Labs`
+    : `${isOwnIssue(i) ? '' : `Assalam o Alaikum ${greetName(i)}!\n`}PBT Help Desk — ${a.en} — your request #${i.no}: ${ST_IC[i.status]} ${DICT['s_' + i.status][1]}\n\n${i.reply || ''}\n\nDetails: ${link}\n\nThank you — PBT Code Labs`;
   window.open('https://wa.me/' + waNum(i.phone) + '?text=' + encodeURIComponent(m), '_blank');
 }
 
