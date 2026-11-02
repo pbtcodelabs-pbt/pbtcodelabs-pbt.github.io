@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0211MO017';
-const UPDATE_NOTE = 'Developer: new big ⚡ Urgent switch (clear on / off) — sends the job straight to Claude; no hourly checks';
+const APP_VERSION = 'HD0211MO018';
+const UPDATE_NOTE = 'Developer: ⚡ Urgent switch now glows and shows a live progress bar — every step from "sent to Claude" to "live + customer replied"';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -292,6 +292,7 @@ function vHome() {
       : `<div class="st b"><span class="v" style="font-size:19px">${avgReply()}</span><span class="l">⏱️ ${T('avgReply')}</span></div>`}
   </div>`}
   ${mine ? `<button class="mineBtn" data-act="mine"><span class="i">📋</span><span class="t"><b>${T('mine')} <span class="num">(${mine})</span></b><small>${T('mineSub')}</small></span>${un ? `<span class="dot">${un}</span>` : ''}<span>${LANG === 'en' ? '›' : '‹'}</span></button>` : ''}
+  ${own ? urgHome() : ''}
   ${own ? rankBtns() : ''}
   <div class="secT">📱 ${T('chooseApp')} <small>— ${T('chooseAppSub')}</small></div>
   <div class="apps">${tiles}</div>
@@ -669,11 +670,49 @@ async function enablePush() {
 }
 /* HD0211MO017 — ⚡ فوری کا نیا بٹن (مالک کا حکم): صاف آن / بند سوئچ؛ آن ہو تو کام سیدھا Claude کی چیٹ میں — ہر گھنٹے کی باری ختم */
 const CLAUDE_CHAT = 'https://claude.ai/code/session_01RNzHHzEYnZigJB5pMdM5Te';
+/* HD0211MO018 — ⚡ فوری کی پیش رفت: قدم بہ قدم پٹی (Claude ہر قدم پر `hd.py set <no> stage=…` لکھتا ہے، یہاں لائیو) */
+const STAGES = [
+  ['sent', 10, '⚡', 'حکم موصول', 'Order received'],
+  ['claude', 20, '📨', 'Claude کو بھیجا گیا', 'Sent to Claude'],
+  ['seen', 30, '👂', 'سن لیا — غور جاری', 'Heard — thinking'],
+  ['work', 50, '🔧', 'Claude کام کر رہا ہے', 'Claude is working'],
+  ['test', 70, '🧪', 'جانچ ہو رہی ہے', 'Testing'],
+  ['push', 85, '⬆️', 'Push ہو رہا ہے', 'Pushing'],
+  ['live', 95, '🌐', 'لائیو ہو گیا', 'Live'],
+  ['done', 100, '✅', 'حل · گاہک کو جواب گیا', 'Solved · customer replied']
+];
+function urgStage(i) {
+  if (i.status === 'done') return 'done';
+  if (i.stage && STAGES.some(x => x[0] === i.stage)) return i.stage;
+  if (i.status === 'work') return 'work';
+  return 'sent';
+}
+function urgProgress(i, mini) {
+  const E = LANG === 'en', st = urgStage(i), k = STAGES.findIndex(x => x[0] === st), cur = STAGES[k], nx = STAGES[k + 1];
+  const pct = cur[1], done = st === 'done';
+  if (mini) return `<div class="upMini ${done ? 'fin' : ''}"><div class="upBar"><i style="width:${pct}%"></i></div><span>${cur[2]} ${E ? cur[4] : cur[3]} · <b class="num">${pct}%</b></span></div>`;
+  return `<div class="urgProg ${done ? 'fin' : ''}">
+    <div class="upHead"><b>${cur[2]} ${E ? cur[4] : cur[3]}</b><span class="num">${pct}%</span></div>
+    <div class="upBar"><i style="width:${pct}%"></i></div>
+    <div class="upLeft">${done ? (E ? '🎉 All done' : '🎉 کام مکمل') : `${E ? 'Remaining' : 'باقی'} <b class="num">${100 - pct}%</b>${nx ? ` · ${E ? 'next' : 'اگلا قدم'}: ${nx[2]} ${E ? nx[4] : nx[3]}` : ''}`}</div>
+    <ol class="upSteps">${STAGES.map((x, j) => `<li class="${j < k || done ? 'ok' : j === k ? 'now' : ''}"><span class="d">${j < k || done ? '✓' : x[2]}</span><span class="t">${E ? x[4] : x[3]}</span></li>`).join('')}</ol>
+    ${i.stageAt ? `<div class="upWhen">🕒 ${ago(i.stageAt)}</div>` : ''}</div>`;
+}
+function urgHome() {
+  const L = ISSUES.filter(isUrg).sort((a, b) => (b.stageAt || b.upd) - (a.stageAt || a.upd));
+  if (!L.length) return '';
+  const E = LANG === 'en';
+  return `<div class="card urgHome"><b>⚡ ${E ? 'Urgent jobs — live progress' : 'فوری کام — لائیو پیش رفت'}</b>
+    ${L.map(i => `<div class="uh" data-act="open" data-id="${i.id}"><span class="t">${appIcon(appOf(i.app), 'appMini')} <b class="num">#${i.no}</b> <span class="clamp" dir="auto">${esc(i.text || '🎤')}</span></span>${urgProgress(i, true)}</div>`).join('')}</div>`;
+}
 function urgSwitch(i) {
+  return `<div class="urgBox" data-urgbox="${i.id}">${urgBtn(i)}${i.urgent || (i.stage && i.status !== 'new') ? urgProgress(i) : ''}</div>`;
+}
+function urgBtn(i) {
   const E = LANG === 'en', on = !!i.urgent;
   return `<button class="urgSw ${on ? 'on' : ''}" data-act="urgent" data-id="${i.id}" aria-pressed="${on}">
     <span class="uI">⚡</span>
-    <span class="uT"><b>${on ? (E ? 'URGENT — ON' : 'فوری — آن ہے') : (E ? 'Make it urgent' : 'فوری کروائیں')}</b>
+    <span class="uT"><b>${on ? (i.status === 'done' ? (E ? 'URGENT — DONE ✅' : 'فوری کام — مکمل ✅') : (E ? 'URGENT — ON' : 'فوری — آن ہے')) : (E ? 'Make it urgent' : 'فوری کروائیں')}</b>
       <small>${on ? (E ? 'Claude does this first · tap again to turn off' : 'Claude یہ سب سے پہلے کرے گا · بند کرنے کے لیے دوبارہ دبائیں') : (E ? 'Now: off — will be done at 2 o\'clock' : 'ابھی بند ہے — یہ دوپہر/رات 2 بجے ہوگا')}</small></span>
     <span class="uK"><i></i></span></button>`;
 }
@@ -687,7 +726,8 @@ function urgSheet(i) {
     <p style="font-size:13px;color:var(--mut);margin:8px 0 0">${E ? 'Not sent now? It will still be done first in the next 2 o\'clock round.' : 'ابھی نہ بھیجیں تو بھی 2 بجے کی باری میں سب سے پہلے یہی ہوگا۔'}</p>`);
 }
 const pushOn = () => { try { return window.Notification && Notification.permission === 'granted' && localStorage.getItem('pbthd_push') === '1'; } catch (e) { return false; } };
-function tabOk(i, t) { return t === 'all' || (t === 'open' ? (isOpen(i) || isHeld(i)) : t === 'hold' ? isHeld(i) : t === 'send' ? needsSend(i) : i.status === t); }
+const isUrg = i => !!i.urgent && i.status !== 'dup' && !(i.status === 'done' && Date.now() - (i.doneAt || 0) > 864e5); // حل ہونے کے بعد ایک دن تک ✅ دکھے
+function tabOk(i, t) { return t === 'all' || t === 'urg' ? (t === 'all' || isUrg(i)) : (t === 'open' ? (isOpen(i) || isHeld(i)) : t === 'hold' ? isHeld(i) : t === 'send' ? needsSend(i) : i.status === t); }
 function ownFiltered() {
   const q = O.q.trim().toLowerCase();
   let l = ISSUES.filter(i => tabOk(i, O.tab) && (!O.app || i.app === O.app));
@@ -698,7 +738,7 @@ function vOwner() {
   if (!Store.isOwner()) { setTimeout(loginSheet, 50); return `<div class="card empty"><span class="e">🔒</span>Developer</div>`; }
   cleanup();
   const C = s => ISSUES.filter(i => tabOk(i, s) && (!O.app || i.app === O.app)).length;
-  const tabs = [['open', '🔓 ' + (LANG === 'en' ? 'Open' : 'کھلے')], ['hold', '⏳ ' + (LANG === 'en' ? 'Approval' : 'منظوری')], ['send', '📨 ' + (LANG === 'en' ? 'To send' : 'بھیجنا باقی')], ['new', '📥 ' + T('s_new')], ['seen', '👀 ' + T('s_seen')], ['work', '🔧 ' + T('s_work')], ['done', '✅ ' + T('s_done')], ['dup', '🔗 ' + T('s_dup')], ['all', LANG === 'en' ? 'All' : 'سب']];
+  const tabs = [['urg', '⚡ ' + (LANG === 'en' ? 'Urgent' : 'فوری')], ['open', '🔓 ' + (LANG === 'en' ? 'Open' : 'کھلے')], ['hold', '⏳ ' + (LANG === 'en' ? 'Approval' : 'منظوری')], ['send', '📨 ' + (LANG === 'en' ? 'To send' : 'بھیجنا باقی')], ['new', '📥 ' + T('s_new')], ['seen', '👀 ' + T('s_seen')], ['work', '🔧 ' + T('s_work')], ['done', '✅ ' + T('s_done')], ['dup', '🔗 ' + T('s_dup')], ['all', LANG === 'en' ? 'All' : 'سب']];
   const list = ownFiltered();
   const opts = `<option value="">${LANG === 'en' ? 'All apps' : 'سب ایپس'}</option>` + APPS.map(a => {
     const n = ISSUES.filter(i => i.app === a.id && isOpen(i)).length;
@@ -710,6 +750,7 @@ function vOwner() {
       <div class="top">${appIcon(a, 'appMini')} <b style="font-size:14px">${esc(AN(a))}</b>${tyChip(i.type)}${stChip(i.status)}
         <span class="chip ${i.pub ? 'globe' : 'lock'}">${i.pub ? '🌐' : '🔒'}</span>${isHeld(i) ? '<span class="chip work">⏳</span>' : ''}${i.urgent ? '<span class="chip work">⚡</span>' : ''}${needsSend(i) ? '<span class="chip mine">📨</span>' : ''}<span class="no">#${i.no}</span></div>
       <div class="tx clamp" dir="auto">${esc(i.text || (i.audio ? '🎤' : ''))}</div>
+      ${i.urgent ? urgProgress(i, true) : ''}
       <div class="ft"><span class="who">👤 ${esc(i.name)} · <span class="num">${esc(i.phone)}</span></span>
         <span class="when">🕒 ${ago(i.created)}</span>${i.shots ? `<span class="when">🖼️ ${i.shots}</span>` : ''}${i.audio ? '<span class="when">🎤</span>' : ''}
         ${n ? `<span class="mt on">👋 <b>${n + 1}</b></span>` : ''}</div></div>`;
@@ -953,13 +994,16 @@ document.addEventListener('click', async e => {
       const i = ISSUES.find(x => x.id === (id || (DET && DET.id))); if (!i) break;
       const on = !i.urgent;
       i.urgent = on; // فوراً رنگ بدلے (فائربیس کا انتظار نہیں)
-      document.querySelectorAll(`[data-act="urgent"][data-id="${i.id}"]`).forEach(b => b.outerHTML = urgSwitch(i));
-      try { await Store.update(i.id, { urgent: on }); } catch (e) { i.urgent = !on; toast('⚠️ ' + (e.message || e), 4000); break; }
-      if (on) urgSheet(i); else toast(LANG === 'en' ? '⏸️ Urgent off — it will be done in the 2 o\'clock round' : '⏸️ فوری بند — اب یہ دوپہر/رات 2 بجے کی باری میں ہوگا', 4000);
+      i.stage = on ? 'sent' : ''; i.stageAt = Date.now();
+      document.querySelectorAll(`[data-urgbox="${i.id}"]`).forEach(b => { b.outerHTML = urgSwitch(i); });
+      if (on) document.querySelectorAll(`[data-urgbox="${i.id}"] .urgSw`).forEach(b => { b.classList.add('burst'); setTimeout(() => b.classList.remove('burst'), 1600); });
+      try { await Store.update(i.id, { urgent: on, stage: i.stage, stageAt: i.stageAt }); } catch (e) { i.urgent = !on; toast('⚠️ ' + (e.message || e), 4000); break; }
+      if (on) setTimeout(() => urgSheet(i), 1100); else toast(LANG === 'en' ? '⏸️ Urgent off — it will be done in the 2 o\'clock round' : '⏸️ فوری بند — اب یہ دوپہر/رات 2 بجے کی باری میں ہوگا', 4000);
       break; }
     case 'urgTell': { const i = ISSUES.find(x => x.id === id); if (!i) break;
       const msg = urgMsg(i);
       try { await navigator.clipboard.writeText(msg); } catch (e) {}
+      if (urgStage(i) === 'sent') { try { await Store.update(i.id, { stage: 'claude', stageAt: Date.now() }); } catch (e) {} }
       toast(LANG === 'en' ? '📋 Copied — paste it in the Claude chat and send' : '📋 کاپی ہو گیا — Claude کی چیٹ میں پیسٹ کر کے بھیج دیں', 6000);
       setTimeout(() => window.open(CLAUDE_CHAT, '_blank'), 700);
       break; }
