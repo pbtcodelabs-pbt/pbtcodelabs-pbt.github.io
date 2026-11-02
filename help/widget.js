@@ -122,6 +122,8 @@
   }
   var sosT = 0;
   try { new MutationObserver(function () { clearTimeout(sosT); sosT = setTimeout(sos, 120); }).observe(document.documentElement, { childList: true, subtree: true }); } catch (e) {}
+  // ایپ کی اپنی پٹی میں رکھا بٹن: <button onclick="openHelpDesk()">🆘</button> — یہ خود گول SOS بن جاتا ہے اور ہیلپ ڈیسک کھولتا ہے
+  if (typeof window.openHelpDesk !== 'function') window.openHelpDesk = function (o) { open(o); };
   window.PBTHelp = {
     open: open, close: close, button: button,
     config: function (o) { Object.assign(CFG, o || {}); }
