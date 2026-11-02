@@ -44,6 +44,10 @@ service cloud.firestore {
         && request.resource.data.data is string && request.resource.data.data.size() < 1000000;
       allow delete: if owner() || (signed() && resource.data.uid == me());
     }
+    // 🔔 مالک کی اطلاعات (HD0211MO016): VAPID چابی اور فون کی رکنیت — صرف مالک
+    match /push/{doc} {
+      allow read, write: if owner();
+    }
     match /meta/cfg {
       allow read: if true;
       allow write: if owner();
