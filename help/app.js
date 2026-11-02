@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0211MO018';
-const UPDATE_NOTE = 'Developer: ⚡ Urgent switch now glows and shows a live progress bar — every step from "sent to Claude" to "live + customer replied"';
+const APP_VERSION = 'HD0211MO019';
+const UPDATE_NOTE = 'Developer: clearer help when Chrome blocks notifications';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -640,8 +640,18 @@ async function enablePush() {
   const E = LANG === 'en';
   if (!('serviceWorker' in navigator) || !('PushManager' in window) || !window.Notification) { toast(E ? '❌ This browser cannot show notifications — open in Chrome' : '❌ یہ براؤزر اطلاع نہیں دکھاتا — کروم میں کھولیں', 5000); return; }
   if (Store.mode !== 'cloud') { toast('demo'); return; }
+  const before = Notification.permission;
   const perm = await Notification.requestPermission();
-  if (perm !== 'granted') { toast(E ? '❌ Notifications blocked — allow them in Chrome site settings' : '❌ اطلاع کی اجازت نہیں ملی — کروم میں اس سائٹ کی سیٹنگ سے Allow کریں', 6000); return; }
+  if (perm !== 'granted') {
+    // HD0211MO019: صاف بتائیں کہ رکاوٹ کہاں ہے (denied = سائٹ یا فون نے بند کی، default = کروم نے پوچھا ہی نہیں)
+    sheet(`<h2>🔔 ${E ? 'Notifications are blocked' : 'اطلاع کی اجازت نہیں ملی'}<button class="x" data-act="close">✕</button></h2>
+      <p style="font-size:13px;color:var(--mut)" dir="ltr">Chrome: ${esc(before)} → ${esc(perm)}</p>
+      <ol style="font-size:15px;line-height:2.1;padding-inline-start:20px">
+        <li>${E ? 'Tap the ⓘ / ⚙️ icon left of the address bar → <b>Permissions</b> → <b>Notifications</b> → <b>Allow</b>' : 'اوپر پتے کی پٹی میں بائیں طرف ⓘ یا ⚙️ دبائیں ← <b>Permissions</b> ← <b>Notifications</b> ← <b>Allow</b>'}</li>
+        <li>${E ? 'Phone Settings → Apps → Chrome → Notifications → ON' : 'فون کی Settings ← Apps ← Chrome ← Notifications ← آن'}</li>
+        <li>${E ? 'Come back, refresh, tap 🔔 again' : 'واپس آ کر صفحہ تازہ کریں اور 🔔 دوبارہ دبائیں'}</li></ol>`);
+    return;
+  }
   try {
     let P = await Store.pushGet();
     if (!P.vpub || !P.vd) {
