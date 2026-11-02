@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0211MO012';
-const UPDATE_NOTE = 'SOS button now sits in each app’s own top or bottom bar';
+const APP_VERSION = 'HD0211MO013';
+const UPDATE_NOTE = 'Footer: software for every business — mobile, Windows, Android, Chromebook';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -104,7 +104,7 @@ const DICT = {
   people: ['لوگ', 'people'],
   now: ['ابھی', 'just now'], mAgo: ['منٹ پہلے', 'min ago'], hAgo: ['گھنٹے پہلے', 'h ago'], dAgo: ['دن پہلے', 'd ago'], yday: ['کل', 'yesterday'],
   hrs: ['گھنٹے', 'hrs'], days: ['دن', 'days'],
-  foot: ['PBT Code Labs — آپ کی رائے سے ہماری ایپس بہتر ہوتی ہیں', 'PBT Code Labs — your feedback makes our apps better'],
+  foot: ['ہر کاروبار کا سافٹ ویئر — موبائل، ونڈوز، اینڈرائیڈ، کروم بک — پی بی ٹی کوڈ لیبز', 'Software for every business — mobile, Windows, Android, Chromebook — PBT Code Labs'],
   viewOne: ['مسئلہ', 'Request'],
   notFound: ['یہ مسئلہ نہیں ملا — شاید حل ہو کر ہٹ چکا ہے', 'Not found — it may have been solved and removed'],
   delMine: ['واپس لیں', 'Withdraw'], delMineQ: ['یہ مسئلہ واپس لے لیں؟', 'Withdraw this request?']
