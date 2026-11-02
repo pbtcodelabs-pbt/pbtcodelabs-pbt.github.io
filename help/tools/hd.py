@@ -11,6 +11,7 @@
   python3 help/tools/hd.py set <no|id> status=done reply="…"          # doneAt / replyAt خود
   python3 help/tools/hd.py set <no|id> hold=approve review="…" pr=https://github.com/…
   python3 help/tools/hd.py set <no|id> status=dup dupOf=12
+  python3 help/tools/hd.py set <no|id> stage=work          # ⚡ فوری کی پیش رفت: seen → work → test → push → live → done
   python3 help/tools/hd.py notify [--force]  # 🔔 مالک کے فون پر اطلاع (نئے / کام جاری / منظوری) — صرف تبدیلی پر
 
 HD_EMU=1 ہو تو مقامی فائربیس ایمولیٹر (127.0.0.1:9099 / 8080) — جانچ کے لیے۔
@@ -24,7 +25,7 @@ OWNER_UID = 's6L0FAs6krVDRAHKf70ggM3LamH2'
 EMU = os.environ.get('HD_EMU') == '1'
 AUTH = ('http://127.0.0.1:9099/identitytoolkit.googleapis.com' if EMU else 'https://identitytoolkit.googleapis.com')
 FS = ('http://127.0.0.1:8080' if EMU else 'https://firestore.googleapis.com') + f'/v1/projects/{PROJECT}/databases/(default)/documents'
-NUM_FIELDS = {'no', 'shots', 'created', 'upd', 'replyAt', 'doneAt', 'dupOf'}
+NUM_FIELDS = {'no', 'shots', 'created', 'upd', 'replyAt', 'doneAt', 'dupOf', 'stageAt'}
 BOOL_FIELDS = {'audio', 'pub', 'urgent'}
 
 
@@ -116,7 +117,7 @@ def cmd_list(tok, everything, urgent_only=False):
         own = i.get('uid') == OWNER_UID
         if urgent_only and not (i.get('urgent') or own):
             continue
-        print(json.dumps({k: i.get(k) for k in ('no', 'id', 'app', 'type', 'status', 'hold', 'ver', 'lang', 'shots', 'audio', 'pr', 'urgent')}
+        print(json.dumps({k: i.get(k) for k in ('no', 'id', 'app', 'type', 'status', 'hold', 'ver', 'lang', 'shots', 'audio', 'pr', 'urgent', 'stage')}
                          | {'from_owner': own}
                          | {'metoo': len(i.get('metoo') or []), 'text': (i.get('text') or '')[:200]}, ensure_ascii=False))
 
@@ -143,6 +144,7 @@ def cmd_set(tok, key, pairs):
     patch['upd'] = now
     if patch.get('status') in ('done', 'dup'): patch.setdefault('doneAt', now)
     if patch.get('reply'): patch.setdefault('replyAt', now)
+    if patch.get('stage'): patch.setdefault('stageAt', now)  # ⚡ پیش رفت: sent claude seen work test push live done
     mask = '&'.join('updateMask.fieldPaths=' + k for k in patch)
     curl('PATCH', f"{FS}/issues/{i['id']}?{mask}", {'fields': {k: enc(k, v) for k, v in patch.items()}}, tok)
     print('ok', i.get('no'), {k: v for k, v in patch.items() if k != 'upd'})
