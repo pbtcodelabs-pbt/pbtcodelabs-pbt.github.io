@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0211MO014';
-const UPDATE_NOTE = 'Intro videos on the home page: play, download to gallery, or share to WhatsApp status';
+const APP_VERSION = 'HD0211MO015';
+const UPDATE_NOTE = 'Developer: ⚡ priority button — your own requests are fixed within the hour';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -321,7 +321,7 @@ function issueCard(i, opts) {
     <div class="top">${opts.showApp ? `${appIcon(app, 'appMini')} <b style="font-size:14px">${esc(AN(app))}</b>` : ''}${tyChip(i.type)}${stChip(i.status)}${mineIt && !opts.mine ? `<span class="chip mine">⭐ ${T('yours')}</span>` : ''}<span class="no">#${i.no}</span></div>
     <div class="tx clamp" dir="auto" data-act="expand">${esc(txt)}</div>
     ${steps}
-    ${opts.mine && (i.status === 'new' || i.status === 'seen') ? revLine() : ''}
+    ${opts.mine && (i.status === 'new' || i.status === 'seen') ? (i.urgent ? `<div class="rev" style="background:#fff7ed;color:#c2410c">⚡ ${LANG === 'en' ? 'Priority — within the hour' : 'فوری — ایک گھنٹے کے اندر'}</div>` : revLine()) : ''}
     ${i.reply ? `<div class="reply" dir="auto"><span class="rh">${T('pbtReply')}</span>${esc(i.reply)}</div>` : ''}
     ${i.status === 'dup' && i.dupOf ? `<div class="dupNote">🔗 ${T('dupOf')} <b class="num">#${i.dupOf}</b></div>` : ''}
     <div class="ft"><span class="when">🕒 ${ago(i.created)}</span>
@@ -521,6 +521,7 @@ async function send() {
     if (F.audio) blobs.push({ kind: 'audio', data: F.audio });
     const r = await Store.add({ app: F.app, type: F.type, text: F.text.trim(), name: F.name.trim(), phone: P, ver: F.ver.trim(), dev: DEV, shots: F.shots.length, audio: !!F.audio, lang: LANG, hold: F.type === 'idea' ? 'decide' : '' }, blobs);
     rememberMine(r.id, 'new|0');
+    if (Store.isOwner()) { try { await Store.update(r.id, { urgent: true }); } catch (e) {} } // ⚡ ڈویلپر کا اپنا مسئلہ — فوری باری
     const app = F.app; F = null;
     go('#/thanks/' + r.no + '/' + encodeURIComponent(app));
   } catch (e) { toast('⚠️ ' + (e.message || e), 4000); }
@@ -623,7 +624,7 @@ function vOwner() {
     const a = appOf(i.app), n = (i.metoo || []).length;
     return `<div class="is s-${i.status} oi" data-act="open" data-id="${i.id}">
       <div class="top">${appIcon(a, 'appMini')} <b style="font-size:14px">${esc(AN(a))}</b>${tyChip(i.type)}${stChip(i.status)}
-        <span class="chip ${i.pub ? 'globe' : 'lock'}">${i.pub ? '🌐' : '🔒'}</span>${isHeld(i) ? '<span class="chip work">⏳</span>' : ''}${needsSend(i) ? '<span class="chip mine">📨</span>' : ''}<span class="no">#${i.no}</span></div>
+        <span class="chip ${i.pub ? 'globe' : 'lock'}">${i.pub ? '🌐' : '🔒'}</span>${isHeld(i) ? '<span class="chip work">⏳</span>' : ''}${i.urgent ? '<span class="chip work">⚡</span>' : ''}${needsSend(i) ? '<span class="chip mine">📨</span>' : ''}<span class="no">#${i.no}</span></div>
       <div class="tx clamp" dir="auto">${esc(i.text || (i.audio ? '🎤' : ''))}</div>
       <div class="ft"><span class="who">👤 ${esc(i.name)} · <span class="num">${esc(i.phone)}</span></span>
         <span class="when">🕒 ${ago(i.created)}</span>${i.shots ? `<span class="when">🖼️ ${i.shots}</span>` : ''}${i.audio ? '<span class="when">🎤</span>' : ''}
@@ -674,6 +675,7 @@ function detailHTML() {
     ${shots.length ? `<div class="shotsBig">${shots.map((b, k) => `<img src="${b.data}" data-viewsrc="1" alt="">`).join('')}</div>` : ''}
     ${au ? `<audio controls src="${au.data}" style="width:100%;margin:6px 0"></audio>` : ''}
 
+    <div class="tools" style="margin:10px 0 0"><button class="tb ${i.urgent ? 'grn' : ''}" data-act="urgent" style="${i.urgent ? '' : 'border-color:#f59e0b;color:#b45309;font-weight:700'}">⚡ ${i.urgent ? (E ? 'Priority on — fixed within the hour' : 'فوری لگا ہے — ایک گھنٹے کے اندر') : (E ? 'Fix now (priority)' : 'فوری حل کرو')}</button></div>
     <h3>${E ? 'Status' : 'حالت'}</h3>
     <div class="stBtns">${['new', 'seen', 'work', 'done'].map(s => `<button class="${s} ${i.status === s ? 'on' : ''}" data-act="setSt" data-id="${s}">${ST_IC[s]} ${T('s_' + s)}</button>`).join('')}</div>
     <div class="tools"><button class="tb" data-act="dup">🔗 ${E ? 'Mark duplicate of #…' : 'ڈپلیکیٹ — اصل نمبر لکھیں'}</button></div>
@@ -865,6 +867,7 @@ document.addEventListener('click', async e => {
     case 'lang': setLang(LANG === 'en' ? 'ur' : 'en'); break;
     case 'back': if (EMBED || history.length <= 1) go(R.v === 'app' ? '#/' : (R.v === 'new' ? '#/app/' + encodeURIComponent(R.a) : '#/')); else history.back(); break;
     case 'rank': rankSheet(id); break;
+    case 'urgent': { const i = ISSUES.find(x => x.id === DET.id); if (i) { await Store.update(i.id, { urgent: !i.urgent }); toast(!i.urgent ? (LANG === 'en' ? '⚡ Priority — Claude will start within the hour' : '⚡ فوری — Claude ایک گھنٹے کے اندر کام شروع کرے گا') : '✓'); } break; }
     case 'vplay': playVideo(id); break;
     case 'vshare': shareVideo(id); break;
     case 'copyPost': try { await navigator.clipboard.writeText(POST_TEXT); toast('📋 ✅'); } catch (_) { toast('⚠️'); } break;

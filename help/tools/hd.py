@@ -5,6 +5,7 @@
 
   python3 help/tools/hd.py list              # کھلے مسائل (new / seen / work) + منظوری والے (hold)
   python3 help/tools/hd.py list --all        # سب
+  python3 help/tools/hd.py list --urgent     # صرف ⚡ فوری اور مالک کے اپنے بھیجے
   python3 help/tools/hd.py show <no|id>      # پوری تفصیل + اسکرین شاٹ/آواز /tmp/hd/<no>/ میں
   python3 help/tools/hd.py set <no|id> status=work
   python3 help/tools/hd.py set <no|id> status=done reply="…"          # doneAt / replyAt خود
@@ -18,11 +19,12 @@ import base64, json, os, subprocess, sys, time
 API_KEY = 'AIzaSyDZ9ONTLYsRB_MS6n5hH-IUtquiPbqsO0A'
 PROJECT = 'pbt-help-desk'
 OWNER_EMAIL = 'piarybhai@gmail.com'
+OWNER_UID = 's6L0FAs6krVDRAHKf70ggM3LamH2'
 EMU = os.environ.get('HD_EMU') == '1'
 AUTH = ('http://127.0.0.1:9099/identitytoolkit.googleapis.com' if EMU else 'https://identitytoolkit.googleapis.com')
 FS = ('http://127.0.0.1:8080' if EMU else 'https://firestore.googleapis.com') + f'/v1/projects/{PROJECT}/databases/(default)/documents'
 NUM_FIELDS = {'no', 'shots', 'created', 'upd', 'replyAt', 'doneAt', 'dupOf'}
-BOOL_FIELDS = {'audio', 'pub'}
+BOOL_FIELDS = {'audio', 'pub', 'urgent'}
 
 
 def curl(method, url, body=None, token=None):
@@ -105,12 +107,16 @@ def blobs(tok, iid):
     return [doc(r['document']) for r in j if 'document' in r]
 
 
-def cmd_list(tok, everything):
+def cmd_list(tok, everything, urgent_only=False):
     L = sorted(all_issues(tok), key=lambda i: i.get('created', 0))
     for i in L:
         if not everything and i.get('status') not in ('new', 'seen', 'work') and i.get('hold') not in ('go', 'merge'):
             continue
-        print(json.dumps({k: i.get(k) for k in ('no', 'id', 'app', 'type', 'status', 'hold', 'ver', 'lang', 'shots', 'audio', 'pr')}
+        own = i.get('uid') == OWNER_UID
+        if urgent_only and not (i.get('urgent') or own):
+            continue
+        print(json.dumps({k: i.get(k) for k in ('no', 'id', 'app', 'type', 'status', 'hold', 'ver', 'lang', 'shots', 'audio', 'pr', 'urgent')}
+                         | {'from_owner': own}
                          | {'metoo': len(i.get('metoo') or []), 'text': (i.get('text') or '')[:200]}, ensure_ascii=False))
 
 
@@ -145,7 +151,7 @@ if __name__ == '__main__':
     a = sys.argv[1:]
     if not a: sys.exit(__doc__)
     t = login()
-    if a[0] == 'list': cmd_list(t, '--all' in a)
+    if a[0] == 'list': cmd_list(t, '--all' in a, '--urgent' in a)
     elif a[0] == 'show': cmd_show(t, a[1])
     elif a[0] == 'set': cmd_set(t, a[1], a[2:])
     else: sys.exit(__doc__)
