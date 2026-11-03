@@ -38,7 +38,8 @@
     + '.pbthd-tx{display:inline-flex;flex-direction:column;align-items:flex-start;gap:2px}'
     + '.pbthd-tx b{font:900 12px/1 Arial,Helvetica,sans-serif;letter-spacing:.2px;color:#2a1800 !important}'
     + '.pbthd-tx i{position:relative;display:block;height:11px;overflow:hidden;font-style:normal}'
-    + '.pbthd-tx em{display:block;font:700 8.5px/10px Arial,Helvetica,sans-serif;font-style:normal;color:#5b3a00 !important;white-space:nowrap}'
+    + '.pbthd-tx em{display:block;font:700 8px/10px Arial,Helvetica,sans-serif;font-style:normal;color:#5b3a00 !important;white-space:nowrap}'
+    + '.pbthd-tx em.e{font-size:7.5px;letter-spacing:-.15px}'
     + '.pbthd-tx em.u{font:700 9.5px/10px "Noori","Jameel Noori Nastaleeq",Tahoma,Arial,sans-serif;direction:rtl}'
     /* تنگ پٹی (فون پر صفحہ چوڑا ہو جائے): پہلے نیچے کی لائن چھپے، پھر صرف گول نشان */
     + '.pbthd-sos.pbthd-mini,.pbthd-sos.pbthd-help{height:28px;padding-right:7px;gap:3px}.pbthd-mini .pbthd-tx i,.pbthd-help .pbthd-tx i{display:none}.pbthd-mini .pbthd-tx b{font-size:11px}'
@@ -114,7 +115,11 @@
     sos();
   }
   /* ایپ کے ہر 🆘 (ہیلپ ڈیسک والے بٹن میں) کو گول «SOS» نشان سے بدلیں — مینیو دوبارہ بنے تب بھی */
-  var SOS_HTML = '<span class="pbthd-ic">?</span><span class="pbthd-tx"><b>Help Desk</b><i><em class="u">مسائل و تجاویز</em></i></span>';
+  // انگریزی (بین الاقوامی) ایپس میں نیچے کی لائن انگریزی — HD0311TU029 (مالک کا حکم)
+  var EN_APPS = { AIO: 1, 'AIO-POS-DIRECT': 1, FFPOS: 1, DG: 1, MT: 1 };
+  var SOS_CAP = EN_APPS[CFG.app] ? '<em class="e">Report problems &amp; issues</em>' : '<em class="u">مسائل و تجاویز</em>';
+  var SOS_TITLE = EN_APPS[CFG.app] ? 'Help Desk — Report problems & issues' : 'Help Desk — مسائل و تجاویز';
+  var SOS_HTML = '<span class="pbthd-ic">?</span><span class="pbthd-tx"><b>Help Desk</b><i>' + SOS_CAP + '</i></span>';
   var SOS_SEL = '[onclick*="elpDesk"],[data-nav-id="22"],.pbthd-host';
   function sos() {
     var hosts = document.querySelectorAll(SOS_SEL), added = 0;
@@ -126,7 +131,7 @@
       list.forEach(function (tn) {
         var parts = tn.nodeValue.split('\uD83C\uDD98'), f = document.createDocumentFragment();
         parts.forEach(function (p, i) {
-          if (i) { var b = document.createElement('span'); b.className = 'pbthd-sos'; b.title = 'Help Desk — مسائل و تجاویز'; b.innerHTML = SOS_HTML; f.appendChild(b); }
+          if (i) { var b = document.createElement('span'); b.className = 'pbthd-sos'; b.title = SOS_TITLE; b.innerHTML = SOS_HTML; f.appendChild(b); }
           if (p) f.appendChild(document.createTextNode(p));
         });
         tn.parentNode.replaceChild(f, tn);
