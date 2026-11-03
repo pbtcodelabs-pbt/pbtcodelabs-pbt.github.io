@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0311TU031';
-const UPDATE_NOTE = 'Shorter form — writing is required; screenshot and voice note are optional';
+const APP_VERSION = 'HD0311TU032';
+const UPDATE_NOTE = 'Owner can complete / edit a customer message (e.g. after listening to the voice note); original is kept';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -846,6 +846,13 @@ function detailHTML() {
       ${i.ver ? `<span>🏷️</span><span class="num">${esc(i.ver)}</span>` : ''}</div>
     ${holdBox(i)}
     <div class="tx" dir="auto" style="white-space:pre-wrap;font-size:16.5px;overflow-wrap:anywhere">${phoneLinks(i.text) || '<i style="color:var(--mut)">—</i>'}</div>
+    ${i.textEd ? `<div style="font-size:12px;color:var(--mut);margin-top:2px">✏️ ${E ? 'Edited by PBT Code Labs' : 'پی بی ٹی کوڈ لیبز نے مکمل کیا'} · <span class="num">${fullDate(i.textEd)}</span>${i.origText != null ? ` · <a href="#" data-act="showOrig" style="color:var(--b2)">${E ? 'original' : 'اصل پیغام'}</a>` : ''}</div>` : ''}
+    <div class="tools"><button class="tb" data-act="editText">✏️ ${E ? 'Complete / edit the message (e.g. from the voice note)' : 'پیغام مکمل / درست کریں (مثلاً آواز سن کر لکھیں)'}</button></div>
+    <div id="edTextBox" style="display:none">
+      <textarea class="big" id="edText" dir="auto" style="min-height:110px">${esc(i.text || '')}</textarea>
+      <div class="tools"><button class="tb" data-act="pasteEdText">📋 ${T('paste')}</button>
+        <button class="tb pri" data-act="saveEdText">💾 ${E ? 'Save message' : 'پیغام محفوظ کریں'}</button></div>
+    </div>
     ${DET.blobs == null && (i.shots || i.audio) ? '<div class="spin" style="margin:12px auto;width:30px;height:30px"></div>' : ''}
     ${shots.length ? `<div class="shotsBig">${shots.map((b, k) => `<img src="${b.data}" data-viewsrc="1" alt="">`).join('')}</div>` : ''}
     ${au ? `<audio controls src="${au.data}" style="width:100%;margin:6px 0"></audio>` : ''}
@@ -1236,6 +1243,17 @@ document.addEventListener('click', async e => {
       await Store.update(DET.id, p); toast('✅'); break;
     }
     case 'pub': await Store.update(DET.id, { pub: t.checked }); break;
+    // ✏️ HD0311TU032 (مالک کا حکم): گاہک کا نامکمل پیغام مالک خود مکمل / درست کرے (آواز سن کر)؛ اصل پیغام `origText` میں محفوظ
+    case 'editText': { const b = $('#edTextBox'); if (b) { b.style.display = b.style.display === 'none' ? 'block' : 'none'; const ta = $('#edText'); if (ta && b.style.display === 'block') { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } } break; }
+    case 'pasteEdText': try { const t = await navigator.clipboard.readText(); const ta = $('#edText'); if (ta && t) ta.value = (ta.value.trim() ? ta.value.trimEnd() + '\n' : '') + t; } catch (_) { toast('⚠️'); } break;
+    case 'saveEdText': {
+      const i = ISSUES.find(x => x.id === DET.id); const v = ($('#edText').value || '').trim(); if (!i) break;
+      if (!v) { toast(LANG === 'en' ? 'Message cannot be empty' : 'پیغام خالی نہیں ہو سکتا'); break; }
+      if (v === (i.text || '')) { $('#edTextBox').style.display = 'none'; break; }
+      const patch = { text: v, textEd: Date.now() }; if (i.origText == null) patch.origText = i.text || '';
+      try { await Store.update(i.id, patch); Object.assign(i, patch); toast('✅'); sheet(detailHTML(), true); } catch (e) { toast('⚠️ ' + (e.message || e), 4000); }
+      break; }
+    case 'showOrig': { e.preventDefault(); const i = ISSUES.find(x => x.id === DET.id); if (i) alert((LANG === 'en' ? 'Original message from customer:\n\n' : 'گاہک کا اصل پیغام:\n\n') + (i.origText || '—')); break; }
     case 'savePtext': await Store.update(DET.id, { ptext: $('#pText').value.trim() }); toast('✅'); break;
     case 'cCopy': case 'cShare': case 'cText': case 'cImg': claudeAct(act); break;
     case 'bulkClaude': {
