@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0311TU032';
-const UPDATE_NOTE = 'Owner can complete / edit a customer message (e.g. after listening to the voice note); original is kept';
+const APP_VERSION = 'HD0311TU033';
+const UPDATE_NOTE = 'Home urgent card shows only jobs still in progress — finished ones disappear';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -748,7 +748,8 @@ function urgProgress(i, mini) {
     ${i.stageAt ? `<div class="upWhen">🕒 ${ago(i.stageAt)}</div>` : ''}</div>`;
 }
 function urgHome() {
-  const L = ISSUES.filter(isUrg).sort((a, b) => (b.stageAt || b.upd) - (a.stageAt || a.upd));
+  // HD0311TU033 (مالک کا حکم، ہیلپ ڈیسک #45): ہوم کے کارڈ میں صرف جاری کام — 100٪ مکمل (حل / جواب گیا) یہاں سے غائب (پینل کے ⚡ ٹیب میں ایک دن رہتے ہیں)
+  const L = ISSUES.filter(i => isUrg(i) && i.status !== 'done' && i.stage !== 'done').sort((a, b) => (b.stageAt || b.upd) - (a.stageAt || a.upd));
   if (!L.length) return '';
   const E = LANG === 'en';
   return `<div class="card urgHome"><b>⚡ ${E ? 'Urgent jobs — live progress' : 'فوری کام — لائیو پیش رفت'}</b>
