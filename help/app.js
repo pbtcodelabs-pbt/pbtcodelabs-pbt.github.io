@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0311TU027';
-const UPDATE_NOTE = 'Help Desk button in every app: yellow 3D «Help Desk · مسائل و تجاویز | Report problems» instead of red SOS';
+const APP_VERSION = 'HD0311TU028';
+const UPDATE_NOTE = 'Help Desk button: fixed caption «مسائل و تجاویز» (name 1), a bit narrower so it shows fully on more phones';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
