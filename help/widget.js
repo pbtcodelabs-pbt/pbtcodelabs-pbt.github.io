@@ -27,8 +27,8 @@
     + '.pbthd-btn img{width:32px;height:32px;border-radius:9px;background:#fff}'
     + '.pbthd-btn small{display:block;font-weight:400;font-size:11.5px;opacity:.9}'
     + '@keyframes pbthdF{from{opacity:0}}@keyframes pbthdU{from{transform:translateY(40px);opacity:.5}}'
-    /* Help Desk بٹن (HD0311TU027): پیلا، ابھرا 3D، لمبا — «Help Desk» + نیچے باری باری «مسائل و تجاویز» / «Report problems» — ہر ایپ کے 🆘 کی جگہ خود */
-    + '.pbthd-sos{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 9px 0 4px;border-radius:15px;box-sizing:border-box;position:relative;'
+    /* Help Desk بٹن (HD0311TU027 / HD0311TU028): پیلا، ابھرا 3D، لمبا — «Help Desk» + نیچے «مسائل و تجاویز» (مالک کا چنا نام نمبر 1) — ہر ایپ کے 🆘 کی جگہ خود */
+    + '.pbthd-sos{display:inline-flex;align-items:center;gap:4px;height:30px;padding:0 7px 0 4px;border-radius:15px;box-sizing:border-box;position:relative;'
     + 'background:linear-gradient(180deg,#fff59d 0%,#facc15 45%,#f59e0b 100%);color:#3b2300 !important;border:1px solid #b45309;'
     + 'box-shadow:inset 0 1px 0 rgba(255,255,255,.85),inset 0 -2px 0 rgba(180,83,9,.35),0 3px 0 #b45309,0 4px 8px rgba(0,0,0,.28);'
     + 'animation:pbthdSos 2.6s ease-in-out infinite;vertical-align:middle;direction:ltr;white-space:nowrap;text-shadow:0 1px 0 rgba(255,255,255,.55);line-height:1;cursor:pointer}'
@@ -37,15 +37,13 @@
     + 'color:#fde047 !important;font:900 14px/1 Arial,Helvetica,sans-serif;text-shadow:none;box-shadow:0 1px 2px rgba(0,0,0,.4)}'
     + '.pbthd-tx{display:inline-flex;flex-direction:column;align-items:flex-start;gap:2px}'
     + '.pbthd-tx b{font:900 12px/1 Arial,Helvetica,sans-serif;letter-spacing:.2px;color:#2a1800 !important}'
-    + '.pbthd-tx i{position:relative;display:block;height:10px;width:74px;overflow:hidden;font-style:normal}'
-    + '.pbthd-tx em{position:absolute;left:0;top:0;font:700 8.5px/10px Arial,Helvetica,sans-serif;font-style:normal;color:#5b3a00 !important;white-space:nowrap;animation:pbthdCap 6s infinite}'
+    + '.pbthd-tx i{position:relative;display:block;height:11px;overflow:hidden;font-style:normal}'
+    + '.pbthd-tx em{display:block;font:700 8.5px/10px Arial,Helvetica,sans-serif;font-style:normal;color:#5b3a00 !important;white-space:nowrap}'
     + '.pbthd-tx em.u{font:700 9.5px/10px "Noori","Jameel Noori Nastaleeq",Tahoma,Arial,sans-serif;direction:rtl}'
-    + '.pbthd-tx em+em{animation-delay:-3s}'
     /* تنگ پٹی (فون پر صفحہ چوڑا ہو جائے): پہلے نیچے کی لائن چھپے، پھر صرف گول نشان */
     + '.pbthd-sos.pbthd-mini,.pbthd-sos.pbthd-help{height:28px;padding-right:7px;gap:3px}.pbthd-mini .pbthd-tx i,.pbthd-help .pbthd-tx i{display:none}.pbthd-mini .pbthd-tx b{font-size:11px}'
     + '.pbthd-help .pbthd-tx b{font-size:0}.pbthd-help .pbthd-tx b:after{content:"Help";font-size:11.5px}'
     + '.pbthd-sos.pbthd-tiny{padding:0 3px;gap:0}.pbthd-tiny .pbthd-tx{display:none}'
-    + '@keyframes pbthdCap{0%,42%{opacity:1}50%,92%{opacity:0}100%{opacity:1}}'
     + '@keyframes pbthdSos{50%{box-shadow:inset 0 1px 0 rgba(255,255,255,.85),inset 0 -2px 0 rgba(180,83,9,.35),0 3px 0 #b45309,0 0 0 4px rgba(250,204,21,.35),0 4px 10px rgba(0,0,0,.28)}}'
     + '.pbthd-host{background:transparent !important;box-shadow:none !important;border:0 !important;width:auto !important;min-width:0 !important;max-width:none !important;padding:0 2px !important;overflow:visible !important}'
     /* کنارے والی پٹی (data-float): بائیں کنارے پر، درمیان میں، آدھی باہر */
@@ -116,7 +114,7 @@
     sos();
   }
   /* ایپ کے ہر 🆘 (ہیلپ ڈیسک والے بٹن میں) کو گول «SOS» نشان سے بدلیں — مینیو دوبارہ بنے تب بھی */
-  var SOS_HTML = '<span class="pbthd-ic">?</span><span class="pbthd-tx"><b>Help Desk</b><i><em class="u">مسائل و تجاویز</em><em>Report problems</em></i></span>';
+  var SOS_HTML = '<span class="pbthd-ic">?</span><span class="pbthd-tx"><b>Help Desk</b><i><em class="u">مسائل و تجاویز</em></i></span>';
   var SOS_SEL = '[onclick*="elpDesk"],[data-nav-id="22"],.pbthd-host';
   function sos() {
     var hosts = document.querySelectorAll(SOS_SEL), added = 0;
@@ -128,7 +126,7 @@
       list.forEach(function (tn) {
         var parts = tn.nodeValue.split('\uD83C\uDD98'), f = document.createDocumentFragment();
         parts.forEach(function (p, i) {
-          if (i) { var b = document.createElement('span'); b.className = 'pbthd-sos'; b.title = 'Help Desk — مسائل و تجاویز / Report problems'; b.innerHTML = SOS_HTML; f.appendChild(b); }
+          if (i) { var b = document.createElement('span'); b.className = 'pbthd-sos'; b.title = 'Help Desk — مسائل و تجاویز'; b.innerHTML = SOS_HTML; f.appendChild(b); }
           if (p) f.appendChild(document.createTextNode(p));
         });
         tn.parentNode.replaceChild(f, tn);
