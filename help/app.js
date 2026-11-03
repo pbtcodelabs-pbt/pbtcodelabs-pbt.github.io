@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0311TU030';
-const UPDATE_NOTE = 'Customers no longer see the ⚡ urgent label — only the normal progress bar';
+const APP_VERSION = 'HD0311TU031';
+const UPDATE_NOTE = 'Shorter form — writing is required; screenshot and voice note are optional';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -66,15 +66,15 @@ const DICT = {
   q1: ['کیا بتانا ہے؟', 'What is it?'],
   bug: ['مسئلہ', 'Problem'], idea: ['مشورہ', 'Suggestion'], ask: ['سوال', 'Question'],
   q2: ['تفصیل لکھیں', 'Describe it'],
-  q2s: ['جتنا صاف لکھیں گے، اتنا جلدی حل', 'the clearer, the faster'],
+  q2s: ['ضروری — جتنا صاف لکھیں گے، اتنا جلدی حل', 'required — the clearer, the faster'],
   ph: ['کسی بھی زبان میں لکھیں — مثلاً: بل پرنٹ کرتے وقت گاہک کا نام کٹ جاتا ہے…', 'Write in any language — e.g. When I print a bill, the customer name gets cut…'],
   paste: ['پیسٹ', 'Paste'], speak: ['بول کر لکھیں', 'Speak to type'], stopSpeak: ['رکیں', 'Stop'],
   q3: ['اسکرین شاٹ لگائیں', 'Add screenshots'],
-  q3s: ['بہت مدد ملتی ہے', 'helps a lot'],
-  dropT: ['اسکرین شاٹ لے کر یہاں پیسٹ کریں، یا گیلری سے چنیں', 'Paste a screenshot here, or pick from gallery'],
+  q3s: ['اختیاری', 'optional'],
+  dropT: ['اسکرین شاٹ لگائیں تو ہم بات جلدی اور بہتر سمجھ سکیں گے', 'A screenshot helps us understand faster and better'],
   gallery: ['گیلری سے', 'Gallery'], pasteImg: ['تصویر پیسٹ', 'Paste image'],
   q4: ['آواز میں بتائیں', 'Voice note'], q4s: ['اختیاری', 'optional'],
-  recT: ['دبائیں اور بولیں — 2 منٹ تک', 'Tap and speak — up to 2 min'],
+  recT: ['🎤 آواز (اختیاری) — مزید سمجھانا ہو تو دبا کر بولیں، 2 منٹ تک', '🎤 Voice (optional) — to explain more, tap and speak, up to 2 min'],
   recOn: ['ریکارڈ ہو رہا ہے… دوبارہ دبا کر روکیں', 'Recording… tap again to stop'],
   recDone: ['آواز تیار ہے', 'Voice note ready'],
   q5: ['آپ کا رابطہ', 'Your contact'],
@@ -85,7 +85,7 @@ const DICT = {
   appL: ['ایپ', 'App'],
   send: ['بھیج دیں', 'Send'],
   sending: ['بھیجا جا رہا ہے…', 'Sending…'],
-  errText: ['تھوڑی سی تفصیل لکھیں، یا آواز / اسکرین شاٹ لگائیں', 'Please write a few words, or add a voice note / screenshot'],
+  errText: ['پہلے اپنا مسئلہ / مشورہ لکھیں — صرف آواز یا اسکرین شاٹ سے نہیں بھیجا جا سکتا', 'Please write your problem / suggestion first — a voice note or screenshot alone cannot be sent'],
   errPhone: ['درست موبائل نمبر لکھیں (مثلاً 03001234567)', 'Enter a valid mobile number (e.g. 03001234567)'],
   errName: ['اپنا نام لکھیں', 'Please enter your name'],
   thanks: ['شکریہ! آپ کی بات ہم تک پہنچ گئی', 'Thank you! We received it'],
@@ -431,25 +431,23 @@ function vForm() {
   <div class="fs"><div class="fh"><span class="n">1</span>${T('q1')}</div>
     <div class="types">${['bug', 'idea', 'ask'].map(t => `<button type="button" class="ty ${F.type === t ? 'on' : ''}" data-act="type" data-id="${t}"><span class="e">${TYPES[t]}</span><b>${T(t)}</b><small>${DICT[t][LANG === 'en' ? 0 : 1]}</small></button>`).join('')}</div></div>
 
-  <div class="fs"><div class="fh"><span class="n">2</span>${T('q2')} <small>— ${T('q2s')}</small></div>
+  <div class="fs"><div class="fh"><span class="n">2</span>${T('q2')} <b class="req">*</b> <small>— ${T('q2s')}</small></div>
     <textarea class="big" id="fText" dir="auto" data-in="text" placeholder="${T('ph')}">${esc(F.text)}</textarea>
     <div class="tools"><button type="button" class="tb" data-act="pasteText">📋 ${T('paste')}</button>
       ${sr ? `<button type="button" class="tb" id="spkBtn" data-act="speak">🎙️ ${T('speak')}</button><select class="tb" id="spkLang" aria-label="language">${SPK_LANGS.map(([c, l]) => `<option value="${c}" ${c === spkLang() ? 'selected' : ''}>${l}</option>`).join('')}</select>` : ''}
       <span class="cnt" id="cnt">${F.text.length}</span></div>
-    <div class="err" id="eText">${T('errText')}</div></div>
+    <div class="err" id="eText">${T('errText')}</div>
+    <div class="recBox" id="recBox">${recHTML()}</div></div>
 
   <div class="fs"><div class="fh"><span class="n">3</span>${T('q3')} <small>— ${T('q3s')}</small></div>
-    <div class="drop" id="drop"><span class="e">🖼️</span><p>${T('dropT')}</p>
+    <div class="drop" id="drop"><p>💡 ${T('dropT')}</p>
       <div class="tools"><button type="button" class="tb pri" data-act="gallery">🖼️ ${T('gallery')}</button>
       <button type="button" class="tb" data-act="camera">📷 ${T('camera')}</button>
       <button type="button" class="tb" data-act="pasteImg">📋 ${T('pasteImg')}</button></div>
       <input type="file" id="fileIn" accept="image/*" multiple hidden><input type="file" id="camIn" accept="image/*" capture="environment" hidden></div>
     <div class="shots" id="shots">${shotsHTML()}</div></div>
 
-  <div class="fs"><div class="fh"><span class="n">4</span>${T('q4')} <small>— ${T('q4s')}</small></div>
-    <div class="recBox" id="recBox">${recHTML()}</div></div>
-
-  <div class="fs"><div class="fh"><span class="n">5</span>${T('q5')} <small>— 🔒 ${T('q5s')}</small></div>
+  <div class="fs"><div class="fh"><span class="n">4</span>${T('q5')} <small>— 🔒 ${T('q5s')}</small></div>
     <label class="lbl">${T('name')}</label><input class="inp" dir="auto" data-in="name" value="${esc(F.name)}" autocomplete="name">
     <div class="err" id="eName">${T('errName')}</div>
     <label class="lbl">${T('phone')}</label>
@@ -554,7 +552,7 @@ async function clipImages() {
 }
 async function send() {
   const P = normPhone(F.phone);
-  const eT = !F.text.trim() && !F.audio && !F.shots.length, eN = !F.name.trim(), eP = !phoneOk(P);
+  const eT = F.text.trim().length < 3, eN = !F.name.trim(), eP = !phoneOk(P);
   $('#eText').classList.toggle('on', eT); $('#eName').classList.toggle('on', eN); $('#ePhone').classList.toggle('on', eP);
   const bad = document.querySelector('.err.on'); if (bad) { bad.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
   if (F.remember) ls.set('me', { name: F.name.trim(), phone: P }); else ls.set('me', {});
