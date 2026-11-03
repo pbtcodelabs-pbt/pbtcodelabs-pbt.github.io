@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0311TU034';
-const UPDATE_NOTE = 'Writing comes first — screenshot and voice only after typing; owner detail fits one page';
+const APP_VERSION = 'HD0311TU035';
+const UPDATE_NOTE = 'Claude copy button only for unsolved requests — never on solved ones';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -780,6 +780,7 @@ function urgSheet(i) {
 const pushOn = () => { try { return window.Notification && Notification.permission === 'granted' && localStorage.getItem('pbthd_push') === '1'; } catch (e) { return false; } };
 const isUrg = i => !!i.urgent && i.status !== 'dup' && !(i.status === 'done' && Date.now() - (i.doneAt || 0) > 864e5); // حل ہونے کے بعد ایک دن تک ✅ دکھے
 function tabOk(i, t) { return t === 'all' || t === 'urg' ? (t === 'all' || isUrg(i)) : (t === 'open' ? (isOpen(i) || isHeld(i)) : t === 'hold' ? isHeld(i) : t === 'send' ? needsSend(i) : i.status === t); }
+const bulkTodo = i => i.status !== 'done' && i.status !== 'dup' && i.stage !== 'done';
 function ownFiltered() {
   const q = O.q.trim().toLowerCase();
   let l = ISSUES.filter(i => tabOk(i, O.tab) && (!O.app || i.app === O.app));
@@ -819,7 +820,8 @@ function vOwner() {
     <div class="row"><select class="inp" data-oin="app">${opts}</select>
       <select class="inp" data-oin="sort"><option value="new" ${O.sort === 'new' ? 'selected' : ''}>🕒 ${LANG === 'en' ? 'Newest' : 'نئے پہلے'}</option><option value="votes" ${O.sort === 'votes' ? 'selected' : ''}>👋 ${LANG === 'en' ? 'Most voted' : 'زیادہ لوگ پہلے'}</option></select>
       <input class="inp" data-oin="q" value="${esc(O.q)}" placeholder="🔍 ${LANG === 'en' ? 'name, phone, #no, text' : 'نام، نمبر، #، متن'}"></div>
-    ${list.length ? `<button class="bigBtn" style="font-size:16px" data-act="bulkClaude">🤖 ${LANG === 'en' ? `Copy these ${list.length} for Claude` : `یہ ${list.length} مسائل Claude کے لیے کاپی`}</button>` : ''}
+    ${(() => { const todo = list.filter(bulkTodo).length; /* HD0311TU035 (مالک کا حکم): صرف ان حل مسائل — حل / ڈپلیکیٹ پر بٹن نہیں */
+      return todo ? `<button class="bigBtn" style="font-size:16px" data-act="bulkClaude">🤖 ${LANG === 'en' ? `Copy these ${todo} unsolved for Claude` : `یہ ${todo} ان حل مسائل Claude کے لیے کاپی`}</button>` : ''; })()}
     <div class="ownGrid">${cards || `<div class="card empty"><span class="e">🎉</span>${LANG === 'en' ? 'Nothing here' : 'یہاں کچھ نہیں'}</div>`}</div>
   </div>${foot()}`;
 }
@@ -1249,7 +1251,7 @@ document.addEventListener('click', async e => {
     case 'savePtext': await Store.update(DET.id, { ptext: $('#pText').value.trim() }); toast('✅'); break;
     case 'cCopy': case 'cShare': case 'cText': case 'cImg': claudeAct(act); break;
     case 'bulkClaude': {
-      const l = ownFiltered(); const txt = l.map(i => claudeText(i, true)).join('\n\n────────\n\n');
+      const l = ownFiltered().filter(bulkTodo); if (!l.length) break; const txt = l.map(i => claudeText(i, true)).join('\n\n────────\n\n');
       try { await navigator.clipboard.writeText(`PBT Help Desk — ${l.length} requests\n\n` + txt); toast('🤖 ✅ ' + l.length); } catch (_) { toast('⚠️'); }
       break;
     }
