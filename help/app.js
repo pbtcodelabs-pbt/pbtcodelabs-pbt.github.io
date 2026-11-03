@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0311TU029';
-const UPDATE_NOTE = 'Help Desk button: English apps (AIO, Direct, FFPOS, DG, MT) show «Report problems & issues»';
+const APP_VERSION = 'HD0311TU030';
+const UPDATE_NOTE = 'Customers no longer see the ⚡ urgent label — only the normal progress bar';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -349,7 +349,7 @@ function issueCard(i, opts) {
     <div class="top">${opts.showApp ? `${appIcon(app, 'appMini')} <b style="font-size:14px">${esc(AN(app))}</b>` : ''}${tyChip(i.type)}${stChip(i.status)}${mineIt && !opts.mine ? `<span class="chip mine">⭐ ${T('yours')}</span>` : ''}<span class="no">#${i.no}</span></div>
     <div class="tx clamp" dir="auto" data-act="expand">${esc(txt)}</div>
     ${steps}
-    ${opts.mine && (i.status === 'new' || i.status === 'seen') ? (i.urgent ? `<div class="rev" style="background:#fff7ed;color:#c2410c">⚡ ${LANG === 'en' ? 'Priority — being handled first' : 'فوری — سب سے پہلے دیکھا جا رہا ہے'}</div>` : revLine()) : ''}
+    ${opts.mine && (i.status === 'new' || i.status === 'seen') ? (i.urgent && Store.isOwner() ? `<div class="rev" style="background:#fff7ed;color:#c2410c">⚡ ${LANG === 'en' ? 'Priority — being handled first' : 'فوری — سب سے پہلے دیکھا جا رہا ہے'}</div>` : revLine()) : ''}
     ${i.reply ? `<div class="reply" dir="auto"><span class="rh">${T('pbtReply')}</span>${esc(i.reply)}</div>` : ''}
     ${i.status === 'dup' && i.dupOf ? `<div class="dupNote">🔗 ${T('dupOf')} <b class="num">#${i.dupOf}</b></div>` : ''}
     <div class="ft"><span class="when">🕒 ${ago(i.created)}</span>
