@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0311TU033';
-const UPDATE_NOTE = 'Home urgent card shows only jobs still in progress — finished ones disappear';
+const APP_VERSION = 'HD0311TU034';
+const UPDATE_NOTE = 'Writing comes first — screenshot and voice only after typing; owner detail fits one page';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -67,7 +67,7 @@ const DICT = {
   bug: ['مسئلہ', 'Problem'], idea: ['مشورہ', 'Suggestion'], ask: ['سوال', 'Question'],
   q2: ['تفصیل لکھیں', 'Describe it'],
   q2s: ['ضروری — جتنا صاف لکھیں گے، اتنا جلدی حل', 'required — the clearer, the faster'],
-  ph: ['کسی بھی زبان میں لکھیں — مثلاً: بل پرنٹ کرتے وقت گاہک کا نام کٹ جاتا ہے…', 'Write in any language — e.g. When I print a bill, the customer name gets cut…'],
+  ph: ['اپنا پورا مسئلہ یہاں اردو یا انگلش میں لکھیں — مثلاً: بل پرنٹ کرتے وقت گاہک کا نام کٹ جاتا ہے…', 'Type your full problem here in Urdu or English — e.g. When I print a bill, the customer name gets cut…'],
   paste: ['پیسٹ', 'Paste'], speak: ['بول کر لکھیں', 'Speak to type'], stopSpeak: ['رکیں', 'Stop'],
   q3: ['اسکرین شاٹ لگائیں', 'Add screenshots'],
   q3s: ['اختیاری', 'optional'],
@@ -85,7 +85,7 @@ const DICT = {
   appL: ['ایپ', 'App'],
   send: ['بھیج دیں', 'Send'],
   sending: ['بھیجا جا رہا ہے…', 'Sending…'],
-  errText: ['پہلے اپنا مسئلہ / مشورہ لکھیں — صرف آواز یا اسکرین شاٹ سے نہیں بھیجا جا سکتا', 'Please write your problem / suggestion first — a voice note or screenshot alone cannot be sent'],
+  errText: ['لکھے بغیر آپ کا مسئلہ ہم تک نہیں پہنچ سکے گا — اوپر والے خانے میں اپنا مسئلہ اردو یا انگلش میں لکھنا ضروری ہے۔ اس کے بعد اسکرین شاٹ یا آواز دینا چاہیں تو ضرور دیں۔', 'Without writing, your problem cannot reach us — please type it in Urdu or English in the box above. After that you may add a screenshot or voice note.'],
   errPhone: ['درست موبائل نمبر لکھیں (مثلاً 03001234567)', 'Enter a valid mobile number (e.g. 03001234567)'],
   errName: ['اپنا نام لکھیں', 'Please enter your name'],
   thanks: ['شکریہ! آپ کی بات ہم تک پہنچ گئی', 'Thank you! We received it'],
@@ -835,57 +835,40 @@ async function openDetail(id) {
   if (DET && DET.id === id) sheet(detailHTML(), true);
 }
 function detailHTML() {
+  // HD0311TU034 (مالک کا حکم): ایک صفحے پر — اوپر 🗑️ حذف اور ✕؛ چھوٹی تصویریں؛ عام فہرست / Claude «➕ مزید» میں بند
   const i = ISSUES.find(x => x.id === DET.id); if (!i) return '<div class="empty">—</div>';
   const a = appOf(i.app), n = (i.metoo || []).length;
   const shots = (DET.blobs || []).filter(b => b.kind === 'shot'), au = (DET.blobs || []).find(b => b.kind === 'audio');
   const E = LANG === 'en';
-  return `<div class="det"><h2>${appIcon(a, 'appMini')} ${esc(AN(a))} <span class="num" style="color:var(--mut)">#${i.no}</span><button class="x" data-act="close">✕</button></h2>
-    <div class="top" style="display:flex;gap:6px;flex-wrap:wrap">${tyChip(i.type)}${stChip(i.status)}${n ? `<span class="chip work">👋 ${n + 1} ${T('people')}</span>` : ''}</div>
-    <div class="meta"><span>👤</span><b>${esc(i.name)}</b>
-      <span>📞</span><span><a class="num" href="tel:${esc(i.phone)}">${esc(i.phone)}</a> · <a href="https://wa.me/${waNum(i.phone)}" target="_blank" rel="noopener">💬 WhatsApp</a></span>
-      <span>🕒</span><span class="num">${fullDate(i.created)}</span>
-      ${i.ver ? `<span>🏷️</span><span class="num">${esc(i.ver)}</span>` : ''}</div>
+  return `<div class="det dc"><h2>${appIcon(a, 'appMini')} <span class="dcT">${esc(AN(a))} <span class="num" style="color:var(--mut)">#${i.no}</span></span>
+      <button class="tb red dcDel" data-act="del" title="${E ? 'Delete' : 'حذف'}">🗑️ ${E ? 'Delete' : 'حذف'}</button><button class="x" data-act="close">✕</button></h2>
+    <div class="dcRow">${tyChip(i.type)}${stChip(i.status)}${n ? `<span class="chip work">👋 ${n + 1}</span>` : ''}
+      <span class="dcMeta">👤 <b>${esc(i.name)}</b> · <a class="num" href="tel:${esc(i.phone)}">${esc(i.phone)}</a> · <a href="https://wa.me/${waNum(i.phone)}" target="_blank" rel="noopener">💬</a> · <span class="num">${fullDate(i.created)}</span>${i.ver ? ' · <span class="num">' + esc(i.ver) + '</span>' : ''}</span></div>
     ${holdBox(i)}
-    <div class="tx" dir="auto" style="white-space:pre-wrap;font-size:16.5px;overflow-wrap:anywhere">${phoneLinks(i.text) || '<i style="color:var(--mut)">—</i>'}</div>
-    ${i.textEd ? `<div style="font-size:12px;color:var(--mut);margin-top:2px">✏️ ${E ? 'Edited by PBT Code Labs' : 'پی بی ٹی کوڈ لیبز نے مکمل کیا'} · <span class="num">${fullDate(i.textEd)}</span>${i.origText != null ? ` · <a href="#" data-act="showOrig" style="color:var(--b2)">${E ? 'original' : 'اصل پیغام'}</a>` : ''}</div>` : ''}
-    <div class="tools"><button class="tb" data-act="editText">✏️ ${E ? 'Complete / edit the message (e.g. from the voice note)' : 'پیغام مکمل / درست کریں (مثلاً آواز سن کر لکھیں)'}</button></div>
+    <div class="tx dcTx" dir="auto">${phoneLinks(i.text) || '<i style="color:var(--mut)">—</i>'}</div>
+    <div class="dcSub">${i.textEd ? `✏️ ${E ? 'Edited' : 'مکمل کیا'} · <span class="num">${fullDate(i.textEd)}</span>${i.origText != null ? ` · <a href="#" data-act="showOrig">${E ? 'original' : 'اصل پیغام'}</a>` : ''} · ` : ''}<a href="#" data-act="editText">✏️ ${E ? 'Complete / edit message' : 'پیغام مکمل / درست کریں'}</a></div>
     <div id="edTextBox" style="display:none">
-      <textarea class="big" id="edText" dir="auto" style="min-height:110px">${esc(i.text || '')}</textarea>
+      <textarea class="big" id="edText" dir="auto" style="min-height:80px">${esc(i.text || '')}</textarea>
       <div class="tools"><button class="tb" data-act="pasteEdText">📋 ${T('paste')}</button>
         <button class="tb pri" data-act="saveEdText">💾 ${E ? 'Save message' : 'پیغام محفوظ کریں'}</button></div>
     </div>
-    ${DET.blobs == null && (i.shots || i.audio) ? '<div class="spin" style="margin:12px auto;width:30px;height:30px"></div>' : ''}
-    ${shots.length ? `<div class="shotsBig">${shots.map((b, k) => `<img src="${b.data}" data-viewsrc="1" alt="">`).join('')}</div>` : ''}
-    ${au ? `<audio controls src="${au.data}" style="width:100%;margin:6px 0"></audio>` : ''}
-
+    ${DET.blobs == null && (i.shots || i.audio) ? '<div class="spin" style="margin:6px auto;width:24px;height:24px"></div>' : ''}
+    ${shots.length || au ? `<div class="dcMedia">${shots.map(b => `<img src="${b.data}" data-viewsrc="1" alt="">`).join('')}${au ? `<audio controls src="${au.data}"></audio>` : ''}</div>` : ''}
     ${urgSwitch(i)}
-    <h3>${E ? 'Status' : 'حالت'}</h3>
     <div class="stBtns">${['new', 'seen', 'work', 'done'].map(s => `<button class="${s} ${i.status === s ? 'on' : ''}" data-act="setSt" data-id="${s}">${ST_IC[s]} ${T('s_' + s)}</button>`).join('')}</div>
-    <div class="tools"><button class="tb" data-act="dup">🔗 ${E ? 'Mark duplicate of #…' : 'ڈپلیکیٹ — اصل نمبر لکھیں'}</button></div>
-
-    <h3>${E ? 'Reply to customer' : 'گاہک کو جواب'}</h3>
-    <textarea class="big" id="rText" dir="auto" style="min-height:96px" placeholder="${E ? 'Write or paste the answer from Claude…' : 'جواب لکھیں یا Claude سے لے کر پیسٹ کریں…'}">${esc(i.reply || '')}</textarea>
-    <div class="tools"><button class="tb" data-act="pasteReply">📋 ${T('paste')}</button>
+    <textarea class="big dcReply" id="rText" dir="auto" placeholder="${E ? 'Reply to customer — write or paste…' : 'گاہک کو جواب — لکھیں یا پیسٹ کریں…'}">${esc(i.reply || '')}</textarea>
+    <div class="tools dcTools"><button class="tb" data-act="pasteReply">📋</button>
       <button class="tb pri" data-act="saveReply">💾 ${E ? 'Save' : 'محفوظ'}</button>
-      <button class="tb grn" data-act="doneReply">✅ ${E ? 'Save + Solved' : 'محفوظ + حل ہو گیا'}</button>
-      <button class="tb" data-act="notify">📨 ${E ? 'WhatsApp customer' : 'واٹس ایپ پر اطلاع'}</button>
-      <button class="tb grn" data-act="poster" data-id="${i.id}">🖼️ ${E ? 'Solved post → WhatsApp' : 'حل کی پوسٹ ← واٹس ایپ'}</button></div>
-
-    <h3>${E ? 'Public list' : 'عام فہرست'}</h3>
-    <label class="sw"><input type="checkbox" id="pubSw" ${i.pub ? 'checked' : ''} data-act="pub"><i></i>🌐 ${E ? 'Show to everyone (name & phone stay hidden)' : 'سب کو دکھائیں (نام اور نمبر چھپے رہیں گے)'}</label>
-    <label class="lbl">${E ? 'Public wording (optional — cleaner text for everyone)' : 'سب کے لیے الفاظ (اختیاری — صاف ستھرا متن)'}</label>
-    <div class="inpRow"><input class="inp" id="pText" value="${esc(i.ptext || '')}" placeholder="${esc((i.text || '').slice(0, 60))}"><button class="tb" data-act="savePtext">💾</button></div>
-
-    <div class="claude"><b>🤖 Claude</b>
-      <div class="tools"><button class="tb pri" data-act="cCopy">📋 ${E ? 'Copy text + image' : 'متن + تصویر کاپی'}</button>
-        <button class="tb" data-act="cShare">📤 ${E ? 'Share' : 'شیئر'}</button>
-        <button class="tb" data-act="cText">📝 ${E ? 'Text only' : 'صرف متن'}</button>
-        <button class="tb" data-act="cImg">🖼️ ${E ? 'Save image' : 'تصویر محفوظ'}</button></div>
-      <p>${E ? 'Paste into your Claude chat. After Firebase is connected you can also just tell Claude: «Help Desk #' + i.no + ' fix karo» — it will read the request and screenshots itself.'
-      : 'Claude کی چیٹ میں پیسٹ کریں۔ فائربیس جڑنے کے بعد Claude کو صرف اتنا لکھنا کافی ہوگا: «ہیلپ ڈیسک #' + i.no + ' حل کرو» — وہ مسئلہ اور اسکرین شاٹ خود پڑھ لے گا۔'}</p></div>
-
-    <div class="tools" style="margin-top:14px;justify-content:space-between"><button class="tb red" data-act="del">🗑️ ${E ? 'Delete' : 'حذف'}</button>
-      <button class="tb" data-act="close">✕ ${E ? 'Close' : 'بند'}</button></div></div>`;
+      <button class="tb grn" data-act="doneReply">✅ ${E ? 'Save + Solved' : 'محفوظ + حل'}</button>
+      <button class="tb" data-act="notify">📨 ${E ? 'WhatsApp' : 'واٹس ایپ'}</button>
+      <button class="tb grn" data-act="poster" data-id="${i.id}">🖼️ ${E ? 'Post' : 'پوسٹ'}</button></div>
+    <details class="dcMore"><summary>➕ ${E ? 'More — duplicate, public list, Claude' : 'مزید — ڈپلیکیٹ، عام فہرست، Claude'}</summary>
+      <div class="tools"><button class="tb" data-act="dup">🔗 ${E ? 'Mark duplicate of #…' : 'ڈپلیکیٹ — اصل نمبر لکھیں'}</button></div>
+      <label class="sw"><input type="checkbox" id="pubSw" ${i.pub ? 'checked' : ''} data-act="pub"><i></i>🌐 ${E ? 'Show to everyone (name & phone stay hidden)' : 'سب کو دکھائیں (نام اور نمبر چھپے رہیں گے)'}</label>
+      <div class="inpRow"><input class="inp" id="pText" value="${esc(i.ptext || '')}" placeholder="${E ? 'Public wording (optional)' : 'سب کے لیے الفاظ (اختیاری)'}"><button class="tb" data-act="savePtext">💾</button></div>
+      <div class="tools"><b>🤖 Claude</b><button class="tb pri" data-act="cCopy">📋 ${E ? 'Text + image' : 'متن + تصویر'}</button>
+        <button class="tb" data-act="cShare">📤</button><button class="tb" data-act="cText">📝</button><button class="tb" data-act="cImg">🖼️</button></div>
+    </details></div>`;
 }
 /* منظوری: مشورہ (کام کریں؟) یا Claude کا تیار کام (لائیو کریں؟) */
 function holdBox(i) {
@@ -1114,13 +1097,21 @@ function softRender() {
   if (R.v === 'new' || (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))) { clearTimeout(rT); rT = setTimeout(softRender, 1500); return; }
   const y = window.scrollY; render(); window.scrollTo(0, y);
 }
+// HD0311TU034 (مالک کا حکم): لکھے بغیر نہ اسکرین شاٹ نہ آواز — پہلے اوپر والے خانے میں مسئلہ
+function needText() {
+  if (F && F.text.trim().length >= 3) return false;
+  const e = $('#eText'); if (e) e.classList.add('on');
+  const t = $('#fText'); if (t) { t.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => t.focus(), 300); t.classList.add('need'); setTimeout(() => t.classList.remove('need'), 1600); }
+  toast('✍️ ' + T('errText'), 5000);
+  return true;
+}
 function bindForm() {
   const fi = $('#fileIn'); fi.onchange = () => { addShots([...fi.files]); fi.value = ''; };
   const ci = $('#camIn'); ci.onchange = () => { addShots([...ci.files]); ci.value = ''; };
   const d = $('#drop');
   d.ondragover = e => { e.preventDefault(); d.classList.add('over'); };
   d.ondragleave = () => d.classList.remove('over');
-  d.ondrop = e => { e.preventDefault(); d.classList.remove('over'); addShots([...e.dataTransfer.files]); };
+  d.ondrop = e => { e.preventDefault(); d.classList.remove('over'); if (needText()) return; addShots([...e.dataTransfer.files]); };
 }
 
 /* ---------- واقعات ---------- */
@@ -1173,12 +1164,12 @@ document.addEventListener('click', async e => {
     case 'type': F.type = id; document.querySelectorAll('.ty').forEach(b => b.classList.toggle('on', b.dataset.id === id)); break;
     case 'pasteText': { const s = await clipText(); if (s) { F.text = (F.text ? F.text + '\n' : '') + s; $('#fText').value = F.text; $('#cnt').textContent = F.text.length; toast('📋 ' + T('pasted')); } break; }
     case 'speak': toggleSpeak(); break;
-    case 'gallery': $('#fileIn').click(); break;
-    case 'camera': $('#camIn').click(); break;
+    case 'gallery': if (needText()) break; $('#fileIn').click(); break;
+    case 'camera': if (needText()) break; $('#camIn').click(); break;
     case 'embedClose': try { parent.postMessage({ pbthd: 'close' }, '*'); } catch (_) {} break;
-    case 'pasteImg': { const b = await clipImages(); if (b.length) { await addShots(b.map(x => new File([x], 'p.png', { type: x.type }))); toast('📋 ' + T('pasted')); } break; }
+    case 'pasteImg': { if (needText()) break; const b = await clipImages(); if (b.length) { await addShots(b.map(x => new File([x], 'p.png', { type: x.type }))); toast('📋 ' + T('pasted')); } break; }
     case 'rmShot': F.shots.splice(+id, 1); $('#shots').innerHTML = shotsHTML(); break;
-    case 'rec': toggleRec(); break;
+    case 'rec': if (!REC.on && needText()) break; toggleRec(); break;
     case 'rmAudio': F.audio = null; F.audioMs = 0; $('#recBox').innerHTML = recHTML(); break;
     case 'pastePhone': { const s = await clipText(); if (s) { F.phone = normPhone(s); document.querySelector('[data-in=phone]').value = F.phone; } break; }
     case 'send': send(); break;
@@ -1245,7 +1236,7 @@ document.addEventListener('click', async e => {
     }
     case 'pub': await Store.update(DET.id, { pub: t.checked }); break;
     // ✏️ HD0311TU032 (مالک کا حکم): گاہک کا نامکمل پیغام مالک خود مکمل / درست کرے (آواز سن کر)؛ اصل پیغام `origText` میں محفوظ
-    case 'editText': { const b = $('#edTextBox'); if (b) { b.style.display = b.style.display === 'none' ? 'block' : 'none'; const ta = $('#edText'); if (ta && b.style.display === 'block') { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } } break; }
+    case 'editText': { try{ e.preventDefault(); }catch(_){} const b = $('#edTextBox'); if (b) { b.style.display = b.style.display === 'none' ? 'block' : 'none'; const ta = $('#edText'); if (ta && b.style.display === 'block') { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } } break; }
     case 'pasteEdText': try { const t = await navigator.clipboard.readText(); const ta = $('#edText'); if (ta && t) ta.value = (ta.value.trim() ? ta.value.trimEnd() + '\n' : '') + t; } catch (_) { toast('⚠️'); } break;
     case 'saveEdText': {
       const i = ISSUES.find(x => x.id === DET.id); const v = ($('#edText').value || '').trim(); if (!i) break;
@@ -1285,7 +1276,7 @@ document.addEventListener('keydown', e => {
 document.addEventListener('paste', e => {
   if (R.v !== 'new' || !F) return;
   const files = [...(e.clipboardData && e.clipboardData.files || [])].filter(f => /^image\//.test(f.type));
-  if (files.length) { e.preventDefault(); addShots(files); toast('🖼️ ' + T('pasted')); }
+  if (files.length) { e.preventDefault(); if (needText()) return; addShots(files); toast('🖼️ ' + T('pasted')); }
 });
 function showImg(src) { $('#vimg').src = src; $('#viewer').classList.add('on'); }
 $('#viewer').addEventListener('click', () => $('#viewer').classList.remove('on'));
