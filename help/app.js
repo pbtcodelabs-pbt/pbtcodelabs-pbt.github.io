@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0311TU024';
-const UPDATE_NOTE = 'Developer: the ⚡ Urgent switch is hidden on solved requests';
+const APP_VERSION = 'HD0311TU025';
+const UPDATE_NOTE = 'Fixed: progress steps on the thanks page looked like big green circles';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -328,7 +328,7 @@ function custProgress(i) {
   return `<div class="cProg ${done ? 'fin' : ''}">
     <div class="cpHead"><b>${head[0]} ${head[1]}</b><span class="num">${cur[1]}%</span></div>
     <div class="cpBar"><i style="width:${cur[1]}%"></i></div>
-    <div class="cpDots">${CSTEPS.map((x, j) => `<span class="${j < k || done ? 'ok' : j === k ? 'now' : ''}" title="${E ? x[4] : x[3]}">${j < k || done ? '✓' : x[2]}</span>`).join('')}</div>
+    <div class="cpDots">${CSTEPS.map((x, j) => `<span class="${j < k || done ? 'stOk' : j === k ? 'now' : ''}" title="${E ? x[4] : x[3]}">${j < k || done ? '✓' : x[2]}</span>`).join('')}</div>
     ${!done && k + 1 < CSTEPS.length ? `<div class="cpNext">${E ? 'Next' : 'اگلا مرحلہ'}: ${CSTEPS[k + 1][2]} ${E ? CSTEPS[k + 1][4] : CSTEPS[k + 1][3]}</div>` : ''}</div>`;
 }
 
@@ -730,7 +730,7 @@ function urgProgress(i, mini) {
     <div class="upHead"><b>${cur[2]} ${E ? cur[4] : cur[3]}</b><span class="num">${pct}%</span></div>
     <div class="upBar"><i style="width:${pct}%"></i></div>
     <div class="upLeft">${done ? (E ? '🎉 All done' : '🎉 کام مکمل') : `${E ? 'Remaining' : 'باقی'} <b class="num">${100 - pct}%</b>${nx ? ` · ${E ? 'next' : 'اگلا قدم'}: ${nx[2]} ${E ? nx[4] : nx[3]}` : ''}`}</div>
-    <ol class="upSteps">${STAGES.map((x, j) => `<li class="${j < k || done ? 'ok' : j === k ? 'now' : ''}"><span class="d">${j < k || done ? '✓' : x[2]}</span><span class="t">${E ? x[4] : x[3]}</span></li>`).join('')}</ol>
+    <ol class="upSteps">${STAGES.map((x, j) => `<li class="${j < k || done ? 'stOk' : j === k ? 'now' : ''}"><span class="d">${j < k || done ? '✓' : x[2]}</span><span class="t">${E ? x[4] : x[3]}</span></li>`).join('')}</ol>
     ${i.stageAt ? `<div class="upWhen">🕒 ${ago(i.stageAt)}</div>` : ''}</div>`;
 }
 function urgHome() {
