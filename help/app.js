@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0311TU025';
-const UPDATE_NOTE = 'Fixed: progress steps on the thanks page looked like big green circles';
+const APP_VERSION = 'HD0311TU026';
+const UPDATE_NOTE = 'Developer home: «Requests suggested by PBT Code Labs» always shown — In progress / Solved lists open on tap';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -291,7 +291,8 @@ function vHome() {
     ${own ? `<div class="st r"><span class="v">${ISSUES.filter(i => i.status === 'new').length}</span><span class="l">📥 ${LANG === 'en' ? 'New, unseen' : 'نئے، ان دیکھے'}</span></div>`
       : `<div class="st b"><span class="v" style="font-size:19px">${avgReply()}</span><span class="l">⏱️ ${T('avgReply')}</span></div>`}
   </div>`}
-  ${mine ? `<button class="mineBtn" data-act="mine"><span class="i">📋</span><span class="t"><b>${T('mine')} <span class="num">(${mine})</span></b><small>${T('mineSub')}</small></span>${un ? `<span class="dot">${un}</span>` : ''}<span>${LANG === 'en' ? '›' : '‹'}</span></button>` : ''}
+  ${own ? ownMineCard() : ''}
+  ${mine && !own ? `<button class="mineBtn" data-act="mine"><span class="i">📋</span><span class="t"><b>${T('mine')} <span class="num">(${mine})</span></b><small>${T('mineSub')}</small></span>${un ? `<span class="dot">${un}</span>` : ''}<span>${LANG === 'en' ? '›' : '‹'}</span></button>` : ''}
   ${own ? urgHome() : ''}
   ${own ? rankBtns() : ''}
   <div class="secT">📱 ${T('chooseApp')} <small>— ${T('chooseAppSub')}</small></div>
@@ -381,7 +382,22 @@ function vApp() {
 }
 
 /* ---------- میرے مسائل / ایک مسئلہ ---------- */
+/* HD0311TU026 (مالک کا حکم): مالک کے ہوم پر «پی بی ٹی کوڈ لیبز کے تجویز کردہ مسائل» ہمیشہ — دو بٹن، فہرست صرف دبانے پر */
+const ownList = () => ISSUES.filter(i => isOwnIssue(i) && i.status !== 'dup');
+function ownMineCard() {
+  const L = ownList(), E = LANG === 'en';
+  const wk = L.filter(i => i.status !== 'done').length, dn = L.filter(i => i.status === 'done').length;
+  return `<div class="card ownMine"><div class="omH"><span class="i">📋</span><b>${E ? 'Requests suggested by PBT Code Labs' : 'پی بی ٹی کوڈ لیبز کے تجویز کردہ مسائل'}</b></div>
+    <div class="omB"><button class="omW" data-act="ownMine" data-id="work">🔧 ${E ? 'In progress' : 'کام جاری'} <span class="num">${wk}</span></button>
+    <button class="omD" data-act="ownMine" data-id="done">✅ ${E ? 'Solved' : 'حل شدہ'} <span class="num">${dn}</span></button></div></div>`;
+}
 function vMine() {
+  if (Store.isOwner() && (R.a === 'work' || R.a === 'done')) {
+    const E = LANG === 'en', done = R.a === 'done';
+    const l = ownList().filter(i => done ? i.status === 'done' : i.status !== 'done').sort((a, b) => (b.doneAt || b.upd || 0) - (a.doneAt || a.upd || 0));
+    return `<div class="secT top">${done ? '✅ ' + (E ? 'Solved' : 'حل شدہ') : '🔧 ' + (E ? 'In progress' : 'کام جاری')} — ${E ? 'PBT Code Labs requests' : 'پی بی ٹی کوڈ لیبز کے تجویز کردہ مسائل'} <span class="num">(${l.length})</span></div>` +
+      (l.length ? l.map(i => issueCard(i, { mine: true, showApp: true, full: true })).join('') : `<div class="card empty"><span class="e">📭</span>${E ? 'Nothing here' : 'یہاں کچھ نہیں'}</div>`) + foot();
+  }
   const l = myList();
   setTimeout(markMineSeen, 2500);
   return `<div class="secT top">📋 ${T('mine')}</div>` +
@@ -1135,6 +1151,7 @@ document.addEventListener('click', async e => {
     case 'oapp': O.app = id; O.tab = ISSUES.some(i => i.app === id && i.status === 'new') ? 'new' : 'open'; go('#/owner'); break;
     case 'app': appTab = 'open'; appQ = ''; go('#/app/' + encodeURIComponent(id)); break;
     case 'mine': go('#/mine'); break;
+    case 'ownMine': go('#/mine/' + id); break;
     case 'new': go('#/new/' + encodeURIComponent(id)); break;
     case 'atab': appTab = id; render(); break;
     case 'expand': t.classList.toggle('clamp'); break;
