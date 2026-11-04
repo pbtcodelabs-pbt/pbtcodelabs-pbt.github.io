@@ -254,7 +254,7 @@ def cmd_notify(tok, force=False):
         print('🔔 بتانے کو کچھ نہیں', c); return
     body = f"🔴 {c['nw']} نئے · 🔵 {c['wk']} پر کام جاری · ⏳ {c['appr']} منظوری کے منتظر"
     if c['nw'] == 0 and c['appr'] == 0: body = f"✅ کوئی نیا نہیں · 🔵 {c['wk']} پر کام جاری"
-    payload = {'title': '🆘 PBT Help Desk', 'body': body, 'count': c['nw'] + c['appr'], 'url': './#/owner'}
+    payload = {'title': '❓ PBT Help Desk', 'body': body, 'count': c['nw'] + c['appr'], 'url': './#/owner'}
     keep, sent = [], 0
     for s_ in subs:
         code = wp_send(s_, P, payload)

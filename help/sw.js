@@ -1,5 +1,5 @@
 // PBT Help Desk — صرف اپنا کیش (pbt-helpdesk-) چھیڑتا ہے، اسی ویب سائٹ کی دوسری ایپس کا نہیں
-const CACHE_NAME = 'pbt-helpdesk-HD0511TH042';
+const CACHE_NAME = 'pbt-helpdesk-HD0511TH043';
 const FILES = ['./', './index.html', './app.js', './store.js', './cloud-config.js', './upd.js', './widget.js', './manifest.json', './icons/icon-192.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(FILES)).catch(() => {}));
@@ -21,7 +21,7 @@ self.addEventListener('fetch', e => {
 // 🔔 HD0211MO016: مالک کی اطلاع (hd.py notify سے Web Push) — ایپ بند ہو تب بھی؛ آئیکن پر نمبر
 self.addEventListener('push', e => {
   let d = {}; try { d = e.data ? e.data.json() : {}; } catch (x) { d = { body: e.data && e.data.text() }; }
-  const jobs = [self.registration.showNotification(d.title || '🆘 PBT Help Desk', {
+  const jobs = [self.registration.showNotification(d.title || '❓ PBT Help Desk', {
     body: d.body || '', tag: 'pbthd', renotify: true, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', data: { url: d.url || './#/owner' }
   })];
   if (self.navigator && self.navigator.setAppBadge && d.count != null) jobs.push((d.count ? self.navigator.setAppBadge(d.count) : self.navigator.clearAppBadge()).catch(() => {}));
