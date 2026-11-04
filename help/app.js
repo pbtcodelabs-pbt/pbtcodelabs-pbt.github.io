@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0511TH047';
-const UPDATE_NOTE = 'Yellow Help Desk button even before loading; owner issue opens Claude at once';
+const APP_VERSION = 'HD0411WE048';
+const UPDATE_NOTE = 'AIO POS intro videos (Urdu + English)';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -235,8 +235,11 @@ function foot() {
 /* 🎬 تعارفی ویڈیوز — چلائیں، فون میں محفوظ (گیلری)، یا سیدھا شیئر (واٹس ایپ اسٹیٹس وغیرہ) */
 const VIDEOS = [
   { id: 'tariqa', file: 'media/pbt-help-desk-tariqa.mp4', poster: 'media/tariqa.jpg', ur: 'مسئلہ کیسے بتائیں؟ — مکمل طریقہ', en: 'How to report a problem — step by step', dur: '0:55' },
-  { id: 'sos', file: 'media/pbt-help-desk-sos.mp4', poster: 'media/sos.jpg', ur: 'ہر ایپ میں Help Desk — تعارف', en: 'Help Desk in every app — introduction', dur: '0:38' }
+  { id: 'sos', file: 'media/pbt-help-desk-sos.mp4', poster: 'media/sos.jpg', ur: 'ہر ایپ میں Help Desk — تعارف', en: 'Help Desk in every app — introduction', dur: '0:38' },
+  { id: 'aio-ur', file: 'media/aio-pos-ur.mp4', poster: 'media/aio-ur.jpg', ur: 'AIO POS — تعارف (اردو)', en: 'AIO POS — introduction (Urdu)', dur: '0:39', dl: 'AIO-POS-Urdu', share: 'AIO POS — آپ کی دکان کا مکمل سافٹ ویئر 🧾📱' },
+  { id: 'aio-en', file: 'media/aio-pos-en.mp4', poster: 'media/aio-en.jpg', ur: 'AIO POS — تعارف (انگلش)', en: 'AIO POS — introduction (English)', dur: '0:39', dl: 'AIO-POS-English', share: 'AIO POS — all-in-one software for your shop 🧾📱' }
 ];
+const vName = v => (v.dl || 'PBT-Help-Desk-' + v.id) + '.mp4';
 const POST_TEXT = "❓ *نئی سہولت — PBT Help Desk*\n\nالسلام علیکم! 🌹\nاب آپ کو کوئی مسئلہ بتانے کے لیے واٹس ایپ یا کسی اور ذریعے کی ضرورت نہیں۔\n\n📱 ہماری ہر ایپ کے اندر اب ایک پیلا *Help Desk* بٹن ہے۔\nایپ میں کوئی بھی مسئلہ نظر آئے تو:\n1️⃣ *Help Desk* دبائیں\n2️⃣ اپنا مسئلہ لکھیں، اسکرین شاٹ لگائیں یا آواز ریکارڈ کریں — کسی بھی زبان میں\n3️⃣ بھیج دیں ✅\n\n🔔 پھر ہر قدم کی خبر آپ کو ایپ ہی میں ملتی رہے گی:\n📥 موصول ← 👀 دیکھ لیا ← 🔧 کام جاری ← ✅ حل ہو گیا\n\n🗂️ آپ کا ہر مسئلہ ریکارڈ میں محفوظ رہے گا، اور بہترین طریقے سے جلد حل ہوگا۔\n💡 اگر کوئی اور بھی یہی مسئلہ بتا چکا ہو تو بس «👋 میرا بھی یہی مسئلہ ہے» دبا دیں۔\n\n🔗 https://pbtcodelabs-pbt.github.io/help/\n\n*PBT Code Labs* — آپ کی رائے سے ہماری ایپس بہتر ہوتی ہیں\n📞 0320-6793793";
 function videosHTML() {
   const E = LANG === 'en';
@@ -245,7 +248,7 @@ function videosHTML() {
     <button class="vth" data-act="vplay" data-id="${v.id}"><img src="${v.poster}" alt="" loading="lazy"><span class="vpl">▶</span><span class="vdur num">${v.dur}</span></button>
     <b class="vt">${esc(E ? v.en : v.ur)}</b>
     <div class="tools"><button class="tb pri" data-act="vplay" data-id="${v.id}">▶️ ${E ? 'Play' : 'چلائیں'}</button>
-      <a class="tb" href="${v.file}" download="PBT-Help-Desk-${v.id}.mp4">⬇️ ${E ? 'Download' : 'ڈاؤن لوڈ'}</a>
+      <a class="tb" href="${v.file}" download="${vName(v)}">⬇️ ${E ? 'Download' : 'ڈاؤن لوڈ'}</a>
       <button class="tb grn" data-act="vshare" data-id="${v.id}">📤 ${E ? 'Share' : 'شیئر'}</button></div></div>`).join('')}</div>
   <button class="tb" style="margin:2px 0 6px" data-act="copyPost">📋 ${E ? 'Copy the post message' : 'ساتھ والا پیغام کاپی کریں'}</button>`;
 }
@@ -255,10 +258,10 @@ async function shareVideo(id) {
   busy(true, E ? 'Preparing video…' : 'ویڈیو تیار ہو رہی ہے…');
   try {
     const blob = await (await fetch(v.file)).blob();
-    const file = new File([blob], 'PBT-Help-Desk-' + id + '.mp4', { type: 'video/mp4' });
+    const file = new File([blob], vName(v), { type: 'video/mp4' });
     busy(false);
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({ files: [file], text: 'PBT Help Desk — ' + (E ? 'Help Desk in every app' : 'ہر ایپ میں Help Desk') + ' ❓\nhttps://pbtcodelabs-pbt.github.io/help/' });
+      await navigator.share({ files: [file], text: v.share ? v.share + '\nPBT Code Labs · +92 320-6793793' : 'PBT Help Desk — ' + (E ? 'Help Desk in every app' : 'ہر ایپ میں Help Desk') + ' ❓\nhttps://pbtcodelabs-pbt.github.io/help/' });
     } else {
       const a = document.createElement('a'); a.href = v.file; a.download = file.name; document.body.appendChild(a); a.click(); a.remove();
       toast(E ? 'Sharing not supported here — video downloaded' : 'یہاں سیدھا شیئر نہیں ہو سکتا — ویڈیو ڈاؤن لوڈ ہو گئی', 4000);
@@ -270,7 +273,7 @@ function playVideo(id) {
   const E = LANG === 'en';
   sheet(`<h2>🎬 ${esc(E ? v.en : v.ur)}<button class="x" data-act="close">✕</button></h2>
     <video src="${v.file}" poster="${v.poster}" controls autoplay playsinline style="width:100%;max-height:70vh;border-radius:14px;background:#000"></video>
-    <div class="tools" style="justify-content:center"><a class="tb" href="${v.file}" download="PBT-Help-Desk-${v.id}.mp4">⬇️ ${E ? 'Download' : 'ڈاؤن لوڈ'}</a>
+    <div class="tools" style="justify-content:center"><a class="tb" href="${v.file}" download="${vName(v)}">⬇️ ${E ? 'Download' : 'ڈاؤن لوڈ'}</a>
       <button class="tb grn" data-act="vshare" data-id="${v.id}">📤 ${E ? 'Share (WhatsApp status…)' : 'شیئر (واٹس ایپ اسٹیٹس…)'}</button></div>`);
 }
 function vHome() {
