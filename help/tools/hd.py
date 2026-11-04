@@ -116,6 +116,8 @@ def cmd_list(tok, everything, urgent_only=False):
         if not everything and i.get('status') not in ('new', 'seen', 'work') and i.get('hold') not in ('go', 'merge'):
             continue
         own = i.get('uid') == OWNER_UID
+        if not everything and i.get('hold') in ('later', 'info'):   # HD0511TH046: مالک نے ایک طرف رکھا / گاہک سے تفصیل کا انتظار — کام نہیں
+            continue
         if urgent_only and not (i.get('urgent') or own):
             continue
         print(json.dumps({k: i.get(k) for k in ('no', 'id', 'app', 'type', 'status', 'hold', 'ver', 'lang', 'shots', 'audio', 'pr', 'urgent', 'stage')}
