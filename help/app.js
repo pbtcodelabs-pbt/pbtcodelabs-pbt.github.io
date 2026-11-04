@@ -235,8 +235,8 @@ function foot() {
 /* 🎬 تعارفی ویڈیوز — چلائیں، فون میں محفوظ (گیلری)، یا سیدھا شیئر (واٹس ایپ اسٹیٹس وغیرہ) */
 const VIDEOS = [
   { id: 'helpdesk', file: 'media/pbt-help-desk.mp4', poster: 'media/helpdesk.jpg', ur: 'Help Desk — مسئلہ کیسے بتائیں؟ مکمل طریقہ', en: 'Help Desk — how to report a problem', dur: '1:06', dl: 'PBT-Help-Desk' },
-  { id: 'aio-ur', file: 'media/aio-pos-ur.mp4', poster: 'media/aio-ur.jpg', ur: 'AIO POS — تعارف (اردو)', en: 'AIO POS — introduction (Urdu)', dur: '0:39', dl: 'AIO-POS-Urdu', share: 'AIO POS — آپ کی دکان کا مکمل سافٹ ویئر 🧾📱' },
-  { id: 'aio-en', file: 'media/aio-pos-en.mp4', poster: 'media/aio-en.jpg', ur: 'AIO POS — تعارف (انگلش)', en: 'AIO POS — introduction (English)', dur: '0:39', dl: 'AIO-POS-English', share: 'AIO POS — all-in-one software for your shop 🧾📱' }
+  { id: 'aio-ur', file: 'media/aio-pos-ur.mp4', poster: 'media/aio-ur.jpg', ur: 'AIO POS — تعارف (اردو)', en: 'AIO POS — introduction (Urdu)', dur: '0:42', dl: 'AIO-POS-Urdu', share: 'AIO POS — آپ کی دکان کا مکمل سافٹ ویئر 🧾📱\nGoogle Play: https://play.google.com/store/apps/details?id=com.pbtcodelabs.aiopos' },
+  { id: 'aio-en', file: 'media/aio-pos-en.mp4', poster: 'media/aio-en.jpg', ur: 'AIO POS — تعارف (انگلش)', en: 'AIO POS — introduction (English)', dur: '0:42', dl: 'AIO-POS-English', share: 'AIO POS — all-in-one software for your shop 🧾📱\nGoogle Play: https://play.google.com/store/apps/details?id=com.pbtcodelabs.aiopos' }
 ];
 const vName = v => (v.dl || 'PBT-Help-Desk-' + v.id) + '.mp4';
 const POST_TEXT = "❓ *نئی سہولت — PBT Help Desk*\n\nالسلام علیکم! 🌹\nاب آپ کو کوئی مسئلہ بتانے کے لیے واٹس ایپ یا کسی اور ذریعے کی ضرورت نہیں۔\n\n📱 ہماری ہر ایپ کے اندر اب ایک پیلا *Help Desk* بٹن ہے۔\nایپ میں کوئی بھی مسئلہ نظر آئے تو:\n1️⃣ *Help Desk* دبائیں\n2️⃣ اپنا مسئلہ اردو یا انگلش میں *لکھیں* (لکھنا ضروری ہے) — اسکرین شاٹ لگائیں تو اور اچھا، آواز اختیاری\n3️⃣ بھیج دیں ✅\n\n🔔 پھر ہر قدم کی خبر آپ کو ایپ ہی میں ملتی رہے گی:\n📥 موصول ← 👀 دیکھ لیا ← 🔧 کام جاری ← ✅ حل ہو گیا\n\n🗂️ آپ کا ہر مسئلہ ریکارڈ میں محفوظ رہے گا، اور بہترین طریقے سے جلد حل ہوگا۔\n💡 اگر کوئی اور بھی یہی مسئلہ بتا چکا ہو تو بس «👋 میرا بھی یہی مسئلہ ہے» دبا دیں۔\n\n🔗 https://pbtcodelabs-pbt.github.io/help/\n\n*PBT Code Labs* — آپ کی رائے سے ہماری ایپس بہتر ہوتی ہیں\n📞 0320-6793793";
@@ -260,7 +260,7 @@ async function shareVideo(id) {
     const file = new File([blob], vName(v), { type: 'video/mp4' });
     busy(false);
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({ files: [file], text: v.share ? v.share + '\nPBT Code Labs · +92 320-6793793' : 'PBT Help Desk — ' + (E ? 'Help Desk in every app' : 'ہر ایپ میں Help Desk') + ' ❓\nhttps://pbtcodelabs-pbt.github.io/help/' });
+      await navigator.share({ files: [file], text: v.share ? v.share + '\nPBT Code Labs' : 'PBT Help Desk — ' + (E ? 'Help Desk in every app' : 'ہر ایپ میں Help Desk') + ' ❓\nhttps://pbtcodelabs-pbt.github.io/help/' });
     } else {
       const a = document.createElement('a'); a.href = v.file; a.download = file.name; document.body.appendChild(a); a.click(); a.remove();
       toast(E ? 'Sharing not supported here — video downloaded' : 'یہاں سیدھا شیئر نہیں ہو سکتا — ویڈیو ڈاؤن لوڈ ہو گئی', 4000);
