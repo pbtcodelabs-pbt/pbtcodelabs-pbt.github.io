@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0411WE037';
-const UPDATE_NOTE = 'Up to 10 screenshots; writing box grows with text; 👁️ preview; languages in Urdu + English';
+const APP_VERSION = 'HD0411WE038';
+const UPDATE_NOTE = 'Account sign-in requests from apps: message comes ready-filled; panel shows 🔑 with copy button';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -418,7 +418,7 @@ let F = null;
 function newForm(app) {
   const me = ls.get('me', {});
   const P = new URLSearchParams(location.search);
-  F = { app, type: 'bug', text: '', shots: [], audio: null, audioMs: 0, name: me.name || P.get('name') || '', phone: me.phone || normPhone(P.get('phone') || ''), ver: P.get('v') || '', remember: true };
+  F = { app, type: ['bug', 'idea', 'ask'].includes(P.get('type')) ? P.get('type') : 'bug', text: P.get('text') || '', shots: [], audio: null, audioMs: 0, name: me.name || P.get('name') || '', phone: me.phone || normPhone(P.get('phone') || ''), ver: P.get('v') || '', remember: true };
 }
 function vForm() {
   if (!F || F.app !== appOf(R.a).id) newForm(appOf(R.a).id);
@@ -848,6 +848,8 @@ async function openDetail(id) {
   DET.blobs = await Store.blobs(id);
   if (DET && DET.id === id) sheet(detailHTML(), true);
 }
+/* HD0411WE038: ایپ سے «Send account details to developer» — UID، Name، Mobile no.، Gmail */
+const isAcctReq = t => /(^|\n)\s*UID\s*:/i.test(t || '') && /(^|\n)\s*(Gmail|Mobile)/i.test(t || '');
 function detailHTML() {
   // HD0311TU034 (مالک کا حکم): ایک صفحے پر — اوپر 🗑️ حذف اور ✕؛ چھوٹی تصویریں؛ عام فہرست / Claude «➕ مزید» میں بند
   const i = ISSUES.find(x => x.id === DET.id); if (!i) return '<div class="empty">—</div>';
@@ -859,6 +861,7 @@ function detailHTML() {
     <div class="dcRow">${tyChip(i.type)}${stChip(i.status)}${n ? `<span class="chip work">👋 ${n + 1}</span>` : ''}
       <span class="dcMeta">👤 <b>${esc(i.name)}</b> · <a class="num" href="tel:${esc(i.phone)}">${esc(i.phone)}</a> · <a href="https://wa.me/${waNum(i.phone)}" target="_blank" rel="noopener">💬</a> · <span class="num">${fullDate(i.created)}</span>${i.ver ? ' · <span class="num">' + esc(i.ver) + '</span>' : ''}</span></div>
     ${holdBox(i)}
+    ${isAcctReq(i.text) ? `<div class="acctReq">🔑 <b>${E ? 'Account sign-in request' : 'اکاؤنٹ سائن اِن کی درخواست'}</b><br>${E ? 'Copy the details → app Developer panel → 👤 Account Subscriptions → paste → choose package → Give.' : 'تفصیل کاپی کریں ← ایپ کا ڈویلپر پینل ← 👤 Account Subscriptions ← پیسٹ (خانے خود بھریں گے) ← پیکج اور مدت چنیں ← Give۔ اکاؤنٹ کھولنے کا انتظام کریں / لاگ اِن میں مدد دیں۔'}<button class="tb pri" data-act="copyAcct">📋 ${E ? 'Copy details' : 'تفصیل کاپی کریں'}</button></div>` : ''}
     <div class="tx dcTx" dir="auto">${phoneLinks(i.text) || '<i style="color:var(--mut)">—</i>'}</div>
     <div class="dcSub">${i.textEd ? `✏️ ${E ? 'Edited' : 'مکمل کیا'} · <span class="num">${fullDate(i.textEd)}</span>${i.origText != null ? ` · <a href="#" data-act="showOrig">${E ? 'original' : 'اصل پیغام'}</a>` : ''} · ` : ''}<a href="#" data-act="editText">✏️ ${E ? 'Complete / edit message' : 'پیغام مکمل / درست کریں'}</a></div>
     <div id="edTextBox" style="display:none">
@@ -1177,6 +1180,7 @@ document.addEventListener('click', async e => {
     case 'withdraw': if (confirm(T('delMineQ'))) await Store.remove(id); break;
     case 'type': F.type = id; document.querySelectorAll('.ty').forEach(b => b.classList.toggle('on', b.dataset.id === id)); break;
     case 'pvText': pvTextSheet(); break;
+    case 'copyAcct': { const i = ISSUES.find(x => x.id === DET.id); try { await navigator.clipboard.writeText(i.text || ''); toast('📋 ✅'); } catch (_) { toast('⚠️'); } break; }
     case 'pvEdit': { closeSheet(); const t = $('#fText'); if (t) { t.scrollIntoView({ block: 'center' }); setTimeout(() => { t.focus(); t.setSelectionRange(t.value.length, t.value.length); fitText(t); }, 200); } break; }
     case 'pasteText': { const s = await clipText(); if (s) { F.text = (F.text ? F.text + '\n' : '') + s; $('#fText').value = F.text; fitText($('#fText')); $('#cnt').textContent = F.text.length; toast('📋 ' + T('pasted')); } break; }
     case 'speak': toggleSpeak(); break;
