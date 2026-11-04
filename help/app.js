@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0511TH044';
-const UPDATE_NOTE = 'Account request: one tap «Done» closes it; Claude copy inside each issue (once); no ⚡ bar on finished work';
+const APP_VERSION = 'HD0511TH045';
+const UPDATE_NOTE = 'Claude button only on new issues; finished issues leave the lists';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -817,8 +817,16 @@ function urgSheet(i) {
     <p style="font-size:13px;color:var(--mut);margin:8px 0 0">${E ? 'Not sent now? It will still be done first in the next round (11 AM / 8:30 PM).' : 'ابھی نہ بھیجیں تو بھی اگلی باری (صبح 11 / رات ساڑھے 8 بجے) میں سب سے پہلے یہی ہوگا۔'}</p>`);
 }
 const pushOn = () => { try { return window.Notification && Notification.permission === 'granted' && localStorage.getItem('pbthd_push') === '1'; } catch (e) { return false; } };
-const isUrg = i => !!i.urgent && i.status !== 'dup' && !(i.status === 'done' && Date.now() - (i.doneAt || 0) > 864e5); // حل ہونے کے بعد ایک دن تک ✅ دکھے
-function tabOk(i, t) { return t === 'all' || t === 'urg' ? (t === 'all' || isUrg(i)) : (t === 'open' ? (isOpen(i) || isHeld(i)) : t === 'hold' ? isHeld(i) : t === 'send' ? needsSend(i) : i.status === t); }
+const isUrg = i => !!i.urgent && i.status !== 'dup' && i.status !== 'done' && i.stage !== 'done'; // HD0511TH045 (مالک کا حکم): مکمل ہوتے ہی ⚡ فہرست سے غائب — دیکھنا ہو تو «✅ حل» ٹیب
+function tabOk(i, t) {
+  // HD0511TH045 (مالک کا حکم): مکمل (✅ / stage done) اور ڈپلیکیٹ لمبی فہرستوں میں نہیں — صرف «✅ حل» / «🔗» / «📨 بھیجنا باقی» ٹیب میں
+  const fin = i.status === 'done' || i.status === 'dup' || i.stage === 'done';
+  if (t === 'done') return i.status === 'done' || (i.stage === 'done' && i.status !== 'dup');
+  if (t === 'dup') return i.status === 'dup';
+  if (t === 'send') return needsSend(i);
+  if (fin) return false;
+  return t === 'all' ? true : t === 'urg' ? isUrg(i) : t === 'open' ? (isOpen(i) || isHeld(i)) : t === 'hold' ? isHeld(i) : i.status === t;
+}
 const bulkTodo = i => i.status !== 'done' && i.status !== 'dup' && i.stage !== 'done';
 function ownFiltered() {
   const q = O.q.trim().toLowerCase();
@@ -896,7 +904,7 @@ function detailHTML() {
     </div>
     ${DET.blobs == null && (i.shots || i.audio) ? '<div class="spin" style="margin:6px auto;width:24px;height:24px"></div>' : ''}
     ${shots.length || au ? `<div class="dcMedia">${shots.map(b => `<img src="${b.data}" data-viewsrc="1" alt="">`).join('')}${au ? `<audio controls src="${au.data}"></audio>` : ''}</div>` : ''}
-    ${bulkTodo(i) && !i.cAt && !isAcctReq(i.text) ? `<button class="bigBtn cMain" data-act="cMain">🤖 ${E ? 'Copy for Claude (text + image)' : 'Claude کے لیے کاپی کریں (متن + تصویر)'}</button>` : ''}
+    ${bulkTodo(i) && !i.cAt && !i.urgent && !i.stage && !isAcctReq(i.text) ? `<button class="bigBtn cMain" data-act="cMain">🤖 ${E ? 'Copy for Claude (text + image)' : 'Claude کے لیے کاپی کریں (متن + تصویر)'}</button>` : ''}
     ${urgSwitch(i)}
     <div class="stBtns">${['new', 'seen', 'work', 'done'].map(s => `<button class="${s} ${i.status === s ? 'on' : ''}" data-act="setSt" data-id="${s}">${ST_IC[s]} ${T('s_' + s)}</button>`).join('')}</div>
     <textarea class="big dcReply" id="rText" dir="auto" placeholder="${E ? 'Reply to customer — write or paste…' : 'گاہک کو جواب — لکھیں یا پیسٹ کریں…'}">${esc(i.reply || '')}</textarea>
@@ -1179,7 +1187,7 @@ document.addEventListener('click', async e => {
       try { await Store.update(i.id, { urgent: on, stage: i.stage, stageAt: i.stageAt }); } catch (e) { i.urgent = !on; toast('⚠️ ' + (e.message || e), 4000); break; }
       if (on) setTimeout(() => urgSheet(i), 1100); else toast(LANG === 'en' ? '⏸️ Urgent off — it will be done in the next round (11 AM / 8:30 PM)' : '⏸️ فوری بند — اب یہ اگلی باری (صبح 11 / رات ساڑھے 8 بجے) میں ہوگا', 4000);
       break; }
-    case 'urgTell': { const i = ISSUES.find(x => x.id === id); if (!i) break;
+    case 'urgTell': { const i = ISSUES.find(x => x.id === id); if (!i) break; if (!i.cAt) Store.update(i.id, { cAt: Date.now() }).catch(() => {});
       const msg = urgMsg(i);
       try { await navigator.clipboard.writeText(msg); } catch (e) {}
       if (urgStage(i) === 'sent') { try { await Store.update(i.id, { stage: 'claude', stageAt: Date.now() }); } catch (e) {} }
