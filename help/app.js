@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0511TH045';
-const UPDATE_NOTE = 'Claude button only on new issues; finished issues leave the lists';
+const APP_VERSION = 'HD0511TH046';
+const UPDATE_NOTE = 'Owner issues start by themselves; customer issues: urgent / later / ask for details';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -599,6 +599,8 @@ async function send() {
     if (F.audio) blobs.push({ kind: 'audio', data: F.audio });
     const r = await Store.add({ app: F.app, type: F.type, text: F.text.trim(), name: F.name.trim(), phone: P, ver: F.ver.trim(), dev: DEV, shots: F.shots.length, audio: !!F.audio, lang: LANG, hold: F.type === 'idea' ? 'decide' : '' }, blobs);
     rememberMine(r.id, 'new|0');
+    // HD0511TH046 (مالک کا حکم): مالک / ڈویلپر کا اپنا مسئلہ خود قطار میں — کوئی ⚡ بٹن یا کاپی پیسٹ نہیں، پیش رفت فوراً
+    if (Store.isOwner()) { try { await Store.update(r.id, { urgent: true, stage: 'claude', stageAt: Date.now(), cAt: Date.now() }); } catch (_) {} }
     const app = F.app; F = null;
     go('#/thanks/' + r.no + '/' + encodeURIComponent(app));
   } catch (e) { toast('⚠️ ' + (e.message || e), 4000); }
@@ -797,7 +799,16 @@ function urgSwitch(i) {
   const closed = i.status === 'done' || i.status === 'dup' || i.stage === 'done';
   // HD0511TH044 (مالک کا حکم): کام مکمل ہو جائے تو ⚡ کی پٹی اور پیش رفت دونوں غائب؛ اکاؤنٹ / اشتہار کی درخواست پر ⚡ ہی نہیں
   if (closed || isAcctReq(i.text)) return '';
-  return `<div class="urgBox" data-urgbox="${i.id}">${urgBtn(i)}${i.urgent || (i.stage && i.status !== 'new') ? urgProgress(i) : ''}</div>`;
+  const prog = i.urgent || (i.stage && i.status !== 'new') ? urgProgress(i) : '';
+  if (isOwnIssue(i)) return `<div class="urgBox" data-urgbox="${i.id}">${prog || urgProgress(Object.assign({}, i, { urgent: true, stage: i.stage || 'claude' }))}</div>`;   // HD0511TH046: اپنا مسئلہ — سوئچ نہیں، صرف پیش رفت
+  return `<div class="urgBox" data-urgbox="${i.id}">${parkRow(i)}${i.hold === 'later' || i.hold === 'info' ? '' : urgBtn(i)}${prog}</div>`;
+}
+/* HD0511TH046 (مالک کا حکم): گاہک کے ہر مسئلے پر — ⚡ فوری / ⏸️ بعد میں (فہرست سے ایک طرف) / ❓ مزید تفصیل پوچھیں (رکا، گاہک سے سوال) */
+function parkRow(i) {
+  const E = LANG === 'en';
+  if (i.hold === 'later') return `<div class="parkBox later">⏸️ <b>${E ? 'Parked — kept aside, no work for now' : 'ایک طرف رکھا ہے — ابھی کام نہیں ہوگا'}</b><button class="tb" data-act="park" data-id="">${E ? '▶️ Back to the list' : '▶️ واپس فہرست میں'}</button></div>`;
+  if (i.hold === 'info') return `<div class="parkBox info">❓ <b>${E ? 'Waiting for more details from the customer' : 'گاہک سے مزید تفصیل کا انتظار'}</b>${i.reply ? `<div class="pq" dir="auto">${esc(i.reply)}</div>` : ''}<button class="tb" data-act="park" data-id="">${E ? '▶️ Got it — back to the list' : '▶️ تفصیل مل گئی — واپس فہرست میں'}</button></div>`;
+  return `<div class="parkRow"><button class="tb" data-act="park" data-id="later">⏸️ ${E ? 'Later / park' : 'بعد میں — ایک طرف'}</button><button class="tb" data-act="park" data-id="info">❓ ${E ? 'Ask for more details' : 'مزید تفصیل پوچھیں'}</button></div>`;
 }
 function urgBtn(i) {
   const E = LANG === 'en', on = !!i.urgent;
@@ -824,7 +835,9 @@ function tabOk(i, t) {
   if (t === 'done') return i.status === 'done' || (i.stage === 'done' && i.status !== 'dup');
   if (t === 'dup') return i.status === 'dup';
   if (t === 'send') return needsSend(i);
+  if (t === 'park') return !fin && (i.hold === 'later' || i.hold === 'info');
   if (fin) return false;
+  if (i.hold === 'later' || i.hold === 'info') return false;   // HD0511TH046: ایک طرف رکھے / تفصیل کے منتظر صرف «⏸️ رکے» ٹیب میں
   return t === 'all' ? true : t === 'urg' ? isUrg(i) : t === 'open' ? (isOpen(i) || isHeld(i)) : t === 'hold' ? isHeld(i) : i.status === t;
 }
 const bulkTodo = i => i.status !== 'done' && i.status !== 'dup' && i.stage !== 'done';
@@ -838,7 +851,7 @@ function vOwner() {
   if (!Store.isOwner()) { setTimeout(loginSheet, 50); return `<div class="card empty"><span class="e">🔒</span>Developer</div>`; }
   cleanup();
   const C = s => ISSUES.filter(i => tabOk(i, s) && (!O.app || i.app === O.app)).length;
-  const tabs = [['urg', '⚡ ' + (LANG === 'en' ? 'Urgent' : 'فوری')], ['open', '🔓 ' + (LANG === 'en' ? 'Open' : 'کھلے')], ['hold', '⏳ ' + (LANG === 'en' ? 'Approval' : 'منظوری')], ['send', '📨 ' + (LANG === 'en' ? 'To send' : 'بھیجنا باقی')], ['new', '📥 ' + T('s_new')], ['seen', '👀 ' + T('s_seen')], ['work', '🔧 ' + T('s_work')], ['done', '✅ ' + T('s_done')], ['dup', '🔗 ' + T('s_dup')], ['all', LANG === 'en' ? 'All' : 'سب']];
+  const tabs = [['urg', '⚡ ' + (LANG === 'en' ? 'Urgent' : 'فوری')], ['open', '🔓 ' + (LANG === 'en' ? 'Open' : 'کھلے')], ['hold', '⏳ ' + (LANG === 'en' ? 'Approval' : 'منظوری')], ['park', '⏸️ ' + (LANG === 'en' ? 'Parked' : 'رکے')], ['send', '📨 ' + (LANG === 'en' ? 'To send' : 'بھیجنا باقی')], ['new', '📥 ' + T('s_new')], ['seen', '👀 ' + T('s_seen')], ['work', '🔧 ' + T('s_work')], ['done', '✅ ' + T('s_done')], ['dup', '🔗 ' + T('s_dup')], ['all', LANG === 'en' ? 'All' : 'سب']];
   const list = ownFiltered();
   const opts = `<option value="">${LANG === 'en' ? 'All apps' : 'سب ایپس'}</option>` + APPS.map(a => {
     const n = ISSUES.filter(i => i.app === a.id && isOpen(i)).length;
@@ -1304,6 +1317,14 @@ document.addEventListener('click', async e => {
     case 'showOrig': { e.preventDefault(); const i = ISSUES.find(x => x.id === DET.id); if (i) alert((LANG === 'en' ? 'Original message from customer:\n\n' : 'گاہک کا اصل پیغام:\n\n') + (i.origText || '—')); break; }
     case 'savePtext': await Store.update(DET.id, { ptext: $('#pText').value.trim() }); toast('✅'); break;
     case 'cCopy': case 'cShare': case 'cText': case 'cImg': claudeAct(act); break;
+    case 'park': { const i = ISSUES.find(x => x.id === DET.id); if (!i) break; const E = LANG === 'en', en = i.lang === 'en';
+      if (id === 'info') {
+        const def = en ? 'Thank you! Please tell us a little more: what exactly happens, on which screen, and what you expected. A screenshot helps. (Send it as a new message in Help Desk.)' : 'شکریہ! برائے مہربانی تھوڑا مزید بتائیں: بالکل کیا ہوتا ہے، کس صفحے پر، اور آپ کیا چاہتے ہیں — اسکرین شاٹ ہو تو اور اچھا۔ (ہیلپ ڈیسک میں نیا پیغام بھیج دیں)';
+        const q = prompt(E ? 'Question for the customer (they see it as the reply):' : 'گاہک سے کیا پوچھنا ہے؟ (یہی جواب میں نظر آئے گا)', def); if (q == null) break;
+        await Store.update(DET.id, { hold: 'info', reply: q.trim() || def, replyAt: Date.now(), urgent: false }); toast('❓ ✅');
+      } else if (id === 'later') { await Store.update(DET.id, { hold: 'later', urgent: false }); toast('⏸️ ✅'); }
+      else { await Store.update(DET.id, { hold: '' }); toast('▶️ ✅'); }
+      break; }
     case 'cMain': { const id2 = DET.id; try { await claudeAct('cCopy'); } catch (_) {} await Store.update(id2, { cAt: Date.now() }); break; }   // HD0511TH044: ایک بار کاپی کے بعد بٹن غائب
     case 'acctDone': { const i = ISSUES.find(x => x.id === DET.id); if (!i) break; const en = i.lang === 'en';
       const r = /Ad request/.test(i.text || '') ? (en ? 'Your ad request has been received and set up.' : 'آپ کی اشتہار کی درخواست پر کام مکمل ہو گیا ہے۔') : (en ? 'Your account is ready — open the app and sign in.' : 'آپ کا اکاؤنٹ چالو ہو گیا ہے — ایپ کھول کر دیکھ لیں۔');
