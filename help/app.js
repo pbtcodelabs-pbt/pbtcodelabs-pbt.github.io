@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0511TH043';
-const UPDATE_NOTE = 'Help Desk name everywhere (old red label removed)';
+const APP_VERSION = 'HD0511TH044';
+const UPDATE_NOTE = 'Account request: one tap «Done» closes it; Claude copy inside each issue (once); no ⚡ bar on finished work';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -794,8 +794,10 @@ function urgHome() {
 }
 function urgSwitch(i) {
   // HD0311TU024 (مالک کا حکم): حل شدہ / ڈپلیکیٹ مسئلے پر ⚡ سوئچ نہیں (دبانے سے کام دوبارہ شروع ہوتا تھا) — صرف مکمل پیش رفت
-  const closed = i.status === 'done' || i.status === 'dup';
-  return `<div class="urgBox" data-urgbox="${i.id}">${closed ? '' : urgBtn(i)}${i.urgent || (i.stage && i.status !== 'new') ? urgProgress(i) : ''}</div>`;
+  const closed = i.status === 'done' || i.status === 'dup' || i.stage === 'done';
+  // HD0511TH044 (مالک کا حکم): کام مکمل ہو جائے تو ⚡ کی پٹی اور پیش رفت دونوں غائب؛ اکاؤنٹ / اشتہار کی درخواست پر ⚡ ہی نہیں
+  if (closed || isAcctReq(i.text)) return '';
+  return `<div class="urgBox" data-urgbox="${i.id}">${urgBtn(i)}${i.urgent || (i.stage && i.status !== 'new') ? urgProgress(i) : ''}</div>`;
 }
 function urgBtn(i) {
   const E = LANG === 'en', on = !!i.urgent;
@@ -857,8 +859,6 @@ function vOwner() {
     <div class="row"><select class="inp" data-oin="app">${opts}</select>
       <select class="inp" data-oin="sort"><option value="new" ${O.sort === 'new' ? 'selected' : ''}>🕒 ${LANG === 'en' ? 'Newest' : 'نئے پہلے'}</option><option value="votes" ${O.sort === 'votes' ? 'selected' : ''}>👋 ${LANG === 'en' ? 'Most voted' : 'زیادہ لوگ پہلے'}</option></select>
       <input class="inp" data-oin="q" value="${esc(O.q)}" placeholder="🔍 ${LANG === 'en' ? 'name, phone, #no, text' : 'نام، نمبر، #، متن'}"></div>
-    ${(() => { const todo = list.filter(bulkTodo).length; /* HD0311TU035 (مالک کا حکم): صرف ان حل مسائل — حل / ڈپلیکیٹ پر بٹن نہیں */
-      return todo ? `<button class="bigBtn" style="font-size:16px" data-act="bulkClaude">🤖 ${LANG === 'en' ? `Copy these ${todo} unsolved for Claude` : `یہ ${todo} ان حل مسائل Claude کے لیے کاپی`}</button>` : ''; })()}
     <div class="ownGrid">${cards || `<div class="card empty"><span class="e">🎉</span>${LANG === 'en' ? 'Nothing here' : 'یہاں کچھ نہیں'}</div>`}</div>
   </div>${foot()}`;
 }
@@ -886,7 +886,7 @@ function detailHTML() {
     <div class="dcRow">${tyChip(i.type)}${stChip(i.status)}${n ? `<span class="chip work">👋 ${n + 1}</span>` : ''}
       <span class="dcMeta">👤 <b>${esc(i.name)}</b> · <a class="num" href="tel:${esc(i.phone)}">${esc(i.phone)}</a> · <a href="https://wa.me/${waNum(i.phone)}" target="_blank" rel="noopener">💬</a> · <span class="num">${fullDate(i.created)}</span>${i.ver ? ' · <span class="num">' + esc(i.ver) + '</span>' : ''}</span></div>
     ${holdBox(i)}
-    ${isAcctReq(i.text) ? `<div class="acctReq">🔑 <b>${/Ad request/.test(i.text) ? (E ? '📢 Ad request' : '📢 اشتہار کی درخواست') : (E ? 'Account sign-in request' : 'اکاؤنٹ سائن اِن کی درخواست')}</b><br><pre class="acctPre" dir="ltr">${esc(i.text || '')}</pre><button class="tb pri" data-act="copyAcct">📋 ${E ? 'Copy & paste in Developer Panel' : 'کاپی کریں — ڈویلپر پینل میں پیسٹ کے لیے'}</button><div class="acctHow">${/Ad request/.test(i.text) ? (E ? 'MCS → admin → 📢 Ads → «paste message» → fields fill → save' : 'سٹی شائنز ← ایڈمن ← 📢 اشتہار ← «پیغام پیسٹ» ← خانے خود ← محفوظ') : i.app === 'MCS' ? (E ? 'MCS → admin login → Control panel → 👤 Account Access → paste → duration → Give' : 'سٹی شائنز ← ایڈمن لاگ اِن ← کنٹرول پینل ← 👤 Account Access ← پیسٹ ← مدت ← Give') : i.app === 'AIO-POS-DIRECT' ? (E ? 'Direct app → Developer panel → 🎁 Generate Code → paste in the yellow box → package & days → Generate → send the code' : 'Direct ایپ ← ڈویلپر پینل ← 🎁 Generate Code ← پیلے خانے میں پیسٹ ← پیکج اور مدت ← Generate ← کوڈ گاہک کو') : (E ? 'App → Developer panel → 👤 Account Access → paste → package → Give' : 'ایپ ← ڈویلپر پینل ← 👤 Account Access ← پیسٹ ← پیکج اور مدت ← Give')}</div></div>` : ''}
+    ${isAcctReq(i.text) ? `<div class="acctReq">🔑 <b>${/Ad request/.test(i.text) ? (E ? '📢 Ad request' : '📢 اشتہار کی درخواست') : (E ? 'Account sign-in request' : 'اکاؤنٹ سائن اِن کی درخواست')}</b><br><pre class="acctPre" dir="ltr">${esc(i.text || '')}</pre><button class="tb pri" data-act="copyAcct">📋 ${E ? 'Copy & paste in Developer Panel' : 'کاپی کریں — ڈویلپر پینل میں پیسٹ کے لیے'}</button><button class="tb grn acctDone" data-act="acctDone">✅ ${E ? 'Done (given) — close this request' : 'دے دیا — یہ درخواست بند کریں'}</button><div class="acctHow">${/Ad request/.test(i.text) ? (E ? 'MCS → admin → 📢 Ads → «paste message» → fields fill → save' : 'سٹی شائنز ← ایڈمن ← 📢 اشتہار ← «پیغام پیسٹ» ← خانے خود ← محفوظ') : i.app === 'MCS' ? (E ? 'MCS → admin login → Control panel → 👤 Account Access → paste → duration → Give' : 'سٹی شائنز ← ایڈمن لاگ اِن ← کنٹرول پینل ← 👤 Account Access ← پیسٹ ← مدت ← Give') : i.app === 'AIO-POS-DIRECT' ? (E ? 'Direct app → Developer panel → 🎁 Generate Code → paste in the yellow box → package & days → Generate → send the code' : 'Direct ایپ ← ڈویلپر پینل ← 🎁 Generate Code ← پیلے خانے میں پیسٹ ← پیکج اور مدت ← Generate ← کوڈ گاہک کو') : (E ? 'App → Developer panel → 👤 Account Access → paste → package → Give' : 'ایپ ← ڈویلپر پینل ← 👤 Account Access ← پیسٹ ← پیکج اور مدت ← Give')}</div></div>` : ''}
     ${isAcctReq(i.text) ? '' : `<div class="tx dcTx" dir="auto">${phoneLinks(i.text) || '<i style="color:var(--mut)">—</i>'}</div>`}
     <div class="dcSub"${isAcctReq(i.text) ? ' style="display:none"' : ''}>${i.textEd ? `✏️ ${E ? 'Edited' : 'مکمل کیا'} · <span class="num">${fullDate(i.textEd)}</span>${i.origText != null ? ` · <a href="#" data-act="showOrig">${E ? 'original' : 'اصل پیغام'}</a>` : ''} · ` : ''}<a href="#" data-act="editText">✏️ ${E ? 'Complete / edit message' : 'پیغام مکمل / درست کریں'}</a></div>
     <div id="edTextBox" style="display:none">
@@ -896,6 +896,7 @@ function detailHTML() {
     </div>
     ${DET.blobs == null && (i.shots || i.audio) ? '<div class="spin" style="margin:6px auto;width:24px;height:24px"></div>' : ''}
     ${shots.length || au ? `<div class="dcMedia">${shots.map(b => `<img src="${b.data}" data-viewsrc="1" alt="">`).join('')}${au ? `<audio controls src="${au.data}"></audio>` : ''}</div>` : ''}
+    ${bulkTodo(i) && !i.cAt && !isAcctReq(i.text) ? `<button class="bigBtn cMain" data-act="cMain">🤖 ${E ? 'Copy for Claude (text + image)' : 'Claude کے لیے کاپی کریں (متن + تصویر)'}</button>` : ''}
     ${urgSwitch(i)}
     <div class="stBtns">${['new', 'seen', 'work', 'done'].map(s => `<button class="${s} ${i.status === s ? 'on' : ''}" data-act="setSt" data-id="${s}">${ST_IC[s]} ${T('s_' + s)}</button>`).join('')}</div>
     <textarea class="big dcReply" id="rText" dir="auto" placeholder="${E ? 'Reply to customer — write or paste…' : 'گاہک کو جواب — لکھیں یا پیسٹ کریں…'}">${esc(i.reply || '')}</textarea>
@@ -1295,6 +1296,10 @@ document.addEventListener('click', async e => {
     case 'showOrig': { e.preventDefault(); const i = ISSUES.find(x => x.id === DET.id); if (i) alert((LANG === 'en' ? 'Original message from customer:\n\n' : 'گاہک کا اصل پیغام:\n\n') + (i.origText || '—')); break; }
     case 'savePtext': await Store.update(DET.id, { ptext: $('#pText').value.trim() }); toast('✅'); break;
     case 'cCopy': case 'cShare': case 'cText': case 'cImg': claudeAct(act); break;
+    case 'cMain': { const id2 = DET.id; try { await claudeAct('cCopy'); } catch (_) {} await Store.update(id2, { cAt: Date.now() }); break; }   // HD0511TH044: ایک بار کاپی کے بعد بٹن غائب
+    case 'acctDone': { const i = ISSUES.find(x => x.id === DET.id); if (!i) break; const en = i.lang === 'en';
+      const r = /Ad request/.test(i.text || '') ? (en ? 'Your ad request has been received and set up.' : 'آپ کی اشتہار کی درخواست پر کام مکمل ہو گیا ہے۔') : (en ? 'Your account is ready — open the app and sign in.' : 'آپ کا اکاؤنٹ چالو ہو گیا ہے — ایپ کھول کر دیکھ لیں۔');
+      await Store.update(DET.id, { status: 'done', doneAt: Date.now(), stage: 'done', stageAt: Date.now(), reply: i.reply || r, replyAt: Date.now() }); toast('✅'); closeSheet(); break; }
     case 'bulkClaude': {
       const l = ownFiltered().filter(bulkTodo); if (!l.length) break; const txt = l.map(i => claudeText(i, true)).join('\n\n────────\n\n');
       try { await navigator.clipboard.writeText(`PBT Help Desk — ${l.length} requests\n\n` + txt); toast('🤖 ✅ ' + l.length); } catch (_) { toast('⚠️'); }
