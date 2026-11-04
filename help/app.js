@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0511TH046';
-const UPDATE_NOTE = 'Owner issues start by themselves; customer issues: urgent / later / ask for details';
+const APP_VERSION = 'HD0511TH047';
+const UPDATE_NOTE = 'Yellow Help Desk button even before loading; owner issue opens Claude at once';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -600,9 +600,12 @@ async function send() {
     const r = await Store.add({ app: F.app, type: F.type, text: F.text.trim(), name: F.name.trim(), phone: P, ver: F.ver.trim(), dev: DEV, shots: F.shots.length, audio: !!F.audio, lang: LANG, hold: F.type === 'idea' ? 'decide' : '' }, blobs);
     rememberMine(r.id, 'new|0');
     // HD0511TH046 (مالک کا حکم): مالک / ڈویلپر کا اپنا مسئلہ خود قطار میں — کوئی ⚡ بٹن یا کاپی پیسٹ نہیں، پیش رفت فوراً
-    if (Store.isOwner()) { try { await Store.update(r.id, { urgent: true, stage: 'claude', stageAt: Date.now(), cAt: Date.now() }); } catch (_) {} }
+    const own = Store.isOwner();
+    if (own) { try { await Store.update(r.id, { urgent: true, stage: 'claude', stageAt: Date.now(), cAt: Date.now() }); } catch (_) {} }
     const app = F.app; F = null;
     go('#/thanks/' + r.no + '/' + encodeURIComponent(app));
+    // HD0511TH047 (مالک کا حکم: فوراً): مالک کا مسئلہ بھیجتے ہی ایک بٹن — کاپی + Claude کی چیٹ، وہاں پیسٹ کرتے ہی کام شروع
+    if (own) setTimeout(() => { try { urgSheet({ id: r.id, no: r.no, app }); } catch (_) {} }, 500);
   } catch (e) { toast('⚠️ ' + (e.message || e), 4000); }
   finally { busy(false); }
 }

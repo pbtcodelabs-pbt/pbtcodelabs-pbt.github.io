@@ -124,6 +124,9 @@
   var SOS_SEL = '[onclick*="elpDesk"],[data-nav-id="22"],.pbthd-host';
   function sos() {
     var hosts = document.querySelectorAll(SOS_SEL), added = 0;
+    // HD0511TH047: ایپ میں پہلے سے رکھا پیلا «Help Desk» (بغیر widget کے بھی پیلا، `pbthd-sos` + inline style) — یہاں اصل انداز میں
+    var pre = document.querySelectorAll('.pbthd-sos:not([data-ok])');
+    for (var q0 = 0; q0 < pre.length; q0++) { var sp = pre[q0]; sp.removeAttribute('style'); sp.innerHTML = SOS_HTML; sp.title = SOS_TITLE; sp.setAttribute('data-ok', '1'); var hh = sp.closest(SOS_SEL) || sp.parentElement; if (hh) { var only0 = hh.cloneNode(true), q1 = only0.querySelector('.pbthd-sos'); if (q1) q1.remove(); if (hh.tagName === 'BUTTON' && !only0.textContent.trim()) hh.classList.add('pbthd-host'); watch(hh.parentElement); watch(hh.parentElement && hh.parentElement.parentElement); } added = 1; }
     for (var k = 0; k < hosts.length; k++) {
       var h = hosts[k];
       if (h.querySelector('.pbthd-sos') || h.textContent.indexOf('\uD83C\uDD98') < 0) continue;
@@ -132,7 +135,7 @@
       list.forEach(function (tn) {
         var parts = tn.nodeValue.split('\uD83C\uDD98'), f = document.createDocumentFragment();
         parts.forEach(function (p, i) {
-          if (i) { var b = document.createElement('span'); b.className = 'pbthd-sos'; b.title = SOS_TITLE; b.innerHTML = SOS_HTML; f.appendChild(b); }
+          if (i) { var b = document.createElement('span'); b.className = 'pbthd-sos'; b.setAttribute('data-ok', '1'); b.title = SOS_TITLE; b.innerHTML = SOS_HTML; f.appendChild(b); }
           if (p) f.appendChild(document.createTextNode(p));
         });
         tn.parentNode.replaceChild(f, tn);
