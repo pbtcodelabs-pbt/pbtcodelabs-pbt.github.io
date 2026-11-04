@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MCS Agent Portal</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="../favicon.png">
+<!-- AGP0511TH001 — 🤝 My City Shines ایجنٹ پورٹل (پلے اسٹور ایپ سے باہر)۔ ڈیٹا: aio-pos-verify /agportal /agadmin (ایک ہی سرور — ایپ اور پورٹل ایک جگہ سے) -->
+<style>
+@font-face{font-family:Noori;src:url(../fonts/JameelNooriNastaleeq.woff2) format('woff2');font-display:swap}
+:root{--bg:#f1f5f9;--card:#fff;--ink:#0f172a;--mut:#64748b;--line:#e2e8f0;--pri:#0f766e;--pri2:#0d3b66;--ok:#15803d;--red:#b91c1c;--gold:#b45309}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0b1220;--card:#111a2e;--ink:#e2e8f0;--mut:#94a3b8;--line:#22314d}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Noori,'Segoe UI',Tahoma,sans-serif;font-size:16px;line-height:1.9}
+.num,input,button,select,textarea{font-family:'Segoe UI',Roboto,Arial,sans-serif}
+header{background:linear-gradient(135deg,var(--pri),var(--pri2));color:#fff;padding:14px 16px 18px}
+header h1{margin:0;font-size:22px}header small{display:block;opacity:.85;font-size:13px}
+main{max-width:760px;margin:-10px auto 30px;padding:0 12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin:10px 0;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+h2{font-size:18px;margin:0 0 6px}
+label{display:block;font-size:13px;color:var(--mut);margin:8px 0 2px}
+input,select,textarea{width:100%;padding:10px;border:1.5px solid var(--line);border-radius:10px;font-size:15px;background:var(--card);color:var(--ink)}
+button{border:0;border-radius:10px;padding:10px 14px;font-weight:800;font-size:14px;cursor:pointer;background:var(--pri);color:#fff}
+button.sec{background:var(--line);color:var(--ink)}button.red{background:#fee2e2;color:var(--red)}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.st{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px;text-align:center}
+.st b{display:block;font-size:22px;font-family:'Segoe UI',Arial,sans-serif}.st span{font-size:12.5px;color:var(--mut)}
+.st.bal b{color:var(--ok)}
+.row{border-bottom:1px solid var(--line);padding:8px 2px;font-size:14px}.row:last-child{border:0}
+.tag{display:inline-block;border-radius:999px;padding:0 8px;font-size:12px;font-weight:800}
+.t-ok{background:#dcfce7;color:var(--ok)}.t-w{background:#fef3c7;color:var(--gold)}.t-n{background:var(--line);color:var(--mut)}
+.err{color:var(--red);font-weight:800;min-height:1.4em}
+.chat{max-height:55vh;overflow:auto;display:flex;flex-direction:column;gap:6px;padding:4px}
+.m{max-width:82%;border-radius:12px;padding:6px 10px;font-size:14px;white-space:pre-wrap;word-break:break-word}
+.m.me{align-self:flex-start;background:#dcfce7;color:#064e3b}.m.th{align-self:flex-end;background:var(--line)}
+.m img{max-width:100%;border-radius:8px;display:block;margin-top:4px}.m audio{width:220px;max-width:100%}
+.m small{display:block;font-size:10.5px;opacity:.7;font-family:Arial}
+.att{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px}
+.att label{margin:0;display:inline-block;background:var(--line);border-radius:10px;padding:6px 10px;cursor:pointer;color:var(--ink);font-size:13px}
+.att input[type=file]{display:none}
+.hid{display:none!important}
+.prev img{max-height:90px;border-radius:8px;margin-top:6px}
+.ag{cursor:pointer}.ag:hover{background:rgba(15,118,110,.06)}
+.foot{text-align:center;font-size:12px;color:var(--mut);margin:20px 0}
+</style>
+</head>
+<body>
+<header><h1>🤝 MCS ایجنٹ پورٹل</h1><small>My City Shines — Agent Portal</small></header>
+<main id="app"></main>
+<div class="foot">پی بی ٹی کوڈ لیبز · <span class="num">AGP0511TH001</span></div>
+<script>
+const API = 'https://aio-pos-verify.pbtcodelabs.workers.dev';
+const FB_KEY = 'AIzaSyAvu8ymIZAGEPaYwd_LBJzKS2lZ3Q4_Mog'; // My City Shines (ایڈمن لاگ اِن)
+const $ = s => document.querySelector(s), app = $('#app');
+const E = s => String(s == null ? '' : s).replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
+const N = n => (+n || 0).toLocaleString('en-PK');
+const D = t => t ? new Date(t).toLocaleDateString('en-GB') : '—';
+const ls = { get(k, d){ try{ const v = localStorage.getItem('agp_' + k); return v ? JSON.parse(v) : d; }catch(e){ return d; } }, set(k, v){ try{ localStorage.setItem('agp_' + k, JSON.stringify(v)); }catch(e){} }, del(k){ try{ localStorage.removeItem('agp_' + k); }catch(e){} } };
+const ADMIN = location.hash.startsWith('#admin');
+let S = null, admTok = null, admTokExp = 0, admList = [], admRate = 0, admCode = '';
+async function post(path, body, tok){ const r = await fetch(API + path, {method:'POST', headers: Object.assign({'Content-Type':'text/plain'}, tok ? {Authorization: 'Bearer ' + tok} : {}), body: JSON.stringify(body)}); return r.json(); }
+function shrink(file, max, q){ return new Promise((res, rej) => { const im = new Image(); im.onload = () => { const k = Math.min(1, max / Math.max(im.width, im.height)); const c = document.createElement('canvas'); c.width = Math.round(im.width*k); c.height = Math.round(im.height*k); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(im.src); res(c.toDataURL('image/jpeg', q)); }; im.onerror = rej; im.src = URL.createObjectURL(file); }); }
+const att = { img: '', audio: '' }; let rec = null;
+function attHtml(){ return `<div class="att"><label>🖼️ تصویر<input type="file" accept="image/*" onchange="pickImg(this)"></label><label onclick="event.preventDefault();toggleRec()" id="recBtn">🎤 آواز</label><span id="attInfo" class="num" style="font-size:12px"></span></div><div class="prev" id="attPrev"></div>`; }
+async function pickImg(inp){ const f = inp.files && inp.files[0]; if(!f) return; att.img = await shrink(f, 1100, .72); $('#attPrev').innerHTML = `<img src="${att.img}">`; }
+async function toggleRec(){
+  if(rec){ rec.stop(); return; }
+  try{
+    const st = await navigator.mediaDevices.getUserMedia({audio:true}); const ch = []; rec = new MediaRecorder(st); const t0 = Date.now();
+    rec.ondataavailable = e => ch.push(e.data);
+    rec.onstop = () => { st.getTracks().forEach(t => t.stop()); const bl = new Blob(ch, {type: rec.mimeType || 'audio/webm'}); rec = null; $('#recBtn').textContent = '🎤 آواز';
+      const fr = new FileReader(); fr.onload = () => { att.audio = fr.result; $('#attInfo').textContent = '🎤 ' + Math.round((Date.now()-t0)/1000) + 's'; }; fr.readAsDataURL(bl); };
+    rec.start(); $('#recBtn').textContent = '⏹ روکیں'; setTimeout(() => { if(rec) rec.stop(); }, 60000);
+  }catch(e){ alert('مائیک کی اجازت نہیں ملی'); }
+}
+function chatHtml(msgs, mine){ return `<div class="chat" id="chat">${(msgs||[]).map(m => `<div class="m ${m.who === mine ? 'me' : 'th'}">${E(m.text)}${m.img ? `<img src="${m.img}">` : ''}${m.audio ? `<audio controls src="${m.audio}"></audio>` : ''}<small>${m.who === 'dev' ? 'ڈویلپر' : 'ایجنٹ'} · ${new Date(m.ts).toLocaleString('en-GB')}</small></div>`).join('') || '<div class="row" style="color:var(--mut)">ابھی کوئی پیغام نہیں</div>'}</div>
+  <textarea id="msgTx" rows="2" placeholder="پیغام لکھیں…" dir="auto"></textarea>${attHtml()}<div class="btns"><button onclick="sendMsg()">📨 بھیجیں</button></div>`; }
+function scrollChat(){ const c = $('#chat'); if(c) c.scrollTop = c.scrollHeight; }
+function summaryHtml(s){
+  return `<div class="stats">
+    <div class="st"><b>${N(s.refs.length)}</b><span>🏪 لگوائے کاروبار</span></div>
+    <div class="st"><b>${N(s.refs.filter(r => r.paid > 0).length)}</b><span>⭐ جاری (خریدی) پروفائلیں</span></div>
+    <div class="st"><b>${N(s.years)}</b><span>📅 کل خریدے سال</span></div>
+    <div class="st"><b class="num">Rs ${N(s.due)}</b><span>💰 کل کمیشن (${N(s.rate)} فی سال)</span></div>
+    <div class="st"><b class="num">Rs ${N(s.paidOut)}</b><span>✅ ادا ہو چکا</span></div>
+    <div class="st bal"><b class="num">Rs ${N(s.balance)}</b><span>📌 بقایا</span></div></div>`;
+}
+function refsHtml(s){ return (s.refs||[]).map(r => { const live = r.until > Date.now(); const tg = r.paid > 0 ? (live ? '<span class="tag t-ok">⭐ جاری</span>' : '<span class="tag t-w">⏰ مدت ختم</span>') : (live ? '<span class="tag t-n">🎁 مفت دن</span>' : '<span class="tag t-n">⏳ ابھی جاری نہیں</span>');
+  return `<div class="row"><b>${E(r.name)}</b> ${tg}<br><small>${E(r.cat)} · ${E(r.city)} · <span class="num">${E(r.phone)}</span> · درج: ${D(r.at)}${r.until ? ' · مدت: ' + D(r.until) : ''} · سال: ${N(r.paid)}</small><br><small class="num" style="color:var(--mut)">ID: ${E(r.rk)}</small></div>`; }).join('') || '<div class="row" style="color:var(--mut)">ابھی کوئی کاروبار نہیں</div>'; }
+function paysHtml(s, adm){ return (s.pays||[]).map(p => `<div class="row">✅ <b class="num">Rs ${N(p.amount)}</b> — ${E(p.note)} <small class="num">${D(p.ts)}</small>${adm ? ` <button class="red" style="padding:2px 8px" onclick="admUnpay(${p.id})">✕</button>` : ''}</div>`).join('') || '<div class="row" style="color:var(--mut)">ابھی کوئی ادائیگی نہیں</div>'; }
+function proofsHtml(s, adm){ return (s.proofs||[]).map(p => `<div class="row">${p.done ? '✅' : '⏳'} <b class="num">${E(p.rk)}</b> — ${E(p.note)} <small class="num">${D(p.ts)}</small>${adm && p.img ? `<br><img src="${p.img}" style="max-height:160px;border-radius:8px">` : ''}${adm && !p.done ? ` <button style="padding:2px 8px" onclick="admProofDone(${p.id})">✔ ہو گیا</button>` : ''}</div>`).join('') || '<div class="row" style="color:var(--mut)">کوئی ثبوت نہیں</div>'; }
+/* ===== ایجنٹ ===== */
+function agLogin(msg){
+  app.innerHTML = `<div class="card"><h2>🔐 لاگ اِن</h2><div style="color:var(--mut);font-size:14px">موبائل نمبر اور وہ PIN جو منظوری پر ملا (سٹی شائنز ایپ میں «🤝 MCS ایجنٹ» میں بھی لکھا ہے)۔</div>
+    <label>📱 موبائل نمبر</label><input id="lp" inputmode="tel" dir="ltr" value="${E((ls.get('me')||{}).phone||'')}">
+    <label>🔑 PIN</label><input id="lpin" inputmode="numeric" dir="ltr" maxlength="6">
+    <div class="err" id="lerr">${E(msg||'')}</div><div class="btns"><button onclick="agDoLogin()">✅ داخل ہوں</button></div></div>`;
+}
+async function agDoLogin(){ const phone = $('#lp').value.trim(), pin = $('#lpin').value.trim(); if(!phone || !pin) return; ls.set('me', {phone, pin}); agLoad(); }
+async function agLoad(extra){
+  const me = ls.get('me'); if(!me || !me.pin) return agLogin();
+  try{ const r = await post('/agportal', Object.assign({phone: me.phone, pin: me.pin}, extra||{})); if(!r.ok){ ls.set('me', {phone: me.phone}); return agLogin('❌ نمبر یا PIN درست نہیں'); } S = r; agRender(); }
+  catch(e){ app.innerHTML = '<div class="card">📶 انٹرنیٹ نہیں — دوبارہ کوشش کریں <button onclick="agLoad()">🔄</button></div>'; }
+}
+function agRender(){
+  const s = S;
+  app.innerHTML = `<div class="card"><h2>السلام علیکم ${E(s.agent.name)} 👋</h2><div style="font-size:14px">ریفرل نمبر: <b class="num">${E(s.agent.code)}</b> · ${E(s.agent.biz)} · ${E(s.agent.city)}</div><div class="btns"><button class="sec" onclick="agLoad()">🔄 تازہ</button><button class="sec" onclick="ls.del('me');agLogin()">🚪 باہر</button></div></div>
+    ${summaryHtml(s)}
+    <div class="card"><h2>🏪 میرے لگوائے کاروبار</h2>${refsHtml(s)}</div>
+    <div class="card"><h2>✅ مجھے ادائیگیاں</h2>${paysHtml(s)}</div>
+    <div class="card"><h2>📸 دکاندار کی ادائیگی کا ثبوت بھیجیں</h2><div style="color:var(--mut);font-size:13px">کسی دکاندار سے رقم لی ہو تو اسکرین شاٹ اور اس کی پروفائل ID لگائیں — ڈویلپر جاری کر دیں گے۔</div>
+      <label>🏪 پروفائل ID</label><select id="pfRk">${s.refs.map(r => `<option value="${E(r.rk)}">${E(r.name)} — ${E(r.rk)}</option>`).join('')}<option value="">— دوسرا (نوٹ میں لکھیں) —</option></select>
+      <label>📝 نوٹ (رقم، کس ذریعے سے، TID)</label><input id="pfNote" maxlength="400">
+      <div class="att"><label>🖼️ اسکرین شاٹ<input type="file" accept="image/*" onchange="pickProof(this)"></label></div><div class="prev" id="pfPrev"></div>
+      <div class="err" id="pfErr"></div><div class="btns"><button onclick="sendProof()">📨 ثبوت بھیجیں</button></div>
+      <h2 style="margin-top:10px">میرے بھیجے ثبوت</h2>${proofsHtml(s)}</div>
+    <div class="card"><h2>💬 ڈویلپر سے بات کریں</h2>${chatHtml(s.msgs, 'agent')}</div>`;
+  scrollChat();
+}
+let proofImg = '';
+async function pickProof(inp){ const f = inp.files && inp.files[0]; if(!f) return; proofImg = await shrink(f, 1200, .72); $('#pfPrev').innerHTML = `<img src="${proofImg}">`; }
+async function sendProof(){ if(!proofImg) return ($('#pfErr').textContent = '⚠️ اسکرین شاٹ لگائیں'); await agLoad({act:'proof', rk: $('#pfRk').value, note: $('#pfNote').value, img: proofImg}); proofImg = ''; alert('✅ ثبوت بھیج دیا گیا'); }
+async function sendMsg(){
+  const text = ($('#msgTx').value||'').trim(); if(!text && !att.img && !att.audio) return;
+  const x = {act:'msg', text, img: att.img, audio: att.audio}; att.img = att.audio = '';
+  if(ADMIN) await admOpen(admCode, x); else await agLoad(x);
+}
+/* ===== ایڈمن (صرف مالک — My City Shines ایڈمن لاگ اِن) ===== */
+function admLogin(msg){
+  app.innerHTML = `<div class="card"><h2>🛡️ ایڈمن لاگ اِن</h2><label>Email</label><input id="ae" type="email" dir="ltr" value="pbtcodelabs@gmail.com"><label>Password</label><input id="ap" type="password" dir="ltr" onkeydown="if(event.key==='Enter')admDoLogin()"><div class="err">${E(msg||'')}</div><div class="btns"><button onclick="admDoLogin()">✅ داخل ہوں</button></div></div>`;
+}
+async function admDoLogin(){
+  try{ const r = await (await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=' + FB_KEY, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email: $('#ae').value.trim(), password: $('#ap').value, returnSecureToken: true})})).json();
+    if(!r.idToken) return admLogin('❌ ای میل یا پاس ورڈ غلط'); admTok = r.idToken; admTokExp = Date.now() + 50*60e3; admHome(); }catch(e){ admLogin('📶 انٹرنیٹ نہیں'); }
+}
+async function admCall(path, body){ if(!admTok || Date.now() > admTokExp){ admLogin('دوبارہ لاگ اِن کریں'); throw new Error('login'); } const r = await post(path, Object.assign({admin: path === '/agportal'}, body), admTok); if(r && r.error === 'admin_only'){ admLogin('صرف ایڈمن'); throw new Error('admin'); } return r; }
+async function admHome(){
+  const r = await admCall('/agadmin', {op:'list'}); admList = (r.list||[]).filter(a => a.status === 'approved'); admRate = r.rate || 0;
+  app.innerHTML = `<div class="card"><h2>⚙️ کمیشن کی شرح</h2><div style="font-size:14px">ہر خریدے سال پر ایجنٹ کا کمیشن</div><div class="btns"><input id="rate" class="num" inputmode="numeric" value="${admRate}" style="max-width:140px"><button onclick="admSetRate()">💾 محفوظ</button></div></div>
+    <div class="card"><h2>🤝 ایجنٹ (${admList.length})</h2>${admList.map(a => `<div class="row ag" onclick="admOpen('${E(a.code)}')"><b>${E(a.name)}</b> — <span class="num">${E(a.code)}</span><br><small>${E(a.biz)} · ${E(a.city)} · 🏪 ${N(a.refs)}${a.newProofs ? ` · <span class="tag t-w">📸 ${a.newProofs} نئے ثبوت</span>` : ''}</small></div>`).join('') || '<div class="row">ابھی کوئی منظور ایجنٹ نہیں — منظوری سٹی شائنز ایپ کے کنٹرول پینل سے</div>'}</div>`;
+}
+async function admSetRate(){ await admCall('/agadmin', {op:'rate', amount: $('#rate').value}); alert('✅ محفوظ'); admHome(); }
+async function admOpen(code, extra){
+  admCode = code; const s = await admCall('/agportal', Object.assign({code}, extra||{})); if(!s.ok) return alert('نہیں ملا'); S = s;
+  app.innerHTML = `<div class="card"><div class="btns" style="margin:0 0 6px"><button class="sec" onclick="admHome()">← سب ایجنٹ</button></div><h2>${E(s.agent.name)} <span class="num" style="font-size:13px">${E(s.agent.code)}</span></h2><div style="font-size:14px">📱 <span class="num">0${E(String(s.agent.phone).slice(2))}</span> · ${E(s.agent.biz)} · ${E(s.agent.city)} · منظور: ${D(s.agent.okAt)}</div></div>
+    ${summaryHtml(s)}
+    <div class="card"><h2>➕ ادائیگی درج کریں</h2><div class="btns"><input id="payAmt" class="num" inputmode="numeric" placeholder="رقم" style="max-width:140px"><input id="payNote" placeholder="نوٹ (ایزی پیسہ، TID…)" style="flex:1;min-width:160px"><button onclick="admPay()">💾</button></div>
+      <h2 style="margin-top:10px">✅ ادائیگیاں</h2>${paysHtml(s, true)}</div>
+    <div class="card"><h2>🏪 کاروبار</h2>${refsHtml(s)}</div>
+    <div class="card"><h2>📸 ادائیگی کے ثبوت</h2><div style="font-size:13px;color:var(--mut)">ثبوت دیکھ کر سٹی شائنز ایپ ← کنٹرول پینل ← «👤 Account Access» سے پروفائل ایک سال جاری کریں — کمیشن خود جڑ جائے گا۔</div>${proofsHtml(s, true)}</div>
+    <div class="card"><h2>💬 چیٹ</h2>${chatHtml(s.msgs, 'dev')}</div>`;
+  scrollChat();
+}
+async function admPay(){ const amount = parseInt($('#payAmt').value, 10); if(!(amount > 0)) return; if(!confirm('Rs ' + N(amount) + ' ادائیگی درج کریں؟')) return; await admCall('/agadmin', {op:'pay', code: admCode, amount, note: $('#payNote').value}); admOpen(admCode); }
+async function admUnpay(id){ if(!confirm('یہ ادائیگی ہٹا دیں؟')) return; await admCall('/agadmin', {op:'unpay', pid: id}); admOpen(admCode); }
+async function admProofDone(id){ await admCall('/agadmin', {op:'proofdone', pid: id}); admOpen(admCode); }
+if(ADMIN) admLogin(); else agLoad();
+</script>
+</body>
+</html>
