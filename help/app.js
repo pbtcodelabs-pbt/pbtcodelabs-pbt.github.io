@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0411WE038';
-const UPDATE_NOTE = 'Account sign-in requests from apps: message comes ready-filled; panel shows 🔑 with copy button';
+const APP_VERSION = 'HD0411WE039';
+const UPDATE_NOTE = 'Account details from apps: simple screen, sent automatically; panel shows a copy block';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -418,10 +418,35 @@ let F = null;
 function newForm(app) {
   const me = ls.get('me', {});
   const P = new URLSearchParams(location.search);
-  F = { app, type: ['bug', 'idea', 'ask'].includes(P.get('type')) ? P.get('type') : 'bug', text: P.get('text') || '', shots: [], audio: null, audioMs: 0, name: me.name || P.get('name') || '', phone: me.phone || normPhone(P.get('phone') || ''), ver: P.get('v') || '', remember: true };
+  F = { acct: P.get('type') === 'acct' || isAcctReq(P.get('text')), app, type: ['bug', 'idea', 'ask'].includes(P.get('type')) ? P.get('type') : (P.get('type') === 'acct' ? 'ask' : 'bug'), text: P.get('text') || '', shots: [], audio: null, audioMs: 0, name: me.name || P.get('name') || '', phone: me.phone || normPhone(P.get('phone') || ''), ver: P.get('v') || '', remember: true };
+}
+/* HD0411WE039 (مالک کا حکم): ایپ سے آئی «اکاؤنٹ کی تفصیل» — عام فارم نہیں؛ صرف پیغام اور خود بھیجنا */
+function vAcct() {
+  const a = appOf(F.app), E = LANG === 'en';
+  return `<div class="card acctCard">${appIcon(a, 'appMini')} <b>${E ? 'Account details for the developer' : 'ڈویلپر کے لیے اکاؤنٹ کی تفصیل'}</b>
+    <pre class="acctPre" dir="ltr">${esc(F.text)}</pre>
+    <div class="acctSt" id="acctSt">⏳ ${E ? 'Sending to the developer…' : 'ڈویلپر کو بھیجا جا رہا ہے…'}</div>
+    <button class="bigBtn" id="acctRetry" style="display:none" data-act="acctSend">📨 ${E ? 'Send again' : 'دوبارہ بھیجیں'}</button>
+    <button class="bigBtn blue" id="acctDone" style="display:none" data-act="embedClose">✅ ${E ? 'Close' : 'بند کریں'}</button></div>`;
+}
+async function acctSend() {
+  if (!F || F._sending) return; F._sending = true;
+  const E = LANG === 'en', st = $('#acctSt'), t = F.text.trim();
+  const pick = re => { const m = t.match(re); return m ? m[1].trim() : ''; };
+  const name = pick(/^\s*Name\s*:\s*(.+)$/im) || F.name || '-', P = normPhone(pick(/^\s*Mobile(?:\s*no\.?)?\s*:\s*(.+)$/im) || F.phone || '');
+  const sig = 'acct_' + t.length + '_' + t.slice(-40), prev = ls.get(sig, 0);
+  if (prev && Date.now() - prev < 10 * 60e3) { st.innerHTML = '✅ ' + (E ? 'Already sent — the developer will set up your account. Your app opens by itself.' : 'پہلے ہی بھیج دیا گیا ہے — ڈویلپر اکاؤنٹ بنا دیں گے، ایپ خود کھل جائے گی۔'); $('#acctDone').style.display = ''; F._sending = false; return; }
+  try {
+    const r = await Store.add({ app: F.app, type: 'ask', text: t, name, phone: P, ver: F.ver.trim(), dev: DEV, shots: 0, audio: false, lang: LANG, hold: '' }, []);
+    rememberMine(r.id, 'new|0'); ls.set(sig, Date.now());
+    st.innerHTML = '✅ ' + (E ? `Sent to the developer (#${r.no}). ${F.app === 'AIO-POS-DIRECT' ? 'The developer will reply with your code.' : 'When your account is set up, your app opens by itself.'}` : `ڈویلپر کو بھیج دیا گیا (#${r.no})۔ ${F.app === 'AIO-POS-DIRECT' ? 'ڈویلپر آپ کو کوڈ بھیجیں گے۔' : 'اکاؤنٹ بنتے ہی آپ کی ایپ خود کھل جائے گی۔'}`);
+    $('#acctDone').style.display = ''; $('#acctRetry').style.display = 'none';
+  } catch (e) { st.innerHTML = '⚠️ ' + esc(e.message || e); $('#acctRetry').style.display = ''; }
+  F._sending = false;
 }
 function vForm() {
   if (!F || F.app !== appOf(R.a).id) newForm(appOf(R.a).id);
+  if (F.acct) return vAcct();
   const a = appOf(F.app);
   const sr = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
   const opts = APPS.map(x => `<option value="${esc(x.id)}" ${x.id === F.app ? 'selected' : ''}>${esc(AN(x))}</option>`).join('');
@@ -861,9 +886,9 @@ function detailHTML() {
     <div class="dcRow">${tyChip(i.type)}${stChip(i.status)}${n ? `<span class="chip work">👋 ${n + 1}</span>` : ''}
       <span class="dcMeta">👤 <b>${esc(i.name)}</b> · <a class="num" href="tel:${esc(i.phone)}">${esc(i.phone)}</a> · <a href="https://wa.me/${waNum(i.phone)}" target="_blank" rel="noopener">💬</a> · <span class="num">${fullDate(i.created)}</span>${i.ver ? ' · <span class="num">' + esc(i.ver) + '</span>' : ''}</span></div>
     ${holdBox(i)}
-    ${isAcctReq(i.text) ? `<div class="acctReq">🔑 <b>${E ? 'Account sign-in request' : 'اکاؤنٹ سائن اِن کی درخواست'}</b><br>${E ? 'Copy the details → app Developer panel → 👤 Account Subscriptions → paste → choose package → Give.' : 'تفصیل کاپی کریں ← ایپ کا ڈویلپر پینل ← 👤 Account Subscriptions ← پیسٹ (خانے خود بھریں گے) ← پیکج اور مدت چنیں ← Give۔ اکاؤنٹ کھولنے کا انتظام کریں / لاگ اِن میں مدد دیں۔'}<button class="tb pri" data-act="copyAcct">📋 ${E ? 'Copy details' : 'تفصیل کاپی کریں'}</button></div>` : ''}
-    <div class="tx dcTx" dir="auto">${phoneLinks(i.text) || '<i style="color:var(--mut)">—</i>'}</div>
-    <div class="dcSub">${i.textEd ? `✏️ ${E ? 'Edited' : 'مکمل کیا'} · <span class="num">${fullDate(i.textEd)}</span>${i.origText != null ? ` · <a href="#" data-act="showOrig">${E ? 'original' : 'اصل پیغام'}</a>` : ''} · ` : ''}<a href="#" data-act="editText">✏️ ${E ? 'Complete / edit message' : 'پیغام مکمل / درست کریں'}</a></div>
+    ${isAcctReq(i.text) ? `<div class="acctReq">🔑 <b>${E ? 'Account sign-in request' : 'اکاؤنٹ سائن اِن کی درخواست'}</b><br><pre class="acctPre" dir="ltr">${esc(i.text || '')}</pre><button class="tb pri" data-act="copyAcct">📋 ${E ? 'Copy & paste in Developer Panel' : 'کاپی کریں — ڈویلپر پینل میں پیسٹ کے لیے'}</button><div class="acctHow">${i.app === 'AIO-POS-DIRECT' ? (E ? 'Direct app → Developer panel → 🎁 Generate Code → paste in the yellow box → package & days → Generate → send the code' : 'Direct ایپ ← ڈویلپر پینل ← 🎁 Generate Code ← پیلے خانے میں پیسٹ ← پیکج اور مدت ← Generate ← کوڈ گاہک کو') : (E ? 'App → Developer panel → 👤 Account Access → paste → package → Give' : 'ایپ ← ڈویلپر پینل ← 👤 Account Access ← پیسٹ ← پیکج اور مدت ← Give')}</div></div>` : ''}
+    ${isAcctReq(i.text) ? '' : `<div class="tx dcTx" dir="auto">${phoneLinks(i.text) || '<i style="color:var(--mut)">—</i>'}</div>`}
+    <div class="dcSub"${isAcctReq(i.text) ? ' style="display:none"' : ''}>${i.textEd ? `✏️ ${E ? 'Edited' : 'مکمل کیا'} · <span class="num">${fullDate(i.textEd)}</span>${i.origText != null ? ` · <a href="#" data-act="showOrig">${E ? 'original' : 'اصل پیغام'}</a>` : ''} · ` : ''}<a href="#" data-act="editText">✏️ ${E ? 'Complete / edit message' : 'پیغام مکمل / درست کریں'}</a></div>
     <div id="edTextBox" style="display:none">
       <textarea class="big" id="edText" dir="auto" style="min-height:80px">${esc(i.text || '')}</textarea>
       <div class="tools"><button class="tb" data-act="pasteEdText">📋 ${T('paste')}</button>
@@ -1104,7 +1129,8 @@ function render() {
   header();
   const V = { home: vHome, app: vApp, new: vForm, thanks: vThanks, mine: vMine, i: vOne, owner: vOwner }[R.v] || vHome;
   $('#main').innerHTML = V();
-  if (R.v === 'new') { bindForm(); const ft = $('#fText'); if (ft && ft.value) { ft.style.height = 'auto'; ft.style.height = Math.min(ft.scrollHeight + 4, Math.round(innerHeight * 0.6)) + 'px'; } }
+  if (R.v === 'new' && F && F.acct) { setTimeout(acctSend, 300); }
+  else if (R.v === 'new') { bindForm(); const ft = $('#fText'); if (ft && ft.value) { ft.style.height = 'auto'; ft.style.height = Math.min(ft.scrollHeight + 4, Math.round(innerHeight * 0.6)) + 'px'; } }
   if (DET && $('#ov').classList.contains('on')) sheet(detailHTML(), true);
 }
 let rT = 0;
@@ -1180,6 +1206,7 @@ document.addEventListener('click', async e => {
     case 'withdraw': if (confirm(T('delMineQ'))) await Store.remove(id); break;
     case 'type': F.type = id; document.querySelectorAll('.ty').forEach(b => b.classList.toggle('on', b.dataset.id === id)); break;
     case 'pvText': pvTextSheet(); break;
+    case 'acctSend': acctSend(); break;
     case 'copyAcct': { const i = ISSUES.find(x => x.id === DET.id); try { await navigator.clipboard.writeText(i.text || ''); toast('📋 ✅'); } catch (_) { toast('⚠️'); } break; }
     case 'pvEdit': { closeSheet(); const t = $('#fText'); if (t) { t.scrollIntoView({ block: 'center' }); setTimeout(() => { t.focus(); t.setSelectionRange(t.value.length, t.value.length); fitText(t); }, 200); } break; }
     case 'pasteText': { const s = await clipText(); if (s) { F.text = (F.text ? F.text + '\n' : '') + s; $('#fText').value = F.text; fitText($('#fText')); $('#cnt').textContent = F.text.length; toast('📋 ' + T('pasted')); } break; }
