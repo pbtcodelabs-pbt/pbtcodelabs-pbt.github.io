@@ -43,19 +43,25 @@ button.sec{background:var(--line);color:var(--ink)}button.red{background:#fee2e2
 .hid{display:none!important}
 .prev img{max-height:90px;border-radius:8px;margin-top:6px}
 .ag{cursor:pointer}.ag:hover{background:rgba(15,118,110,.06)}
+.cp{padding:1px 8px!important;font-size:12px!important;border-radius:8px!important;background:#ecfeff!important;color:var(--pri)!important;border:1px solid var(--pri)!important;vertical-align:middle}
+#tst{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#0f172a;color:#fff;border-radius:12px;padding:8px 14px;font-size:14px;opacity:0;transition:.2s;pointer-events:none;z-index:9}#tst.on{opacity:1}
 .foot{text-align:center;font-size:12px;color:var(--mut);margin:20px 0}
 </style>
 </head>
 <body>
 <header><h1>🤝 MCS ایجنٹ پورٹل</h1><small>My City Shines — Agent Portal</small></header>
 <main id="app"></main>
-<div class="foot">پی بی ٹی کوڈ لیبز · <span class="num">AGP0511TH001</span></div>
+<div class="foot">پی بی ٹی کوڈ لیبز · <span class="num">AGP0511TH002</span></div>
 <script>
 const API = 'https://aio-pos-verify.pbtcodelabs.workers.dev';
 const FB_KEY = 'AIzaSyAvu8ymIZAGEPaYwd_LBJzKS2lZ3Q4_Mog'; // My City Shines (ایڈمن لاگ اِن)
 const $ = s => document.querySelector(s), app = $('#app');
 const E = s => String(s == null ? '' : s).replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
 const N = n => (+n || 0).toLocaleString('en-PK');
+/* AGP0511TH002: ہر ریفرل نمبر / ID کے ساتھ 📋 کاپی */
+const CP = v => `<button class="cp" onclick="cpy('${E(v)}')">📋 کاپی</button>`;
+function cpy(v){ const done = () => toast('📋 ' + v + ' کاپی ہو گیا'); try{ navigator.clipboard.writeText(v).then(done, () => prompt('کاپی کریں', v)); }catch(e){ prompt('کاپی کریں', v); } }
+function toast(t){ let el = document.getElementById('tst'); if(!el){ el = document.createElement('div'); el.id = 'tst'; document.body.appendChild(el); } el.textContent = t; el.className = 'on'; clearTimeout(el._t); el._t = setTimeout(() => el.className = '', 2200); }
 const D = t => t ? new Date(t).toLocaleDateString('en-GB') : '—';
 const ls = { get(k, d){ try{ const v = localStorage.getItem('agp_' + k); return v ? JSON.parse(v) : d; }catch(e){ return d; } }, set(k, v){ try{ localStorage.setItem('agp_' + k, JSON.stringify(v)); }catch(e){} }, del(k){ try{ localStorage.removeItem('agp_' + k); }catch(e){} } };
 const ADMIN = location.hash.startsWith('#admin');
@@ -88,7 +94,7 @@ function summaryHtml(s){
     <div class="st bal"><b class="num">Rs ${N(s.balance)}</b><span>📌 بقایا</span></div></div>`;
 }
 function refsHtml(s){ return (s.refs||[]).map(r => { const live = r.until > Date.now(); const tg = r.paid > 0 ? (live ? '<span class="tag t-ok">⭐ جاری</span>' : '<span class="tag t-w">⏰ مدت ختم</span>') : (live ? '<span class="tag t-n">🎁 مفت دن</span>' : '<span class="tag t-n">⏳ ابھی جاری نہیں</span>');
-  return `<div class="row"><b>${E(r.name)}</b> ${tg}<br><small>${E(r.cat)} · ${E(r.city)} · <span class="num">${E(r.phone)}</span> · درج: ${D(r.at)}${r.until ? ' · مدت: ' + D(r.until) : ''} · سال: ${N(r.paid)}</small><br><small class="num" style="color:var(--mut)">ID: ${E(r.rk)}</small></div>`; }).join('') || '<div class="row" style="color:var(--mut)">ابھی کوئی کاروبار نہیں</div>'; }
+  return `<div class="row"><b>${E(r.name)}</b> ${tg}<br><small>${E(r.cat)} · ${E(r.city)} · <span class="num">${E(r.phone)}</span> · درج: ${D(r.at)}${r.until ? ' · مدت: ' + D(r.until) : ''} · سال: ${N(r.paid)}</small><br><small class="num" style="color:var(--mut)">ID: ${E(r.rk)}</small> ${CP(r.rk)}</div>`; }).join('') || '<div class="row" style="color:var(--mut)">ابھی کوئی کاروبار نہیں</div>'; }
 function paysHtml(s, adm){ return (s.pays||[]).map(p => `<div class="row">✅ <b class="num">Rs ${N(p.amount)}</b> — ${E(p.note)} <small class="num">${D(p.ts)}</small>${adm ? ` <button class="red" style="padding:2px 8px" onclick="admUnpay(${p.id})">✕</button>` : ''}</div>`).join('') || '<div class="row" style="color:var(--mut)">ابھی کوئی ادائیگی نہیں</div>'; }
 function proofsHtml(s, adm){ return (s.proofs||[]).map(p => `<div class="row">${p.done ? '✅' : '⏳'} <b class="num">${E(p.rk)}</b> — ${E(p.note)} <small class="num">${D(p.ts)}</small>${adm && p.img ? `<br><img src="${p.img}" style="max-height:160px;border-radius:8px">` : ''}${adm && !p.done ? ` <button style="padding:2px 8px" onclick="admProofDone(${p.id})">✔ ہو گیا</button>` : ''}</div>`).join('') || '<div class="row" style="color:var(--mut)">کوئی ثبوت نہیں</div>'; }
 /* ===== ایجنٹ ===== */
@@ -106,7 +112,7 @@ async function agLoad(extra){
 }
 function agRender(){
   const s = S;
-  app.innerHTML = `<div class="card"><h2>السلام علیکم ${E(s.agent.name)} 👋</h2><div style="font-size:14px">ریفرل نمبر: <b class="num">${E(s.agent.code)}</b> · ${E(s.agent.biz)} · ${E(s.agent.city)}</div><div class="btns"><button class="sec" onclick="agLoad()">🔄 تازہ</button><button class="sec" onclick="ls.del('me');agLogin()">🚪 باہر</button></div></div>
+  app.innerHTML = `<div class="card"><h2>السلام علیکم ${E(s.agent.name)} 👋</h2><div style="font-size:14px">ریفرل نمبر: <b class="num">${E(s.agent.code)}</b> ${CP(s.agent.code)} · ${E(s.agent.biz)} · ${E(s.agent.city)}</div><div class="btns"><button class="sec" onclick="agLoad()">🔄 تازہ</button><button class="sec" onclick="ls.del('me');agLogin()">🚪 باہر</button></div></div>
     ${summaryHtml(s)}
     <div class="card"><h2>🏪 میرے لگوائے کاروبار</h2>${refsHtml(s)}</div>
     <div class="card"><h2>✅ مجھے ادائیگیاں</h2>${paysHtml(s)}</div>
@@ -144,7 +150,7 @@ async function admHome(){
 async function admSetRate(){ await admCall('/agadmin', {op:'rate', amount: $('#rate').value}); alert('✅ محفوظ'); admHome(); }
 async function admOpen(code, extra){
   admCode = code; const s = await admCall('/agportal', Object.assign({code}, extra||{})); if(!s.ok) return alert('نہیں ملا'); S = s;
-  app.innerHTML = `<div class="card"><div class="btns" style="margin:0 0 6px"><button class="sec" onclick="admHome()">← سب ایجنٹ</button></div><h2>${E(s.agent.name)} <span class="num" style="font-size:13px">${E(s.agent.code)}</span></h2><div style="font-size:14px">📱 <span class="num">0${E(String(s.agent.phone).slice(2))}</span> · ${E(s.agent.biz)} · ${E(s.agent.city)} · منظور: ${D(s.agent.okAt)}</div></div>
+  app.innerHTML = `<div class="card"><div class="btns" style="margin:0 0 6px"><button class="sec" onclick="admHome()">← سب ایجنٹ</button></div><h2>${E(s.agent.name)} <span class="num" style="font-size:13px">${E(s.agent.code)}</span> ${CP(s.agent.code)}</h2><div style="font-size:14px">📱 <span class="num">0${E(String(s.agent.phone).slice(2))}</span> · ${E(s.agent.biz)} · ${E(s.agent.city)} · منظور: ${D(s.agent.okAt)}</div></div>
     ${summaryHtml(s)}
     <div class="card"><h2>➕ ادائیگی درج کریں</h2><div class="btns"><input id="payAmt" class="num" inputmode="numeric" placeholder="رقم" style="max-width:140px"><input id="payNote" placeholder="نوٹ (ایزی پیسہ، TID…)" style="flex:1;min-width:160px"><button onclick="admPay()">💾</button></div>
       <h2 style="margin-top:10px">✅ ادائیگیاں</h2>${paysHtml(s, true)}</div>
