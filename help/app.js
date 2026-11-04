@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0411WE041';
-const UPDATE_NOTE = 'Ad requests from My City Shines: simple screen, panel shows the ad path';
+const APP_VERSION = 'HD0511TH042';
+const UPDATE_NOTE = 'Review rounds now 11 AM and 8:30 PM (Pakistan time)';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -40,9 +40,9 @@ const DICT = {
   mine: ['میرے مسائل', 'My requests'],
   mineSub: ['جو آپ نے بھیجے — حالت اور جواب', 'what you sent — status & reply'],
   hours: ['جواب کا وقت', 'Reply hours'],
-  hoursDef: ['روزانہ رات 2 بجے اور دوپہر 2 بجے — ہر مسئلہ باری سے دیکھا اور حل کیا جاتا ہے', 'Daily at 2 AM and 2 PM — every request is reviewed and fixed in turn'],
+  hoursDef: ['روزانہ صبح 11 بجے اور رات ساڑھے 8 بجے — ہر مسئلہ باری سے دیکھا اور حل کیا جاتا ہے', 'Daily at 11 AM and 8:30 PM — every request is reviewed and fixed in turn'],
   nextRev: ['اگلا جائزہ', 'Next review'],
-  slotToday2pm: ['آج دوپہر 2 بجے', 'today 2 PM'], slotTonight: ['آج رات 2 بجے', 'tonight 2 AM'],
+  slotToday2pm: ['آج صبح 11 بجے', 'today 11 AM'], slotTonight: ['آج رات ساڑھے 8 بجے', 'tonight 8:30 PM'], slotTomorrow: ['کل صبح 11 بجے', 'tomorrow 11 AM'],
   camera: ['کیمرہ', 'Camera'],
   close: ['بند کریں', 'Close'],
   whyHere: ['یہاں لکھا ہر مسئلہ محفوظ رہتا ہے، گم نہیں ہوتا، اور حل ہوتے ہی جواب یہیں آ جاتا ہے۔ واٹس ایپ پر بھیجنے کی ضرورت نہیں۔',
@@ -193,10 +193,10 @@ function unseenMine() { const seen = ls.get('seen', {}); return myList().filter(
 function markMineSeen() { const seen = ls.get('seen', {}); myList().forEach(i => seen[i.id] = sig(i)); ls.set('seen', seen); }
 function rememberMine(id, s) { const seen = ls.get('seen', {}); seen[id] = s; ls.set('seen', seen); }
 
-/* اگلا جائزہ: رات 2 بجے اور دوپہر 2 بجے (پاکستانی وقت) — Claude کی لمٹ خرچ نہیں، صرف حساب */
+/* HD0511TH042 (مالک کا حکم): اگلا جائزہ صبح 11 بجے اور رات ساڑھے 8 بجے (پاکستانی وقت) — صرف حساب */
 function nextReview() {
-  const h = new Date(Date.now() + 5 * 3600e3).getUTCHours(); // PKT = UTC+5
-  return (h >= 2 && h < 14) ? T('slotToday2pm') : T('slotTonight');
+  const d = new Date(Date.now() + 5 * 3600e3), m = d.getUTCHours() * 60 + d.getUTCMinutes(); // PKT = UTC+5
+  return m < 11 * 60 ? T('slotToday2pm') : m < 20 * 60 + 30 ? T('slotTonight') : T('slotTomorrow');
 }
 const revLine = () => `<div class="rev">⏰ ${T('nextRev')}: <b>${nextReview()}</b></div>`;
 
@@ -802,7 +802,7 @@ function urgBtn(i) {
   return `<button class="urgSw ${on ? 'on' : ''}" data-act="urgent" data-id="${i.id}" aria-pressed="${on}">
     <span class="uI">⚡</span>
     <span class="uT"><b>${on ? (i.status === 'done' ? (E ? 'URGENT — DONE ✅' : 'فوری کام — مکمل ✅') : (E ? 'URGENT — ON' : 'فوری — آن ہے')) : (E ? 'Make it urgent' : 'فوری کروائیں')}</b>
-      <small>${on ? (E ? 'Claude does this first · tap again to turn off' : 'Claude یہ سب سے پہلے کرے گا · بند کرنے کے لیے دوبارہ دبائیں') : (E ? 'Now: off — will be done at 2 o\'clock' : 'ابھی بند ہے — یہ دوپہر/رات 2 بجے ہوگا')}</small></span>
+      <small>${on ? (E ? 'Claude does this first · tap again to turn off' : 'Claude یہ سب سے پہلے کرے گا · بند کرنے کے لیے دوبارہ دبائیں') : (E ? 'Now: off — will be done in the next round (11 AM / 8:30 PM)' : 'ابھی بند ہے — یہ اگلی باری (صبح 11 / رات ساڑھے 8 بجے) میں ہوگا')}</small></span>
     <span class="uK"><i></i></span></button>`;
 }
 function urgMsg(i) { const a = appOf(i.app); return `⚡ فوری: ہیلپ ڈیسک #${i.no} (${AN(a)}) — ابھی حل کر کے لائیو کریں`; }
@@ -812,7 +812,7 @@ function urgSheet(i) {
     <p style="font-size:15px;line-height:2">${E ? 'To start right now, send this one line to Claude:' : 'ابھی اسی وقت کام شروع کروانے کے لیے یہ ایک لائن Claude کو بھیج دیں:'}</p>
     <div class="card" style="box-shadow:none;background:#fff7ed;border:1.5px solid #fb923c;font-weight:700" dir="auto">${esc(urgMsg(i))}</div>
     <button class="bigBtn" style="background:linear-gradient(135deg,#f97316,#ea580c)" data-act="urgTell" data-id="${i.id}">📋 ${E ? 'Copy & open Claude chat' : 'کاپی کر کے Claude کی چیٹ کھولیں'}</button>
-    <p style="font-size:13px;color:var(--mut);margin:8px 0 0">${E ? 'Not sent now? It will still be done first in the next 2 o\'clock round.' : 'ابھی نہ بھیجیں تو بھی 2 بجے کی باری میں سب سے پہلے یہی ہوگا۔'}</p>`);
+    <p style="font-size:13px;color:var(--mut);margin:8px 0 0">${E ? 'Not sent now? It will still be done first in the next round (11 AM / 8:30 PM).' : 'ابھی نہ بھیجیں تو بھی اگلی باری (صبح 11 / رات ساڑھے 8 بجے) میں سب سے پہلے یہی ہوگا۔'}</p>`);
 }
 const pushOn = () => { try { return window.Notification && Notification.permission === 'granted' && localStorage.getItem('pbthd_push') === '1'; } catch (e) { return false; } };
 const isUrg = i => !!i.urgent && i.status !== 'dup' && !(i.status === 'done' && Date.now() - (i.doneAt || 0) > 864e5); // حل ہونے کے بعد ایک دن تک ✅ دکھے
@@ -1176,7 +1176,7 @@ document.addEventListener('click', async e => {
       document.querySelectorAll(`[data-urgbox="${i.id}"]`).forEach(b => { b.outerHTML = urgSwitch(i); });
       if (on) document.querySelectorAll(`[data-urgbox="${i.id}"] .urgSw`).forEach(b => { b.classList.add('burst'); setTimeout(() => b.classList.remove('burst'), 1600); });
       try { await Store.update(i.id, { urgent: on, stage: i.stage, stageAt: i.stageAt }); } catch (e) { i.urgent = !on; toast('⚠️ ' + (e.message || e), 4000); break; }
-      if (on) setTimeout(() => urgSheet(i), 1100); else toast(LANG === 'en' ? '⏸️ Urgent off — it will be done in the 2 o\'clock round' : '⏸️ فوری بند — اب یہ دوپہر/رات 2 بجے کی باری میں ہوگا', 4000);
+      if (on) setTimeout(() => urgSheet(i), 1100); else toast(LANG === 'en' ? '⏸️ Urgent off — it will be done in the next round (11 AM / 8:30 PM)' : '⏸️ فوری بند — اب یہ اگلی باری (صبح 11 / رات ساڑھے 8 بجے) میں ہوگا', 4000);
       break; }
     case 'urgTell': { const i = ISSUES.find(x => x.id === id); if (!i) break;
       const msg = urgMsg(i);
