@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0411WE040';
-const UPDATE_NOTE = 'Account details from My City Shines: same simple screen, panel shows the MCS path';
+const APP_VERSION = 'HD0411WE041';
+const UPDATE_NOTE = 'Ad requests from My City Shines: simple screen, panel shows the ad path';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -423,7 +423,7 @@ function newForm(app) {
 /* HD0411WE039 (مالک کا حکم): ایپ سے آئی «اکاؤنٹ کی تفصیل» — عام فارم نہیں؛ صرف پیغام اور خود بھیجنا */
 function vAcct() {
   const a = appOf(F.app), E = LANG === 'en';
-  return `<div class="card acctCard">${appIcon(a, 'appMini')} <b>${E ? 'Account details for the developer' : 'ڈویلپر کے لیے اکاؤنٹ کی تفصیل'}</b>
+  return `<div class="card acctCard">${appIcon(a, 'appMini')} <b>${/Ad request/.test(F.text) ? (E ? 'Ad request' : '📢 اشتہار کی درخواست') : (E ? 'Account details for the developer' : 'ڈویلپر کے لیے اکاؤنٹ کی تفصیل')}</b>
     <pre class="acctPre" dir="ltr">${esc(F.text)}</pre>
     <div class="acctSt" id="acctSt">⏳ ${E ? 'Sending to the developer…' : 'ڈویلپر کو بھیجا جا رہا ہے…'}</div>
     <button class="bigBtn" id="acctRetry" style="display:none" data-act="acctSend">📨 ${E ? 'Send again' : 'دوبارہ بھیجیں'}</button>
@@ -439,7 +439,7 @@ async function acctSend() {
   try {
     const r = await Store.add({ app: F.app, type: 'ask', text: t, name, phone: P, ver: F.ver.trim(), dev: DEV, shots: 0, audio: false, lang: LANG, hold: '' }, []);
     rememberMine(r.id, 'new|0'); ls.set(sig, Date.now());
-    st.innerHTML = '✅ ' + (E ? `Sent to the developer (#${r.no}). ${F.app === 'AIO-POS-DIRECT' ? 'The developer will reply with your code.' : F.app === 'MCS' ? 'When the developer continues it, your profile turns on by itself.' : 'When your account is set up, your app opens by itself.'}` : `ڈویلپر کو بھیج دیا گیا (#${r.no})۔ ${F.app === 'AIO-POS-DIRECT' ? 'ڈویلپر آپ کو کوڈ بھیجیں گے۔' : F.app === 'MCS' ? 'ڈویلپر کے جاری کرتے ہی آپ کی پروفائل خود چالو ہو جائے گی۔' : 'اکاؤنٹ بنتے ہی آپ کی ایپ خود کھل جائے گی۔'}`);
+    st.innerHTML = '✅ ' + (E ? `Sent to the developer (#${r.no}). ${/Ad request/.test(t) ? 'Our team will prepare your ad and contact you.' : F.app === 'AIO-POS-DIRECT' ? 'The developer will reply with your code.' : F.app === 'MCS' ? 'When the developer continues it, your profile turns on by itself.' : 'When your account is set up, your app opens by itself.'}` : `ڈویلپر کو بھیج دیا گیا (#${r.no})۔ ${/Ad request/.test(t) ? 'ہماری ٹیم اشتہار تیار کر کے آپ سے رابطہ کرے گی۔' : F.app === 'AIO-POS-DIRECT' ? 'ڈویلپر آپ کو کوڈ بھیجیں گے۔' : F.app === 'MCS' ? 'ڈویلپر کے جاری کرتے ہی آپ کی پروفائل خود چالو ہو جائے گی۔' : 'اکاؤنٹ بنتے ہی آپ کی ایپ خود کھل جائے گی۔'}`);
     $('#acctDone').style.display = ''; $('#acctRetry').style.display = 'none';
   } catch (e) { st.innerHTML = '⚠️ ' + esc(e.message || e); $('#acctRetry').style.display = ''; }
   F._sending = false;
@@ -886,7 +886,7 @@ function detailHTML() {
     <div class="dcRow">${tyChip(i.type)}${stChip(i.status)}${n ? `<span class="chip work">👋 ${n + 1}</span>` : ''}
       <span class="dcMeta">👤 <b>${esc(i.name)}</b> · <a class="num" href="tel:${esc(i.phone)}">${esc(i.phone)}</a> · <a href="https://wa.me/${waNum(i.phone)}" target="_blank" rel="noopener">💬</a> · <span class="num">${fullDate(i.created)}</span>${i.ver ? ' · <span class="num">' + esc(i.ver) + '</span>' : ''}</span></div>
     ${holdBox(i)}
-    ${isAcctReq(i.text) ? `<div class="acctReq">🔑 <b>${E ? 'Account sign-in request' : 'اکاؤنٹ سائن اِن کی درخواست'}</b><br><pre class="acctPre" dir="ltr">${esc(i.text || '')}</pre><button class="tb pri" data-act="copyAcct">📋 ${E ? 'Copy & paste in Developer Panel' : 'کاپی کریں — ڈویلپر پینل میں پیسٹ کے لیے'}</button><div class="acctHow">${i.app === 'MCS' ? (E ? 'MCS → admin login → Control panel → 👤 Account Access → paste → duration → Give' : 'سٹی شائنز ← ایڈمن لاگ اِن ← کنٹرول پینل ← 👤 Account Access ← پیسٹ ← مدت ← Give') : i.app === 'AIO-POS-DIRECT' ? (E ? 'Direct app → Developer panel → 🎁 Generate Code → paste in the yellow box → package & days → Generate → send the code' : 'Direct ایپ ← ڈویلپر پینل ← 🎁 Generate Code ← پیلے خانے میں پیسٹ ← پیکج اور مدت ← Generate ← کوڈ گاہک کو') : (E ? 'App → Developer panel → 👤 Account Access → paste → package → Give' : 'ایپ ← ڈویلپر پینل ← 👤 Account Access ← پیسٹ ← پیکج اور مدت ← Give')}</div></div>` : ''}
+    ${isAcctReq(i.text) ? `<div class="acctReq">🔑 <b>${/Ad request/.test(i.text) ? (E ? '📢 Ad request' : '📢 اشتہار کی درخواست') : (E ? 'Account sign-in request' : 'اکاؤنٹ سائن اِن کی درخواست')}</b><br><pre class="acctPre" dir="ltr">${esc(i.text || '')}</pre><button class="tb pri" data-act="copyAcct">📋 ${E ? 'Copy & paste in Developer Panel' : 'کاپی کریں — ڈویلپر پینل میں پیسٹ کے لیے'}</button><div class="acctHow">${/Ad request/.test(i.text) ? (E ? 'MCS → admin → 📢 Ads → «paste message» → fields fill → save' : 'سٹی شائنز ← ایڈمن ← 📢 اشتہار ← «پیغام پیسٹ» ← خانے خود ← محفوظ') : i.app === 'MCS' ? (E ? 'MCS → admin login → Control panel → 👤 Account Access → paste → duration → Give' : 'سٹی شائنز ← ایڈمن لاگ اِن ← کنٹرول پینل ← 👤 Account Access ← پیسٹ ← مدت ← Give') : i.app === 'AIO-POS-DIRECT' ? (E ? 'Direct app → Developer panel → 🎁 Generate Code → paste in the yellow box → package & days → Generate → send the code' : 'Direct ایپ ← ڈویلپر پینل ← 🎁 Generate Code ← پیلے خانے میں پیسٹ ← پیکج اور مدت ← Generate ← کوڈ گاہک کو') : (E ? 'App → Developer panel → 👤 Account Access → paste → package → Give' : 'ایپ ← ڈویلپر پینل ← 👤 Account Access ← پیسٹ ← پیکج اور مدت ← Give')}</div></div>` : ''}
     ${isAcctReq(i.text) ? '' : `<div class="tx dcTx" dir="auto">${phoneLinks(i.text) || '<i style="color:var(--mut)">—</i>'}</div>`}
     <div class="dcSub"${isAcctReq(i.text) ? ' style="display:none"' : ''}>${i.textEd ? `✏️ ${E ? 'Edited' : 'مکمل کیا'} · <span class="num">${fullDate(i.textEd)}</span>${i.origText != null ? ` · <a href="#" data-act="showOrig">${E ? 'original' : 'اصل پیغام'}</a>` : ''} · ` : ''}<a href="#" data-act="editText">✏️ ${E ? 'Complete / edit message' : 'پیغام مکمل / درست کریں'}</a></div>
     <div id="edTextBox" style="display:none">
