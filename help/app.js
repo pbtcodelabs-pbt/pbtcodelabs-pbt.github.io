@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0311TU035';
-const UPDATE_NOTE = 'Claude copy button only for unsolved requests — never on solved ones';
+const APP_VERSION = 'HD0411WE036';
+const UPDATE_NOTE = 'Screenshot and voice can be added any time; text is checked only on Send; one compact row';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -74,6 +74,7 @@ const DICT = {
   dropT: ['اسکرین شاٹ لگائیں تو ہم بات جلدی اور بہتر سمجھ سکیں گے', 'A screenshot helps us understand faster and better'],
   gallery: ['گیلری سے', 'Gallery'], pasteImg: ['تصویر پیسٹ', 'Paste image'],
   q4: ['آواز میں بتائیں', 'Voice note'], q4s: ['اختیاری', 'optional'],
+  addL: ['ساتھ لگائیں (اختیاری):', 'Attach (optional):'], voice: ['آواز', 'Voice'],
   recT: ['🎤 آواز (اختیاری) — مزید سمجھانا ہو تو دبا کر بولیں، 2 منٹ تک', '🎤 Voice (optional) — to explain more, tap and speak, up to 2 min'],
   recOn: ['ریکارڈ ہو رہا ہے… دوبارہ دبا کر روکیں', 'Recording… tap again to stop'],
   recDone: ['آواز تیار ہے', 'Voice note ready'],
@@ -85,7 +86,7 @@ const DICT = {
   appL: ['ایپ', 'App'],
   send: ['بھیج دیں', 'Send'],
   sending: ['بھیجا جا رہا ہے…', 'Sending…'],
-  errText: ['لکھے بغیر آپ کا مسئلہ ہم تک نہیں پہنچ سکے گا — اوپر والے خانے میں اپنا مسئلہ اردو یا انگلش میں لکھنا ضروری ہے۔ اس کے بعد اسکرین شاٹ یا آواز دینا چاہیں تو ضرور دیں۔', 'Without writing, your problem cannot reach us — please type it in Urdu or English in the box above. After that you may add a screenshot or voice note.'],
+  errText: ['✍️ پیغام نہیں گیا — اوپر والے خانے میں اپنا مسئلہ اردو یا انگلش میں لکھیں، پھر «بھیج دیں» دبائیں۔ اسکرین شاٹ اور آواز محفوظ ہیں۔', '✍️ Not sent — please type your problem in Urdu or English in the box above, then tap Send. Your screenshot and voice note are kept.'],
   errPhone: ['درست موبائل نمبر لکھیں (مثلاً 03001234567)', 'Enter a valid mobile number (e.g. 03001234567)'],
   errName: ['اپنا نام لکھیں', 'Please enter your name'],
   thanks: ['شکریہ! آپ کی بات ہم تک پہنچ گئی', 'Thank you! We received it'],
@@ -436,18 +437,17 @@ function vForm() {
     <div class="tools"><button type="button" class="tb" data-act="pasteText">📋 ${T('paste')}</button>
       ${sr ? `<button type="button" class="tb" id="spkBtn" data-act="speak">🎙️ ${T('speak')}</button><select class="tb" id="spkLang" aria-label="language">${SPK_LANGS.map(([c, l]) => `<option value="${c}" ${c === spkLang() ? 'selected' : ''}>${l}</option>`).join('')}</select>` : ''}
       <span class="cnt" id="cnt">${F.text.length}</span></div>
-    <div class="err" id="eText">${T('errText')}</div>
-    <div class="recBox" id="recBox">${recHTML()}</div></div>
-
-  <div class="fs"><div class="fh"><span class="n">3</span>${T('q3')} <small>— ${T('q3s')}</small></div>
-    <div class="drop" id="drop"><p>💡 ${T('dropT')}</p>
-      <div class="tools"><button type="button" class="tb pri" data-act="gallery">🖼️ ${T('gallery')}</button>
-      <button type="button" class="tb" data-act="camera">📷 ${T('camera')}</button>
-      <button type="button" class="tb" data-act="pasteImg">📋 ${T('pasteImg')}</button></div>
+    <!-- HD0411WE036 (مالک کا حکم): آواز اور اسکرین شاٹ اسی ڈبے کے نیچے ایک قطار میں — پہلے بھی لگ سکیں، روک صرف بھیجتے وقت -->
+    <div class="tools addRow" id="drop"><span class="arL">${T('addL')}</span>
+      <span id="recBox" class="recMini">${recHTML()}</span>
+      <button type="button" class="tb" data-act="gallery">🖼️ ${T('gallery')}</button>
+      <button type="button" class="tb" data-act="camera">📷</button>
+      <button type="button" class="tb" data-act="pasteImg">📋 ${T('pasteImg')}</button>
       <input type="file" id="fileIn" accept="image/*" multiple hidden><input type="file" id="camIn" accept="image/*" capture="environment" hidden></div>
-    <div class="shots" id="shots">${shotsHTML()}</div></div>
+    <div class="shots" id="shots">${shotsHTML()}</div>
+    <div class="err" id="eText">${T('errText')}</div></div>
 
-  <div class="fs"><div class="fh"><span class="n">4</span>${T('q5')} <small>— 🔒 ${T('q5s')}</small></div>
+  <div class="fs"><div class="fh"><span class="n">3</span>${T('q5')} <small>— 🔒 ${T('q5s')}</small></div>
     <label class="lbl">${T('name')}</label><input class="inp" dir="auto" data-in="name" value="${esc(F.name)}" autocomplete="name">
     <div class="err" id="eName">${T('errName')}</div>
     <label class="lbl">${T('phone')}</label>
@@ -462,10 +462,9 @@ function vForm() {
 }
 const shotsHTML = () => F.shots.map((s, k) => `<div class="shot"><img src="${s}" data-view="${k}" alt=""><b data-act="rmShot" data-id="${k}">✕</b></div>`).join('');
 function recHTML() {
-  if (REC.on) return `<button type="button" class="mic on" data-act="rec">⏹</button><div class="t"><b id="recT">0:00</b>${T('recOn')}</div>`;
-  if (F.audio) return `<button type="button" class="mic" data-act="rec" title="again">🎤</button><div class="t"><b>✅ ${fmtMs(F.audioMs)}</b>${T('recDone')}</div>
-    <audio controls src="${F.audio}"></audio><button type="button" class="tb red" data-act="rmAudio">🗑️</button>`;
-  return `<button type="button" class="mic" data-act="rec">🎤</button><div class="t">${T('recT')}</div>`;
+  if (REC.on) return `<button type="button" class="tb mic2 on" data-act="rec">⏹ <b id="recT">0:00</b></button>`;
+  if (F.audio) return `<button type="button" class="tb mic2" data-act="rec" title="again">🎤 ✅ ${fmtMs(F.audioMs)}</button><button type="button" class="tb red" data-act="rmAudio">🗑️</button><audio controls src="${F.audio}"></audio>`;
+  return `<button type="button" class="tb mic2" data-act="rec">🎤 ${T('voice')}</button>`;
 }
 const fmtMs = ms => Math.floor(ms / 60000) + ':' + String(Math.floor(ms / 1000) % 60).padStart(2, '0');
 
@@ -554,6 +553,7 @@ async function send() {
   const P = normPhone(F.phone);
   const eT = F.text.trim().length < 3, eN = !F.name.trim(), eP = !phoneOk(P);
   $('#eText').classList.toggle('on', eT); $('#eName').classList.toggle('on', eN); $('#ePhone').classList.toggle('on', eP);
+  if (eT) { needText(); return; }
   const bad = document.querySelector('.err.on'); if (bad) { bad.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
   if (F.remember) ls.set('me', { name: F.name.trim(), phone: P }); else ls.set('me', {});
   busy(true, T('sending'));
@@ -1104,7 +1104,7 @@ function needText() {
   if (F && F.text.trim().length >= 3) return false;
   const e = $('#eText'); if (e) e.classList.add('on');
   const t = $('#fText'); if (t) { t.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => t.focus(), 300); t.classList.add('need'); setTimeout(() => t.classList.remove('need'), 1600); }
-  toast('✍️ ' + T('errText'), 5000);
+  toast(T('errText'), 5000);
   return true;
 }
 function bindForm() {
@@ -1113,7 +1113,7 @@ function bindForm() {
   const d = $('#drop');
   d.ondragover = e => { e.preventDefault(); d.classList.add('over'); };
   d.ondragleave = () => d.classList.remove('over');
-  d.ondrop = e => { e.preventDefault(); d.classList.remove('over'); if (needText()) return; addShots([...e.dataTransfer.files]); };
+  d.ondrop = e => { e.preventDefault(); d.classList.remove('over'); addShots([...e.dataTransfer.files]); };
 }
 
 /* ---------- واقعات ---------- */
@@ -1166,12 +1166,12 @@ document.addEventListener('click', async e => {
     case 'type': F.type = id; document.querySelectorAll('.ty').forEach(b => b.classList.toggle('on', b.dataset.id === id)); break;
     case 'pasteText': { const s = await clipText(); if (s) { F.text = (F.text ? F.text + '\n' : '') + s; $('#fText').value = F.text; $('#cnt').textContent = F.text.length; toast('📋 ' + T('pasted')); } break; }
     case 'speak': toggleSpeak(); break;
-    case 'gallery': if (needText()) break; $('#fileIn').click(); break;
-    case 'camera': if (needText()) break; $('#camIn').click(); break;
+    case 'gallery': $('#fileIn').click(); break;
+    case 'camera': $('#camIn').click(); break;
     case 'embedClose': try { parent.postMessage({ pbthd: 'close' }, '*'); } catch (_) {} break;
-    case 'pasteImg': { if (needText()) break; const b = await clipImages(); if (b.length) { await addShots(b.map(x => new File([x], 'p.png', { type: x.type }))); toast('📋 ' + T('pasted')); } break; }
+    case 'pasteImg': { const b = await clipImages(); if (b.length) { await addShots(b.map(x => new File([x], 'p.png', { type: x.type }))); toast('📋 ' + T('pasted')); } break; }
     case 'rmShot': F.shots.splice(+id, 1); $('#shots').innerHTML = shotsHTML(); break;
-    case 'rec': if (!REC.on && needText()) break; toggleRec(); break;
+    case 'rec': toggleRec(); break;
     case 'rmAudio': F.audio = null; F.audioMs = 0; $('#recBox').innerHTML = recHTML(); break;
     case 'pastePhone': { const s = await clipText(); if (s) { F.phone = normPhone(s); document.querySelector('[data-in=phone]').value = F.phone; } break; }
     case 'send': send(); break;
@@ -1278,7 +1278,7 @@ document.addEventListener('keydown', e => {
 document.addEventListener('paste', e => {
   if (R.v !== 'new' || !F) return;
   const files = [...(e.clipboardData && e.clipboardData.files || [])].filter(f => /^image\//.test(f.type));
-  if (files.length) { e.preventDefault(); if (needText()) return; addShots(files); toast('🖼️ ' + T('pasted')); }
+  if (files.length) { e.preventDefault(); addShots(files); toast('🖼️ ' + T('pasted')); }
 });
 function showImg(src) { $('#vimg').src = src; $('#viewer').classList.add('on'); }
 $('#viewer').addEventListener('click', () => $('#viewer').classList.remove('on'));
