@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0411WE036';
-const UPDATE_NOTE = 'Screenshot and voice can be added any time; text is checked only on Send; one compact row';
+const APP_VERSION = 'HD0411WE037';
+const UPDATE_NOTE = 'Up to 10 screenshots; writing box grows with text; 👁️ preview; languages in Urdu + English';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -94,7 +94,8 @@ const DICT = {
   thanksP: ['ہم باری سے دیکھیں گے۔ حالت بدلتے ہی اور حل ہوتے ہی جواب «میرے مسائل» میں یہیں آ جائے گا۔',
     'We will look at it in turn. Status updates and the answer will appear here in «My requests».'],
   home: ['ہوم', 'Home'],
-  maxShots: ['زیادہ سے زیادہ 4 تصویریں', 'Maximum 4 images'],
+  maxShots: ['زیادہ سے زیادہ 10 تصویریں', 'Maximum 10 images'],
+  pv: ['دیکھیں', 'Preview'], pvT: ['آپ کا پورا پیغام', 'Your full message'], pvE: ['ابھی کچھ نہیں لکھا', 'Nothing written yet'], pvEdit: ['✏️ درست کریں', '✏️ Edit'],
   noClipImg: ['کلپ بورڈ میں تصویر نہیں ملی — پہلے اسکرین شاٹ کاپی کریں یا گیلری سے چنیں', 'No image in clipboard — copy a screenshot first or use Gallery'],
   noClip: ['پیسٹ کی اجازت نہیں ملی — خانے کو دبا کر رکھیں اور Paste چنیں', 'Paste not allowed — long-press the box and choose Paste'],
   micErr: ['مائیک کی اجازت نہیں ملی', 'Microphone permission denied'],
@@ -435,7 +436,8 @@ function vForm() {
   <div class="fs"><div class="fh"><span class="n">2</span>${T('q2')} <b class="req">*</b> <small>— ${T('q2s')}</small></div>
     <textarea class="big" id="fText" dir="auto" data-in="text" placeholder="${T('ph')}">${esc(F.text)}</textarea>
     <div class="tools"><button type="button" class="tb" data-act="pasteText">📋 ${T('paste')}</button>
-      ${sr ? `<button type="button" class="tb" id="spkBtn" data-act="speak">🎙️ ${T('speak')}</button><select class="tb" id="spkLang" aria-label="language">${SPK_LANGS.map(([c, l]) => `<option value="${c}" ${c === spkLang() ? 'selected' : ''}>${l}</option>`).join('')}</select>` : ''}
+      ${sr ? `<button type="button" class="tb" id="spkBtn" data-act="speak">🎙️ ${T('speak')}</button><select class="tb" id="spkLang" aria-label="language">${SPK_LANGS.map(([c, l, e]) => `<option value="${c}" ${c === spkLang() ? 'selected' : ''}>${l === e ? l : l + ' — ' + e}</option>`).join('')}</select>` : ''}
+      <button type="button" class="tb" data-act="pvText">👁️ ${T('pv')}</button>
       <span class="cnt" id="cnt">${F.text.length}</span></div>
     <!-- HD0411WE036 (مالک کا حکم): آواز اور اسکرین شاٹ اسی ڈبے کے نیچے ایک قطار میں — پہلے بھی لگ سکیں، روک صرف بھیجتے وقت -->
     <div class="tools addRow" id="drop"><span class="arL">${T('addL')}</span>
@@ -485,10 +487,11 @@ async function shrink(blob) {
     return out;
   } finally { URL.revokeObjectURL(url); }
 }
+const MAX_SHOTS = 10; /* HD0411WE037 (مالک کا حکم): 4 کی جگہ 10 */
 async function addShots(files) {
   for (const f of files) {
     if (!/^image\//.test(f.type)) continue;
-    if (F.shots.length >= 4) { toast(T('maxShots')); break; }
+    if (F.shots.length >= MAX_SHOTS) { toast(T('maxShots')); break; }
     try { F.shots.push(await shrink(f)); } catch (e) {}
   }
   const s = $('#shots'); if (s) s.innerHTML = shotsHTML();
@@ -519,9 +522,18 @@ async function toggleRec() {
   } catch (e) { toast(T('micErr')); }
 }
 /* بول کر لکھیں — کوئی بھی زبان */
-const SPK_LANGS = [['ur-PK', 'اردو'], ['en-US', 'English'], ['pa-Guru-IN', 'ਪੰਜਾਬੀ'], ['hi-IN', 'हिन्दी'], ['ar-SA', 'العربية'], ['fa-IR', 'فارسی'], ['ps-AF', 'پښتو'], ['sd-IN', 'سنڌي'], ['bn-BD', 'বাংলা'], ['tr-TR', 'Türkçe'], ['zh-CN', '中文'], ['fr-FR', 'Français'], ['es-ES', 'Español'], ['de-DE', 'Deutsch']];
+/* HD0411WE037 (#62): ہر زبان کا اردو نام + انگریزی نام */
+const SPK_LANGS = [['ur-PK', 'اردو', 'Urdu'], ['en-US', 'انگلش', 'English'], ['pa-Guru-IN', 'پنجابی', 'Punjabi'], ['hi-IN', 'ہندی', 'Hindi'], ['ar-SA', 'عربی', 'Arabic'], ['fa-IR', 'فارسی', 'Persian'], ['ps-AF', 'پشتو', 'Pashto'], ['sd-IN', 'سندھی', 'Sindhi'], ['bn-BD', 'بنگالی', 'Bengali'], ['tr-TR', 'ترکی', 'Turkish'], ['zh-CN', 'چینی', 'Chinese'], ['fr-FR', 'فرانسیسی', 'French'], ['es-ES', 'ہسپانوی', 'Spanish'], ['de-DE', 'جرمن', 'German']];
 const spkLang = () => ls.get('spk', LANG === 'en' ? 'en-US' : 'ur-PK');
 let SR = null;
+/* HD0411WE037 (#62): لکھنے کا خانہ لکھائی کے ساتھ بڑا ہو — آخری لائن ہمیشہ نظر آئے */
+function fitText(ta) { if (!ta) return; ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight + 4, Math.round(innerHeight * 0.6)) + 'px'; ta.scrollTop = ta.scrollHeight; }
+function pvTextSheet() {
+  const t = (F && F.text || '').trim();
+  sheet(`<h2>👁️ ${T('pvT')}<button class="x" data-act="close">✕</button></h2>
+    <div class="pvTxt" dir="auto">${t ? esc(t).replace(/\n/g, '<br>') : `<i>${T('pvE')}</i>`}</div>
+    <button type="button" class="btn pvEd" data-act="pvEdit">${T('pvEdit')}</button>`);
+}
 function toggleSpeak() {
   const btn = $('#spkBtn');
   if (SR) { SR.stop(); return; }
@@ -530,7 +542,7 @@ function toggleSpeak() {
   SR.onresult = e => {
     for (let k = e.resultIndex; k < e.results.length; k++) if (e.results[k].isFinal) {
       F.text = (F.text ? F.text.replace(/\s*$/, ' ') : '') + e.results[k][0].transcript.trim();
-      const ta = $('#fText'); if (ta) ta.value = F.text; $('#cnt') && ($('#cnt').textContent = F.text.length);
+      const ta = $('#fText'); if (ta) { ta.value = F.text; fitText(ta); } $('#cnt') && ($('#cnt').textContent = F.text.length);
     }
   };
   SR.onend = () => { SR = null; if (btn) { btn.classList.remove('rec'); btn.innerHTML = '🎙️ ' + T('speak'); } };
@@ -1089,7 +1101,7 @@ function render() {
   header();
   const V = { home: vHome, app: vApp, new: vForm, thanks: vThanks, mine: vMine, i: vOne, owner: vOwner }[R.v] || vHome;
   $('#main').innerHTML = V();
-  if (R.v === 'new') bindForm();
+  if (R.v === 'new') { bindForm(); const ft = $('#fText'); if (ft && ft.value) { ft.style.height = 'auto'; ft.style.height = Math.min(ft.scrollHeight + 4, Math.round(innerHeight * 0.6)) + 'px'; } }
   if (DET && $('#ov').classList.contains('on')) sheet(detailHTML(), true);
 }
 let rT = 0;
@@ -1164,7 +1176,9 @@ document.addEventListener('click', async e => {
     }
     case 'withdraw': if (confirm(T('delMineQ'))) await Store.remove(id); break;
     case 'type': F.type = id; document.querySelectorAll('.ty').forEach(b => b.classList.toggle('on', b.dataset.id === id)); break;
-    case 'pasteText': { const s = await clipText(); if (s) { F.text = (F.text ? F.text + '\n' : '') + s; $('#fText').value = F.text; $('#cnt').textContent = F.text.length; toast('📋 ' + T('pasted')); } break; }
+    case 'pvText': pvTextSheet(); break;
+    case 'pvEdit': { closeSheet(); const t = $('#fText'); if (t) { t.scrollIntoView({ block: 'center' }); setTimeout(() => { t.focus(); t.setSelectionRange(t.value.length, t.value.length); fitText(t); }, 200); } break; }
+    case 'pasteText': { const s = await clipText(); if (s) { F.text = (F.text ? F.text + '\n' : '') + s; $('#fText').value = F.text; fitText($('#fText')); $('#cnt').textContent = F.text.length; toast('📋 ' + T('pasted')); } break; }
     case 'speak': toggleSpeak(); break;
     case 'gallery': $('#fileIn').click(); break;
     case 'camera': $('#camIn').click(); break;
@@ -1262,7 +1276,7 @@ document.addEventListener('input', e => {
   const k = e.target.dataset.in;
   if (k && F) {
     F[k] = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
-    if (k === 'text') $('#cnt').textContent = F.text.length;
+    if (k === 'text') { $('#cnt').textContent = F.text.length; fitText(e.target); }
     if (k === 'app') { F.app = e.target.value; history.replaceState(null, '', '#/new/' + encodeURIComponent(F.app)); parse(); render(); }
   }
   const o = e.target.dataset.oin;
