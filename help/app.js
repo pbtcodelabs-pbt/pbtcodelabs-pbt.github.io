@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0411WE050';
-const UPDATE_NOTE = 'AIO video shows the real printed bill and the daily profit report';
+const APP_VERSION = 'HD0511TH051';
+const UPDATE_NOTE = 'منظوری کی پیلی پٹی؛ اپنے مسئلے پر فوری / ڈرافٹ / اگلا جائزہ';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -288,6 +288,7 @@ function vHome() {
     return `<button class="ap" data-act="${own ? 'oapp' : 'app'}" data-id="${esc(a.id)}">${nn ? `<span class="bd2">${nn} ${LANG === 'en' ? 'new' : (nn === 1 ? 'نیا' : 'نئے')}</span>` : ''}${appIcon(a)}<span class="n ${/[a-z]/i.test(AN(a)) && LANG !== 'en' ? 'en' : ''}">${esc(AN(a))}</span>${n ? `<span class="bd">${n}</span>` : ''}</button>`;
   }).join('');
   return `
+  ${own ? apprStrip() : ''}
   ${own ? `<div class="card stats" data-act="goOwner" style="cursor:pointer;grid-template-columns:repeat(4,1fr)">${countsHTML(hdCounts())}<div class="st g"><span class="v">${weekSolved(ISSUES)}</span><span class="l">✅ ${T('solvedWeek')}</span></div></div>` : `
   <div class="card stats">
     <div class="st g"><span class="v">${weekSolved(ISSUES)}</span><span class="l">✅ ${T('solvedWeek')}</span></div>
@@ -599,15 +600,12 @@ async function send() {
   try {
     const blobs = F.shots.map(d => ({ kind: 'shot', data: d }));
     if (F.audio) blobs.push({ kind: 'audio', data: F.audio });
-    const r = await Store.add({ app: F.app, type: F.type, text: F.text.trim(), name: F.name.trim(), phone: P, ver: F.ver.trim(), dev: DEV, shots: F.shots.length, audio: !!F.audio, lang: LANG, hold: F.type === 'idea' ? 'decide' : '' }, blobs);
+    const r = await Store.add({ app: F.app, type: F.type, text: F.text.trim(), name: F.name.trim(), phone: P, ver: F.ver.trim(), dev: DEV, shots: F.shots.length, audio: !!F.audio, lang: LANG, hold: F.type === 'idea' && !Store.isOwner() ? 'decide' : '' }, blobs);
     rememberMine(r.id, 'new|0');
     // HD0511TH046 (مالک کا حکم): مالک / ڈویلپر کا اپنا مسئلہ خود قطار میں — کوئی ⚡ بٹن یا کاپی پیسٹ نہیں، پیش رفت فوراً
-    const own = Store.isOwner();
-    if (own) { try { await Store.update(r.id, { urgent: true, stage: 'claude', stageAt: Date.now(), cAt: Date.now() }); } catch (_) {} }
+    // HD0511TH051 (مالک کا حکم): اب خود فوری نہیں — شکریہ صفحے پر تین بٹن: ⚡ فوری / 📝 ڈرافٹ / ⏭️ اگلا جائزہ
     const app = F.app; F = null;
     go('#/thanks/' + r.no + '/' + encodeURIComponent(app));
-    // HD0511TH047 (مالک کا حکم: فوراً): مالک کا مسئلہ بھیجتے ہی ایک بٹن — کاپی + Claude کی چیٹ، وہاں پیسٹ کرتے ہی کام شروع
-    if (own) setTimeout(() => { try { urgSheet({ id: r.id, no: r.no, app }); } catch (_) {} }, 500);
   } catch (e) { toast('⚠️ ' + (e.message || e), 4000); }
   finally { busy(false); }
 }
@@ -687,7 +685,8 @@ async function cleanup() {
   if (old.length) toast('🧹 ' + old.length + (LANG === 'en' ? ' old solved removed' : ' پرانے حل شدہ ہٹا دیے'));
 }
 const needsSend = i => !!i.reply && i.notified !== sig(i);
-const isHeld = i => i.hold === 'decide' || i.hold === 'approve';
+const decided = i => !!(i.urgent || i.stage);   // HD0511TH051: ⚡ / کام شروع ہو گیا = فیصلہ ہو چکا، «فیصلے کا منتظر» نہیں
+const isHeld = i => (i.hold === 'decide' && !decided(i)) || i.hold === 'approve';
 /* HD0211MO016 — 🔔 مالک کے لیے تین گنتیاں: 🔴 نئے (ان دیکھے)، 🔵 کام جاری، ⏳ منظوری کے منتظر (hd.py notify بھی یہی حساب کرتا ہے) */
 function hdCounts(list) {
   list = list || ISSUES;
@@ -805,8 +804,39 @@ function urgSwitch(i) {
   // HD0511TH044 (مالک کا حکم): کام مکمل ہو جائے تو ⚡ کی پٹی اور پیش رفت دونوں غائب؛ اکاؤنٹ / اشتہار کی درخواست پر ⚡ ہی نہیں
   if (closed || isAcctReq(i.text)) return '';
   const prog = i.urgent || (i.stage && i.status !== 'new') ? urgProgress(i) : '';
-  if (isOwnIssue(i)) return `<div class="urgBox" data-urgbox="${i.id}">${prog || urgProgress(Object.assign({}, i, { urgent: true, stage: i.stage || 'claude' }))}</div>`;   // HD0511TH046: اپنا مسئلہ — سوئچ نہیں، صرف پیش رفت
+  if (isOwnIssue(i)) return `<div class="urgBox" data-urgbox="${i.id}">${ownChoice(i)}${i.urgent ? prog : ''}</div>`;   // HD0511TH051: اپنا مسئلہ — فوری / ڈرافٹ / اگلا جائزہ
   return `<div class="urgBox" data-urgbox="${i.id}">${parkRow(i)}${i.hold === 'later' || i.hold === 'info' ? '' : urgBtn(i)}${prog}</div>`;
+}
+/* HD0511TH051 (مالک کا حکم): مالک کا اپنا مسئلہ — ⚡ فوری (ابھی کام) / 📝 ڈرافٹ (صرف یادداشت، کوئی کام نہیں) / ⏭️ اگلے جائزے پر (صبح 11 / رات ساڑھے 8) */
+function ownChoice(i) {
+  const E = LANG === 'en', cur = i.urgent ? 'now' : i.hold === 'draft' ? 'draft' : 'next';
+  const B = (k, ic, ur, en) => `<button class="oc ${cur === k ? 'on' : ''}" data-act="ownPick" data-id="${i.id}|${k}">${ic}<b>${E ? en : ur}</b></button>`;
+  const msg = cur === 'now' ? (E ? '⚡ Urgent — Claude is on it now' : '⚡ فوری — Claude ابھی کام کر رہا ہے') : cur === 'draft' ? (E ? '📝 Draft — kept as a note, no work until you choose' : '📝 ڈرافٹ — صرف یادداشت، جب تک آپ نہ کہیں کام نہیں ہوگا') : (E ? '⏭️ Will be done in the next review (11 AM / 8:30 PM)' : '⏭️ اگلے جائزے (صبح 11 / رات ساڑھے 8 بجے) میں ہوگا');
+  return `<div class="ownCh"><div class="ocR">${B('now', '⚡', 'فوری کام کریں', 'Urgent now')}${B('draft', '📝', 'ڈرافٹ رکھیں', 'Keep as draft')}${B('next', '⏭️', 'اگلے جائزے پر', 'Next review')}</div><div class="ocM">${msg}</div></div>`;
+}
+/* HD0511TH051 (مالک کا حکم): ہوم پر پیلی پٹی — «محترم عبدالحفیظ! یہ مسائل آپ کی منظوری کے منتظر ہیں» + گنتی؛ دبائیں تو سب ایک جگہ */
+const apprList = () => ISSUES.filter(i => !['done', 'dup'].includes(i.status) && isHeld(i)).sort((a, b) => (a.no || 0) - (b.no || 0));
+function apprStrip() {
+  const n = apprList().length; if (!n) return '';
+  const E = LANG === 'en';
+  return `<button class="apprStrip" data-act="apprOpen"><span class="aT">⚠️ ${E ? 'Respected Abdul Hafeez! These issues are waiting for your approval' : 'محترم عبدالحفیظ! یہ مسائل آپ کی منظوری کے منتظر ہیں'}</span><span class="aN num">${n}</span></button>`;
+}
+function apprSheet() {
+  const E = LANG === 'en', L = apprList();
+  if (!L.length) { closeSheet(); toast(E ? '✅ Nothing waiting for approval' : '✅ منظوری کے لیے کچھ باقی نہیں'); return; }
+  sheet(`<h2>⏳ ${E ? 'Waiting for your approval' : 'آپ کی منظوری کے منتظر'} <span class="num">(${L.length})</span><button class="x" data-act="close">✕</button></h2>
+    ${L.map(i => `<div class="apI" data-api="${i.id}">
+      <div class="apH" data-act="apView" data-id="${i.id}">${appIcon(appOf(i.app), 'appMini')} <b class="num">#${i.no}</b> <span>${esc(AN(appOf(i.app)))}</span> <span class="tg">${i.hold === 'approve' ? (E ? 'Ready to go live' : 'لائیو کی منظوری') : (E ? 'Suggestion' : 'مشورہ')}</span></div>
+      <div class="apX clamp" dir="auto" data-act="apView" data-id="${i.id}">${esc(i.text || '🎤')}</div>
+      <div class="apB">
+        <button class="tb grn" data-act="apGo" data-id="${i.id}">✅ ${i.hold === 'approve' ? (E ? 'Approve — go live' : 'منظور — لائیو کریں') : (E ? 'Approve — start now' : 'منظور — ابھی کام')}</button>
+        ${i.hold === 'approve' ? '' : `<button class="tb" data-act="apNext" data-id="${i.id}">⏭️ ${E ? 'Next review' : 'اگلے جائزے پر'}</button>`}
+        <button class="tb" data-act="apAsk" data-id="${i.id}">❓ ${E ? 'Need more details' : 'مزید تفصیل درکار'}</button>
+        <button class="tb red" data-act="apDel" data-id="${i.id}">🗑️ ${E ? 'Delete' : 'حذف'}</button>
+      </div>
+      <div class="apAsk" id="ask_${i.id}" style="display:none"><textarea class="inp" dir="auto" rows="3" placeholder="${E ? 'What do you want to ask the person who sent this?' : 'مسئلہ بھیجنے والے سے کیا پوچھنا ہے؟ یہاں لکھیں…'}"></textarea>
+        <button class="tb pri" data-act="apSend" data-id="${i.id}">📨 ${E ? 'Send to customer' : 'گاہک کو بھیجیں'}</button></div>
+    </div>`).join('')}`, true);
 }
 /* HD0511TH046 (مالک کا حکم): گاہک کے ہر مسئلے پر — ⚡ فوری / ⏸️ بعد میں (فہرست سے ایک طرف) / ❓ مزید تفصیل پوچھیں (رکا، گاہک سے سوال) */
 function parkRow(i) {
@@ -840,9 +870,9 @@ function tabOk(i, t) {
   if (t === 'done') return i.status === 'done' || (i.stage === 'done' && i.status !== 'dup');
   if (t === 'dup') return i.status === 'dup';
   if (t === 'send') return needsSend(i);
-  if (t === 'park') return !fin && (i.hold === 'later' || i.hold === 'info');
+  if (t === 'park') return !fin && (i.hold === 'later' || i.hold === 'info' || i.hold === 'draft');
   if (fin) return false;
-  if (i.hold === 'later' || i.hold === 'info') return false;   // HD0511TH046: ایک طرف رکھے / تفصیل کے منتظر صرف «⏸️ رکے» ٹیب میں
+  if (i.hold === 'later' || i.hold === 'info' || i.hold === 'draft') return false;   // HD0511TH046: ایک طرف رکھے / تفصیل کے منتظر صرف «⏸️ رکے» ٹیب میں
   return t === 'all' ? true : t === 'urg' ? isUrg(i) : t === 'open' ? (isOpen(i) || isHeld(i)) : t === 'hold' ? isHeld(i) : i.status === t;
 }
 const bulkTodo = i => i.status !== 'done' && i.status !== 'dup' && i.stage !== 'done';
@@ -942,6 +972,7 @@ function detailHTML() {
 /* منظوری: مشورہ (کام کریں؟) یا Claude کا تیار کام (لائیو کریں؟) */
 function holdBox(i) {
   const E = LANG === 'en';
+  if (i.hold === 'decide' && decided(i)) return `<div class="hold ok">✅ ${E ? 'Approved — work has started' : 'منظور — کام شروع ہو چکا ہے'}</div>`;
   if (i.hold === 'decide') return `<div class="hold"><b>💡 ${E ? 'Waiting for your decision: work on this suggestion?' : 'آپ کے فیصلے کا منتظر: اس مشورے پر کام کریں؟'}</b>
     <div class="tools"><button class="tb grn" data-act="hold" data-id="go">✅ ${E ? 'Yes, work on it' : 'ہاں، کام کریں'}</button>
     <button class="tb red" data-act="hold" data-id="no">❌ ${E ? 'Not now' : 'ابھی نہیں'}</button></div></div>`;
@@ -1195,6 +1226,25 @@ document.addEventListener('click', async e => {
     case 'lang': setLang(LANG === 'en' ? 'ur' : 'en'); break;
     case 'back': if (EMBED || history.length <= 1) go(R.v === 'app' ? '#/' : (R.v === 'new' ? '#/app/' + encodeURIComponent(R.a) : '#/')); else history.back(); break;
     case 'rank': rankSheet(id); break;
+    case 'ownPick': { const [iid, k] = id.split('|'); const i = ISSUES.find(x => x.id === iid); if (!i) break;
+      const p = k === 'now' ? { urgent: true, stage: 'claude', stageAt: Date.now(), cAt: Date.now(), hold: '' } : k === 'draft' ? { urgent: false, stage: '', hold: 'draft' } : { urgent: false, stage: '', hold: '' };
+      Object.assign(i, p); document.querySelectorAll(`[data-urgbox="${i.id}"]`).forEach(b => { b.outerHTML = urgSwitch(i); });
+      try { await Store.update(i.id, p); } catch (e) { toast('⚠️ ' + (e.message || e), 4000); break; }
+      toast(k === 'now' ? '⚡ ✅' : k === 'draft' ? '📝 ✅' : '⏭️ ✅'); break; }
+    case 'apprOpen': apprSheet(); break;
+    case 'apView': openDetail(id); break;
+    case 'apGo': case 'apNext': { const i = ISSUES.find(x => x.id === id); if (!i) break;
+      const p = i.hold === 'approve' ? { hold: 'merge' } : act === 'apGo' ? { hold: 'go', urgent: true, stage: 'claude', stageAt: Date.now(), cAt: Date.now(), status: i.status === 'new' ? 'seen' : i.status } : { hold: 'go' };
+      try { await Store.update(i.id, p); Object.assign(i, p); } catch (e) { toast('⚠️ ' + (e.message || e), 4000); break; }
+      toast(act === 'apGo' ? (LANG === 'en' ? '✅ Approved — work starts now' : '✅ منظور — کام ابھی شروع') : (LANG === 'en' ? '⏭️ Will be done in the next review' : '⏭️ اگلے جائزے میں ہوگا'), 3500); apprSheet(); break; }
+    case 'apAsk': { const b = document.getElementById('ask_' + id); if (b) { b.style.display = b.style.display === 'none' ? 'block' : 'none'; const ta = b.querySelector('textarea'); if (ta && b.style.display === 'block') ta.focus(); } break; }
+    case 'apSend': { const i = ISSUES.find(x => x.id === id); const ta = document.querySelector('#ask_' + id + ' textarea'); const q = ((ta && ta.value) || '').trim(); if (!i) break;
+      if (!q) { toast(LANG === 'en' ? 'Write your question first' : 'پہلے سوال لکھیں'); if (ta) ta.focus(); break; }
+      const p = { hold: 'info', reply: q, replyAt: Date.now(), urgent: false, status: i.status === 'new' ? 'seen' : i.status };
+      try { await Store.update(i.id, p); Object.assign(i, p); } catch (e) { toast('⚠️ ' + (e.message || e), 4000); break; }
+      toast(LANG === 'en' ? '📨 Sent — the customer sees your question' : '📨 بھیج دیا — گاہک کو آپ کا سوال نظر آ رہا ہے', 4000); apprSheet(); break; }
+    case 'apDel': { if (!confirm(LANG === 'en' ? 'Delete this issue permanently?' : 'یہ مسئلہ ہمیشہ کے لیے حذف کریں؟')) break;
+      try { await Store.remove(id); ISSUES = ISSUES.filter(x => x.id !== id); } catch (e) { toast('⚠️ ' + (e.message || e), 4000); break; } toast('🗑️ ✅'); apprSheet(); break; }
     case 'urgent': {
       const i = ISSUES.find(x => x.id === (id || (DET && DET.id))); if (!i) break;
       const on = !i.urgent;
@@ -1202,7 +1252,8 @@ document.addEventListener('click', async e => {
       i.stage = on ? 'sent' : ''; i.stageAt = Date.now();
       document.querySelectorAll(`[data-urgbox="${i.id}"]`).forEach(b => { b.outerHTML = urgSwitch(i); });
       if (on) document.querySelectorAll(`[data-urgbox="${i.id}"] .urgSw`).forEach(b => { b.classList.add('burst'); setTimeout(() => b.classList.remove('burst'), 1600); });
-      try { await Store.update(i.id, { urgent: on, stage: i.stage, stageAt: i.stageAt }); } catch (e) { i.urgent = !on; toast('⚠️ ' + (e.message || e), 4000); break; }
+      const hp = on && i.hold === 'decide' ? { hold: 'go' } : {}; Object.assign(i, hp);   // HD0511TH051: ⚡ = منظوری
+      try { await Store.update(i.id, Object.assign({ urgent: on, stage: i.stage, stageAt: i.stageAt }, hp)); } catch (e) { i.urgent = !on; toast('⚠️ ' + (e.message || e), 4000); break; }
       if (on) setTimeout(() => urgSheet(i), 1100); else toast(LANG === 'en' ? '⏸️ Urgent off — it will be done in the next round (11 AM / 8:30 PM)' : '⏸️ فوری بند — اب یہ اگلی باری (صبح 11 / رات ساڑھے 8 بجے) میں ہوگا', 4000);
       break; }
     case 'urgTell': { const i = ISSUES.find(x => x.id === id); if (!i) break; if (!i.cAt) Store.update(i.id, { cAt: Date.now() }).catch(() => {});

@@ -5,7 +5,7 @@
 
   python3 help/tools/hd.py list              # کھلے مسائل (new / seen / work) + منظوری والے (hold)
   python3 help/tools/hd.py list --all        # سب
-  python3 help/tools/hd.py list --urgent     # صرف ⚡ فوری اور مالک کے اپنے بھیجے
+  python3 help/tools/hd.py list --urgent     # صرف ⚡ فوری (مالک کا اپنا بھی صرف ⚡ ہو تو)
   python3 help/tools/hd.py show <no|id>      # پوری تفصیل + اسکرین شاٹ/آواز /tmp/hd/<no>/ میں
   python3 help/tools/hd.py set <no|id> status=work
   python3 help/tools/hd.py set <no|id> status=done reply="…"          # doneAt / replyAt خود
@@ -116,9 +116,9 @@ def cmd_list(tok, everything, urgent_only=False):
         if not everything and i.get('status') not in ('new', 'seen', 'work') and i.get('hold') not in ('go', 'merge'):
             continue
         own = i.get('uid') == OWNER_UID
-        if not everything and i.get('hold') in ('later', 'info'):   # HD0511TH046: مالک نے ایک طرف رکھا / گاہک سے تفصیل کا انتظار — کام نہیں
+        if not everything and i.get('hold') in ('later', 'info', 'draft'):   # HD0511TH046 / HD0511TH051 (draft = مالک کی یادداشت): مالک نے ایک طرف رکھا / گاہک سے تفصیل کا انتظار — کام نہیں
             continue
-        if urgent_only and not (i.get('urgent') or own):
+        if urgent_only and not i.get('urgent'):   # HD0511TH051: مالک کا اپنا مسئلہ بھی صرف ⚡ پر (ڈرافٹ / اگلا جائزہ نہیں)
             continue
         print(json.dumps({k: i.get(k) for k in ('no', 'id', 'app', 'type', 'status', 'hold', 'ver', 'lang', 'shots', 'audio', 'pr', 'urgent', 'stage')}
                          | {'from_owner': own}
