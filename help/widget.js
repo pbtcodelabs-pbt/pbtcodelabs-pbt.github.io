@@ -59,10 +59,11 @@
   }
   function url(o) {
     var q = ['embed=1'];
-    ['app', 'ver', 'phone', 'name', 'lang'].forEach(function (k) {
+    ['app', 'ver', 'phone', 'name', 'lang', 'text', 'type'].forEach(function (k) {
       if (o[k]) q.push((k === 'ver' ? 'v' : k) + '=' + encodeURIComponent(o[k]));
     });
-    return BASE + '?' + q.join('&') + (o.app ? '#/app/' + encodeURIComponent(o.app) : '#/');
+    // HD0411WE038: پہلے سے لکھا پیغام (text) ہو تو سیدھا فارم
+    return BASE + '?' + q.join('&') + (o.app ? (o.text ? '#/new/' : '#/app/') + encodeURIComponent(o.app) : '#/');
   }
   function open(o) {
     o = Object.assign({}, CFG, o || {});
