@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0511TH042';
-const UPDATE_NOTE = 'Review rounds now 11 AM and 8:30 PM (Pakistan time)';
+const APP_VERSION = 'HD0511TH043';
+const UPDATE_NOTE = 'Help Desk name everywhere (old red label removed)';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -235,9 +235,9 @@ function foot() {
 /* 🎬 تعارفی ویڈیوز — چلائیں، فون میں محفوظ (گیلری)، یا سیدھا شیئر (واٹس ایپ اسٹیٹس وغیرہ) */
 const VIDEOS = [
   { id: 'tariqa', file: 'media/pbt-help-desk-tariqa.mp4', poster: 'media/tariqa.jpg', ur: 'مسئلہ کیسے بتائیں؟ — مکمل طریقہ', en: 'How to report a problem — step by step', dur: '0:55' },
-  { id: 'sos', file: 'media/pbt-help-desk-sos.mp4', poster: 'media/sos.jpg', ur: 'ہر ایپ میں SOS — تعارف', en: 'SOS in every app — introduction', dur: '0:38' }
+  { id: 'sos', file: 'media/pbt-help-desk-sos.mp4', poster: 'media/sos.jpg', ur: 'ہر ایپ میں Help Desk — تعارف', en: 'Help Desk in every app — introduction', dur: '0:38' }
 ];
-const POST_TEXT = "🆘 *نئی سہولت — PBT Help Desk*\n\nالسلام علیکم! 🌹\nاب آپ کو کوئی مسئلہ بتانے کے لیے واٹس ایپ یا کسی اور ذریعے کی ضرورت نہیں۔\n\n📱 ہماری ہر ایپ کے اندر اب ایک سرخ *SOS* بٹن ہے۔\nایپ میں کوئی بھی مسئلہ نظر آئے تو:\n1️⃣ *SOS* دبائیں\n2️⃣ اپنا مسئلہ لکھیں، اسکرین شاٹ لگائیں یا آواز ریکارڈ کریں — کسی بھی زبان میں\n3️⃣ بھیج دیں ✅\n\n🔔 پھر ہر قدم کی خبر آپ کو ایپ ہی میں ملتی رہے گی:\n📥 موصول ← 👀 دیکھ لیا ← 🔧 کام جاری ← ✅ حل ہو گیا\n\n🗂️ آپ کا ہر مسئلہ ریکارڈ میں محفوظ رہے گا، اور بہترین طریقے سے جلد حل ہوگا۔\n💡 اگر کوئی اور بھی یہی مسئلہ بتا چکا ہو تو بس «👋 میرا بھی یہی مسئلہ ہے» دبا دیں۔\n\n🔗 https://pbtcodelabs-pbt.github.io/help/\n\n*PBT Code Labs* — آپ کی رائے سے ہماری ایپس بہتر ہوتی ہیں\n📞 0320-6793793";
+const POST_TEXT = "❓ *نئی سہولت — PBT Help Desk*\n\nالسلام علیکم! 🌹\nاب آپ کو کوئی مسئلہ بتانے کے لیے واٹس ایپ یا کسی اور ذریعے کی ضرورت نہیں۔\n\n📱 ہماری ہر ایپ کے اندر اب ایک پیلا *Help Desk* بٹن ہے۔\nایپ میں کوئی بھی مسئلہ نظر آئے تو:\n1️⃣ *Help Desk* دبائیں\n2️⃣ اپنا مسئلہ لکھیں، اسکرین شاٹ لگائیں یا آواز ریکارڈ کریں — کسی بھی زبان میں\n3️⃣ بھیج دیں ✅\n\n🔔 پھر ہر قدم کی خبر آپ کو ایپ ہی میں ملتی رہے گی:\n📥 موصول ← 👀 دیکھ لیا ← 🔧 کام جاری ← ✅ حل ہو گیا\n\n🗂️ آپ کا ہر مسئلہ ریکارڈ میں محفوظ رہے گا، اور بہترین طریقے سے جلد حل ہوگا۔\n💡 اگر کوئی اور بھی یہی مسئلہ بتا چکا ہو تو بس «👋 میرا بھی یہی مسئلہ ہے» دبا دیں۔\n\n🔗 https://pbtcodelabs-pbt.github.io/help/\n\n*PBT Code Labs* — آپ کی رائے سے ہماری ایپس بہتر ہوتی ہیں\n📞 0320-6793793";
 function videosHTML() {
   const E = LANG === 'en';
   return `<div class="secT">🎬 ${E ? 'Intro videos' : 'تعارفی ویڈیوز'} <small>— ${E ? 'watch, save or share' : 'دیکھیں، محفوظ کریں یا شیئر کریں'}</small></div>
@@ -258,7 +258,7 @@ async function shareVideo(id) {
     const file = new File([blob], 'PBT-Help-Desk-' + id + '.mp4', { type: 'video/mp4' });
     busy(false);
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({ files: [file], text: 'PBT Help Desk — ' + (E ? 'SOS in every app' : 'ہر ایپ میں SOS') + ' 🆘\nhttps://pbtcodelabs-pbt.github.io/help/' });
+      await navigator.share({ files: [file], text: 'PBT Help Desk — ' + (E ? 'Help Desk in every app' : 'ہر ایپ میں Help Desk') + ' ❓\nhttps://pbtcodelabs-pbt.github.io/help/' });
     } else {
       const a = document.createElement('a'); a.href = v.file; a.download = file.name; document.body.appendChild(a); a.click(); a.remove();
       toast(E ? 'Sharing not supported here — video downloaded' : 'یہاں سیدھا شیئر نہیں ہو سکتا — ویڈیو ڈاؤن لوڈ ہو گئی', 4000);
@@ -704,7 +704,7 @@ function ownerBadge() {
   try { if (navigator.setAppBadge) { n ? navigator.setAppBadge(n) : navigator.clearAppBadge(); } } catch (e) {}
   const maxNo = Math.max(0, ...ISSUES.filter(i => i.status === 'new').map(i => i.no || 0));
   if (lastBadge && document.hidden && maxNo > lastBadge.maxNo && 'serviceWorker' in navigator && window.Notification && Notification.permission === 'granted') {
-    navigator.serviceWorker.ready.then(r => r.showNotification('🆘 PBT Help Desk', { body: pushBody(c), tag: 'pbthd', renotify: true, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', data: { url: './#/owner' } })).catch(() => {});
+    navigator.serviceWorker.ready.then(r => r.showNotification('❓ PBT Help Desk', { body: pushBody(c), tag: 'pbthd', renotify: true, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', data: { url: './#/owner' } })).catch(() => {});
   }
   lastBadge = { maxNo };
 }
@@ -746,7 +746,7 @@ async function enablePush() {
     subs.push({ endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth, ua: navigator.userAgent.slice(0, 120), at: Date.now() });
     await Store.pushSave({ subs: JSON.stringify(subs.slice(-6)), sig: '' });
     try { localStorage.setItem('pbthd_push', '1'); } catch (e) {}
-    reg.showNotification('🆘 PBT Help Desk', { body: '✅ ' + (E ? 'Notifications on — ' : 'اطلاعات چالو — ') + pushBody(hdCounts()), tag: 'pbthd', icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', data: { url: './#/owner' } });
+    reg.showNotification('❓ PBT Help Desk', { body: '✅ ' + (E ? 'Notifications on — ' : 'اطلاعات چالو — ') + pushBody(hdCounts()), tag: 'pbthd', icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', data: { url: './#/owner' } });
     ownerBadge(); render();
     toast(E ? '✅ Notifications on' : '✅ اطلاعات چالو ہو گئیں', 4000);
   } catch (e) {
@@ -929,7 +929,7 @@ function holdBox(i) {
 }
 function claudeText(i, short) {
   const a = appOf(i.app), n = (i.metoo || []).length;
-  const L = [`🆘 PBT Help Desk — #${i.no}`,
+  const L = [`❓ PBT Help Desk — #${i.no}`,
     `App: ${a.en}${a.repo ? '  (repo: ' + a.repo + ')' : ''}`,
     i.ver ? `App version: ${i.ver}` : null,
     `Type: ${DICT[i.type][1]} · Status: ${DICT['s_' + i.status][1]}${n ? ' · 👋 ' + (n + 1) + ' people' : ''}`,
