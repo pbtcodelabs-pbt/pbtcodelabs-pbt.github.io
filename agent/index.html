@@ -53,7 +53,7 @@ button.sec{background:var(--line);color:var(--ink)}button.red{background:#fee2e2
 <body>
 <header><h1>🤝 MCS ایجنٹ پورٹل</h1><small>My City Shines — Agent Portal</small></header>
 <main id="app"></main>
-<div class="foot"><a href="guide.html" style="color:var(--pri);font-weight:800">📄 MCS ایجنٹ کیسے بنیں — طریقہ (پرنٹ / PDF)</a><br>پی بی ٹی کوڈ لیبز · <span class="num">AGP0511TH011</span></div>
+<div class="foot"><a href="guide.html" style="color:var(--pri);font-weight:800">📄 MCS ایجنٹ کیسے بنیں — طریقہ (پرنٹ / PDF)</a><br>پی بی ٹی کوڈ لیبز · <span class="num">AGP0511TH012</span></div>
 <script>
 const API = 'https://aio-pos-verify.pbtcodelabs.workers.dev';
 const FB_KEY = 'AIzaSyAvu8ymIZAGEPaYwd_LBJzKS2lZ3Q4_Mog'; // My City Shines (ایڈمن لاگ اِن)
@@ -105,7 +105,7 @@ function agLogin(msg){
   app.innerHTML = `<div class="card"><h2>🔐 لاگ اِن</h2><div style="color:var(--mut);font-size:14px">موبائل نمبر اور وہ PIN جو منظوری پر ملا (سٹی شائنز ایپ میں «🤝 MCS ایجنٹ» میں بھی لکھا ہے)۔</div>
     <label>📱 موبائل نمبر</label><input id="lp" inputmode="tel" dir="ltr" value="${E((ls.get('me')||{}).phone||'')}">
     <label>🔑 PIN</label><input id="lpin" inputmode="numeric" dir="ltr" maxlength="6">
-    <div class="err" id="lerr">${E(msg||'')}</div><div class="btns"><button onclick="agDoLogin()">✅ داخل ہوں</button></div></div>
+    <div class="err" id="lerr">${E(msg||'')}</div><div class="btns"><button onclick="agDoLogin()">✅ داخل ہوں</button><button class="sec" onclick="forgotPin('ag')">🔑 PIN بھول گئے؟</button></div><div id="fpBox"></div></div>
     <div class="card"><h2>🎬 MCS ایجنٹ کیسے بنیں؟</h2><video src="../help/media/promo/MCS-Agent-Banen-ur.mp4" controls playsinline preload="metadata" style="width:100%;max-height:70vh;border-radius:12px;background:#000"></video>
       <div class="btns"><a href="guide.html" target="_blank" rel="noopener"><button>📄 پورا طریقہ پڑھیں (PDF / پرنٹ)</button></a><a href="MCS-Agent-Guide.pdf" download><button class="sec">⬇️ PDF ڈاؤن لوڈ</button></a><a href="../help/media/promo/MCS-Agent-Banen-ur.mp4" download><button class="sec">⬇️ ویڈیو ڈاؤن لوڈ</button></a></div></div>
     <div class="card" style="text-align:center"><a href="#codev" onclick="setTimeout(()=>location.reload(),50)" style="color:var(--pri);font-weight:800">👥 کو-ڈویلپر — کمپنی کا حساب دیکھیں</a></div>`;
@@ -116,7 +116,7 @@ function cdLogin(msg){
   app.innerHTML = `<div class="card"><h2>👥 کو-ڈویلپر — لاگ اِن</h2><div style="color:var(--mut);font-size:14px">وہی موبائل نمبر اور PIN جو سٹی شائنز کے «👥 کو-ڈویلپر جانچ موڈ» میں ہے۔ یہاں صرف حساب دیکھ سکتے ہیں — بدلنے کا اختیار صرف ڈویلپر کے پاس ہے۔</div>
     <label>📱 موبائل نمبر</label><input id="cp" inputmode="tel" dir="ltr" value="${E(me.phone||'')}">
     <label>🔑 PIN</label><input id="cpin" inputmode="numeric" dir="ltr" maxlength="6" onkeydown="if(event.key==='Enter')cdDoLogin()">
-    <div class="err">${E(msg||'')}</div><div class="btns"><button onclick="cdDoLogin()">✅ داخل ہوں</button></div></div>`;
+    <div class="err">${E(msg||'')}</div><div class="btns"><button onclick="cdDoLogin()">✅ داخل ہوں</button><button class="sec" onclick="forgotPin('cd')">🔑 PIN بھول گئے؟</button></div><div id="fpBox"></div></div>`;
 }
 async function cdDoLogin(){ const phone = $('#cp').value.trim(), pin = $('#cpin').value.trim(); if(!phone || !pin) return; CDV = {phone, pin};
   try{ const r = await post('/cdfin', {phone, pin, mon: monNow()}); if(!r || !r.ok){ CDV = null; return cdLogin('❌ نمبر یا PIN غلط'); } ls.set('cd', {phone}); CDV.name = r.name; admFin(); }catch(e){ CDV = null; cdLogin('📶 انٹرنیٹ نہیں'); } }
@@ -175,8 +175,29 @@ async function sendMsg(){
   if(CDV) await cdChatView(x); else if(ADMIN && THR) await admThread(THR, x, admThreadName); else if(ADMIN) await admOpen(admCode, x); else await agLoad(x);
 }
 /* ===== ایڈمن (صرف مالک — My City Shines ایڈمن لاگ اِن) ===== */
+/* AGP0511TH012 (مالک کا حکم): «بھول گئے؟» — ایجنٹ: سٹی شائنز ایپ میں PIN لکھا ہے، ورنہ Help Desk → ڈویلپر نیا PIN دے؛ کو-ڈویلپر: Help Desk → ڈویلپر نیا PIN؛ ڈویلپر: پاس ورڈ ری سیٹ ای میل */
+function forgotPin(who){
+  const ph = ($(who === 'cd' ? '#cp' : '#lp') || {}).value || '';
+  const t = (who === 'cd' ? '👥 کو-ڈویلپر' : '🤝 ایجنٹ') + ': میں پورٹل کا PIN بھول گیا ہوں — نیا PIN چاہیے۔ موبائل: ' + ph;
+  const hd = 'https://pbtcodelabs-pbt.github.io/help/?' + new URLSearchParams({app:'MCS', text: t, phone: ph, type:'ask'}).toString() + '#/new/MCS';
+  $('#fpBox').innerHTML = `<div class="row" style="background:#fffbeb;border-radius:12px;padding:8px 10px;margin-top:8px;font-size:14.5px;line-height:2">
+    ${who === 'ag' ? '1️⃣ سٹی شائنز ایپ کھولیں ← ہوم پر <b>«🤝 MCS ایجنٹ»</b> ← وہاں آپ کا <b>PIN</b> لکھا ہے (دبائیں تو کاپی)۔<br>2️⃣ وہاں نہ ملے تو' : 'سٹی شائنز ایپ کے جانچ موڈ والا PIN ہی یہاں چلتا ہے۔ یاد نہ ہو تو'} نیچے بٹن سے ڈویلپر کو بتائیں — وہ نیا PIN واٹس ایپ پر بھیج دیں گے۔
+    <div class="btns"><a href="${E(hd)}" target="_blank" rel="noopener"><button>🛠️ Help Desk — نیا PIN مانگیں</button></a></div></div>`;
+}
+async function admForgot(){
+  const em = ($('#ae').value || '').trim(); if(!em) return;
+  if(!confirm('«' + em + '» پر پاس ورڈ بدلنے کا لنک بھیجیں؟ (ای میل میں لنک کھول کر نیا پاس ورڈ رکھیں — یہی پاس ورڈ سٹی شائنز ایپ کے ایڈمن لاگ اِن میں بھی چلے گا)')) return;
+  try{ const r = await (await fetch('https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=' + FB_KEY, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({requestType:'PASSWORD_RESET', email: em})})).json();
+    alert(r.email ? '✅ لنک بھیج دیا — ' + em + ' کا ان باکس (اور Spam) دیکھیں' : '❌ نہیں گیا — ای میل دیکھیں'); }catch(e){ alert('📶 انٹرنیٹ نہیں'); }
+}
+async function admPin(fresh){
+  if(fresh && !confirm('اس ایجنٹ کا نیا PIN بنائیں؟ پرانا PIN کام نہیں کرے گا۔')) return;
+  const r = await admCall('/agadmin', {op:'agpin', code: admCode, note: fresh ? 'new' : ''}); if(!r || !r.ok) return alert('نہیں ملا');
+  const msg = 'السلام علیکم ' + r.name + '! آپ کا MCS ایجنٹ پورٹل:\nhttps://pbtcodelabs-pbt.github.io/agent/\nموبائل: 0' + String(r.phone).slice(2) + '\nPIN: ' + r.pin;
+  $('#pinBox').innerHTML = `<div class="row">🔑 PIN: <b class="num" style="font-size:20px">${E(r.pin)}</b> ${CP(r.pin)} <a href="https://wa.me/${E(r.phone)}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener"><button>💬 واٹس ایپ پر بھیجیں</button></a></div>`;
+}
 function admLogin(msg){
-  app.innerHTML = `<div class="card"><h2>🛡️ ایڈمن لاگ اِن</h2><label>Email</label><input id="ae" type="email" dir="ltr" value="pbtcodelabs@gmail.com"><label>Password</label><input id="ap" type="password" dir="ltr" onkeydown="if(event.key==='Enter')admDoLogin()"><div class="err">${E(msg||'')}</div><div class="btns"><button onclick="admDoLogin()">✅ داخل ہوں</button></div></div>`;
+  app.innerHTML = `<div class="card"><h2>🛡️ ایڈمن لاگ اِن</h2><label>Email</label><input id="ae" type="email" dir="ltr" value="pbtcodelabs@gmail.com"><label>Password</label><input id="ap" type="password" dir="ltr" onkeydown="if(event.key==='Enter')admDoLogin()"><div class="err">${E(msg||'')}</div><div class="btns"><button onclick="admDoLogin()">✅ داخل ہوں</button><button class="sec" onclick="admForgot()">🔑 پاس ورڈ بھول گئے؟</button></div></div>`;
 }
 async function admDoLogin(){
   try{ const r = await (await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=' + FB_KEY, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email: $('#ae').value.trim(), password: $('#ap').value, returnSecureToken: true})})).json();
@@ -235,7 +256,7 @@ async function admOpen(code, extra){
   THR = ''; admCode = code; const s = await admCall('/agportal', Object.assign({code}, extra||{})); if(!s.ok) return alert('نہیں ملا'); S = s;
   app.innerHTML = `<div class="card"><div class="btns" style="margin:0 0 6px"><button class="sec" onclick="admHome()">← سب ایجنٹ</button></div><h2>${E(s.agent.name)} <span class="num" style="font-size:13px">${E(s.agent.code)}</span> ${CP(s.agent.code)} ${s.agent.off ? '<span class="tag" style="background:#fee2e2;color:var(--red)">⛔ غیر فعال</span>' : ''}</h2><div style="font-size:14px">📱 <span class="num">0${E(String(s.agent.phone).slice(2))}</span> · ${E(s.agent.biz)} · ${E(s.agent.city)} · منظور: ${D(s.agent.okAt)}</div></div>
     ${summaryHtml(s)}
-    <div class="card"><div class="btns" style="margin:0">${s.agent.off ? '<button onclick="admDeact(false)">✅ دوبارہ فعال کریں</button>' : '<button class="red" onclick="admDeact(true)">⛔ ایجنٹ غیر فعال کریں</button>'}</div><div style="font-size:13px;color:var(--mut);margin-top:4px">غیر فعال ایجنٹ کے کاروبار کی آئندہ تجدید / فروخت کا کمیشن کمپنی (PBT) کا ہوتا ہے — اب تک کا حساب نہیں بدلتا۔</div></div>
+    <div class="card"><div class="btns" style="margin:0">${s.agent.off ? '<button onclick="admDeact(false)">✅ دوبارہ فعال کریں</button>' : '<button class="red" onclick="admDeact(true)">⛔ ایجنٹ غیر فعال کریں</button>'}</div><div class="btns"><button class="sec" onclick="admPin(false)">🔑 PIN دیکھیں</button><button class="sec" onclick="admPin(true)">🔄 نیا PIN بنائیں</button></div><div id="pinBox"></div><div style="font-size:13px;color:var(--mut);margin-top:4px">غیر فعال ایجنٹ کے کاروبار کی آئندہ تجدید / فروخت کا کمیشن کمپنی (PBT) کا ہوتا ہے — اب تک کا حساب نہیں بدلتا۔</div></div>
     <div class="card"><h2>➕ ادائیگی درج کریں</h2><div class="btns"><input id="payAmt" class="num" inputmode="numeric" placeholder="رقم" style="max-width:140px"><input id="payNote" placeholder="نوٹ (ایزی پیسہ، TID…)" style="flex:1;min-width:160px"><button onclick="admPay()">💾</button></div>
       <h2 style="margin-top:10px">✅ ادائیگیاں</h2>${paysHtml(s, true)}</div>
     <div class="card"><h2>🏪 کاروبار</h2>${refsHtml(s)}</div>
