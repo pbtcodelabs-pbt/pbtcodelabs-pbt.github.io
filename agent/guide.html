@@ -3,106 +3,164 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MCS ایجنٹ کیسے بنیں</title>
-<!-- AGP0511TH004 (مالک کا حکم، ہیلپ ڈیسک #87): ایجنٹ بننے کا پرنٹ / PDF صفحہ — پلے اسٹور ایپ سے باہر (کمیشن کا ذکر صرف یہاں) -->
+<title>MCS ایجنٹ بنیں</title>
+<!-- AGP0511TH008 (مالک کا حکم، ہیلپ ڈیسک #91): ایجنٹ بننے کا دو صفحوں کا نستعلیق کتابچہ (پرنٹ / PDF) — پلے اسٹور ایپ سے باہر (کمیشن کا ذکر صرف یہاں) -->
 <style>
 @font-face{font-family:Noori;src:url(../fonts/JameelNooriNastaleeq.woff2) format('woff2');font-display:swap}
-:root{--ink:#0f172a;--mut:#475569;--pri:#0f766e;--pri2:#0d3b66;--gold:#f59e0b;--line:#e2e8f0;--bg:#f1f5f9;--card:#fff}
+@font-face{font-family:Kasheeda;src:url(../fonts/JameelNooriNastaleeqKasheeda.woff2) format('woff2');font-display:swap}
+:root{--ink:#10243a;--mut:#475569;--pri:#0f766e;--pri2:#0d3b66;--gold:#f59e0b;--gold2:#fde047;--line:#dbe7ef;--bg:#eef4f3;--card:#fff}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:Noori,'Segoe UI',Tahoma,sans-serif;font-size:17px;line-height:2}
-.num,.en{font-family:'Segoe UI',Roboto,Arial,sans-serif}
-.page{max-width:820px;margin:0 auto;padding:0 14px 30px}
-.hero{background:linear-gradient(135deg,var(--pri),var(--pri2));color:#fff;border-radius:0 0 26px 26px;padding:22px 18px 26px;text-align:center}
-.hero .ic{font-size:46px;line-height:1}
-.hero h1{margin:6px 0 0;font-size:30px;line-height:1.7}
-.hero p{margin:4px 0 0;font-size:16px;opacity:.92}
-.hero .en{font-size:13px;opacity:.8;margin-top:4px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px 16px;margin:14px 0;box-shadow:0 2px 10px rgba(0,0,0,.05);break-inside:avoid}
-h2{margin:0 0 6px;font-size:21px;color:var(--pri2)}
-.money{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}
-.money div{background:#ecfdf5;border:1.5px solid #6ee7b7;border-radius:14px;padding:8px;text-align:center}
-.money b{display:block;font:900 24px 'Segoe UI',Arial;color:#047857}
-.money span{font-size:13.5px;color:var(--mut);line-height:1.6;display:block}
-ul.ben{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:1fr 1fr;gap:6px 14px}
-ul.ben li{padding-inline-start:28px;position:relative;font-size:16px;line-height:1.8}
-ul.ben li::before{content:'✅';position:absolute;inset-inline-start:0;top:0}
-ul.req{margin:0;padding-inline-start:22px}ul.req li{margin:2px 0}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Noori,serif;font-size:17px;line-height:2.05}
+.n{font-family:'Segoe UI',Roboto,Arial,sans-serif;direction:ltr;unicode-bidi:isolate}
+.sheet{max-width:820px;margin:0 auto 18px;background:#fff;box-shadow:0 6px 24px rgba(0,0,0,.08);position:relative;overflow:hidden}
+.pg{padding:0 26px 22px}
+.hero{background:radial-gradient(circle at 80% 10%,#14b8a6 0,#0f766e 38%,#0d3b66 100%);color:#fff;padding:22px 26px 26px;position:relative}
+.hero .top{display:flex;align-items:center;gap:12px;direction:ltr;justify-content:flex-end}
+.hero .top img{width:58px;height:58px;border-radius:50%;background:#fff;border:3px solid var(--gold2)}
+.hero .top b{font:900 26px Inter,Arial;font-style:italic}.hero .top b i{color:var(--gold2)}
+.hero h1{font-family:Kasheeda,Noori,serif;font-weight:normal;font-size:46px;line-height:1.7;margin:6px 0 0;text-shadow:0 4px 14px rgba(0,0,0,.35)}
+.hero h1 span{color:var(--gold2)}
+.hero p{margin:2px 0 0;font-size:20px;line-height:1.9;opacity:.95}
+.hero .tag{display:inline-block;margin-top:10px;background:var(--gold2);color:#3b2600;border-radius:999px;padding:2px 18px;font-size:18px;box-shadow:0 4px 0 #b45309}
+h2{font-family:Kasheeda,Noori,serif;font-weight:normal;font-size:28px;line-height:1.7;color:var(--pri2);margin:16px 0 6px;display:flex;align-items:center;gap:10px}
+h2::after{content:'';flex:1;height:3px;border-radius:3px;background:linear-gradient(90deg,transparent,var(--gold))}
+.money{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:10px;margin-top:4px}
+.money div{border-radius:16px;padding:8px 10px;text-align:center;background:linear-gradient(160deg,#ecfdf5,#d1fae5);border:2px solid #6ee7b7}
+.money div:first-child{background:linear-gradient(160deg,#fef9c3,#fde68a);border-color:#f59e0b}
+.money b{display:block;font:900 30px 'Segoe UI',Arial;color:#065f46;line-height:1.3}
+.money div:first-child b{color:#92400e;font-size:36px}
+.money span{display:block;font-size:15.5px;line-height:1.75;color:#334155}
+.ben{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;margin:0;padding:0;list-style:none}
+.ben li{display:flex;gap:8px;align-items:flex-start;background:#f8fbfa;border:1px solid var(--line);border-radius:14px;padding:6px 10px;font-size:16.5px;line-height:1.85}
+.ben li i{font-style:normal;font-size:22px;line-height:1.5;flex:none}
+.ben li b{color:var(--pri)}
+.quote{margin:12px 0 2px;background:linear-gradient(90deg,#0f766e,#0d3b66);color:#fff;border-radius:16px;padding:10px 16px;text-align:center;font-family:Kasheeda,Noori,serif;font-size:24px;line-height:1.8}
+.quote span{color:var(--gold2)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.box{border:1.5px solid var(--line);border-radius:16px;padding:6px 14px 10px;background:#fff}
+.box ul{margin:0;padding-inline-start:20px}.box li{margin:2px 0;font-size:16.5px;line-height:1.9}
 ol.steps{list-style:none;padding:0;margin:0;counter-reset:s}
-ol.steps li{counter-increment:s;position:relative;padding:8px 52px 8px 6px;border-bottom:1px dashed var(--line);line-height:1.9}
+ol.steps li{counter-increment:s;position:relative;padding:6px 52px 6px 4px;border-bottom:1px dashed var(--line);font-size:16.5px;line-height:1.95}
 ol.steps li:last-child{border:0}
-ol.steps li::before{content:counter(s);position:absolute;inset-inline-start:2px;top:9px;width:38px;height:38px;border-radius:50%;background:var(--gold);color:#111;font:900 20px 'Segoe UI',Arial;display:flex;align-items:center;justify-content:center}
+ol.steps li::before{content:counter(s);position:absolute;inset-inline-start:0;top:8px;width:38px;height:38px;border-radius:50%;background:var(--gold);color:#1f1300;font:900 20px 'Segoe UI',Arial;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 0 #b45309}
 ol.steps b{color:var(--pri2)}
-.note{background:#fffbeb;border:1.5px solid #fcd34d;border-radius:14px;padding:10px 14px;font-size:15.5px}
-.link{direction:ltr;display:inline-block;background:#ecfeff;border:1px solid var(--pri);border-radius:10px;padding:0 10px;font-family:'Segoe UI',Arial;font-size:15px;color:var(--pri)}
-.foot{text-align:center;color:var(--mut);font-size:14px;margin-top:16px}
+.note{background:#fffbeb;border:1.5px solid #fcd34d;border-radius:14px;padding:8px 14px;font-size:16px;line-height:1.95;margin-top:10px}
+.cta{margin-top:12px;background:radial-gradient(circle at 20% 20%,#14b8a6,#0d3b66);color:#fff;border-radius:18px;padding:12px 16px;display:flex;align-items:center;gap:14px}
+.cta .t{flex:1}
+.cta .t b{display:block;font-family:Kasheeda,Noori,serif;font-weight:normal;font-size:28px;line-height:1.7;color:var(--gold2)}
+.cta .t span{font-size:16px;line-height:1.9}
+.cta img{width:110px;height:110px;background:#fff;border-radius:12px;padding:6px;flex:none}
+.foot{text-align:center;color:var(--mut);font-size:14px;padding:8px 0 4px}
 .bar{display:flex;gap:8px;justify-content:center;margin:12px 0}
-.bar button{border:0;border-radius:12px;padding:10px 16px;font:800 15px 'Segoe UI',Arial;background:var(--pri);color:#fff;cursor:pointer}
-@media (max-width:560px){ul.ben{grid-template-columns:1fr}.money b{font-size:20px}.hero h1{font-size:25px}}
-@media print{body{background:#fff;font-size:15px}.bar{display:none}.card{box-shadow:none}.hero{border-radius:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}.money div,ol.steps li::before,.note{-webkit-print-color-adjust:exact;print-color-adjust:exact}@page{size:A4;margin:10mm}}
+.bar button{border:0;border-radius:12px;padding:10px 18px;font:800 15px 'Segoe UI',Arial;background:var(--pri);color:#fff;cursor:pointer}
+.pgno{position:absolute;bottom:6px;left:14px;font:700 12px Arial;color:#94a3b8}
+@media (max-width:600px){.money,.ben,.two{grid-template-columns:1fr}.hero h1{font-size:34px}.pg{padding:0 14px 18px}.cta{flex-direction:column;text-align:center}}
+@media print{
+  @page{size:A4;margin:0}
+  body{background:#fff;font-size:15.2px;line-height:1.95}
+  .bar{display:none}
+  .sheet{max-width:none;width:210mm;height:297mm;margin:0;box-shadow:none;break-after:page}
+  .sheet:last-of-type{break-after:auto}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
 </style>
 </head>
 <body>
-<div class="hero">
-  <div class="ic">🤝</div>
-  <h1>مائی سٹی شائنز — ایجنٹ بنیں</h1>
-  <p>اپنے شہر کے کاروبار ایپ پر لائیں — اور ہر ممبرشپ پر کمائیں</p>
-  <div class="en">My City Shines — How to become an MCS Agent</div>
-</div>
-<div class="page">
-  <div class="bar"><button onclick="window.print()">🖨️ پرنٹ / PDF محفوظ کریں</button></div>
+<div class="bar"><button onclick="window.print()">🖨️ پرنٹ / PDF محفوظ کریں</button></div>
 
-  <div class="card">
+<!-- ======= صفحہ 1 ======= -->
+<div class="sheet">
+  <div class="hero">
+    <div class="top"><b>My City <i>Shines</i></b><img src="../MCS/icons/icon-192.png" alt=""></div>
+    <h1>مائی سٹی شائنز کے <span>ایجنٹ</span> بنیں</h1>
+    <p>اپنے شہر کے کاروبار کو دنیا کے سامنے لائیں — اور ہر ممبرشپ پر نقد کمائیں</p>
+    <span class="tag">آج شروع کریں — کوئی فیس نہیں، کوئی سرمایہ نہیں</span>
+  </div>
+  <div class="pg">
     <h2>💰 آپ کی کمائی</h2>
     <div class="money">
-      <div><b class="num">Rs 170</b><span>ہر ممبرشپ پر<br>(ایک سال)</span></div>
-      <div><b class="num">ہر سال</b><span>دکاندار تجدید کرے تو<br>پھر کمیشن</span></div>
-      <div><b class="num">∞</b><span>جتنے کاروبار لائیں<br>کوئی حد نہیں</span></div>
+      <div><b class="n">Rs 170</b><span>ہر ممبرشپ پر نقد کمیشن<br>(ایک سال کی ممبرشپ)</span></div>
+      <div><b>ہر سال</b><span>دکاندار تجدید کرے<br>تو پھر سے کمیشن</span></div>
+      <div><b>بے حد</b><span>جتنے کاروبار لائیں<br>اتنی کمائی</span></div>
     </div>
-    <p style="margin:8px 0 0;font-size:15.5px">مثال: آپ ایک مہینے میں 20 دکانوں کی ممبرشپ بنوائیں تو <b class="num" dir="ltr" style="unicode-bidi:isolate">20 × 170 = Rs 3,400</b>؛ اگلے سال وہی 20 تجدید کریں تو پھر <b class="num" dir="ltr" style="unicode-bidi:isolate">Rs 3,400</b>۔</p>
-  </div>
+    <div class="note" style="margin-top:8px">📊 مثال: ایک مہینے میں <b class="n">30</b> دکانیں = <b class="n">30 × 170 = Rs 5,100</b> — اور اگلے سال وہی 30 دکانیں تجدید کریں تو پھر <b class="n">Rs 5,100</b>۔ آپ کی محنت ہر سال پھل دیتی ہے۔</div>
 
-  <div class="card">
     <h2>🌟 ایجنٹ بننے کے فائدے</h2>
     <ul class="ben">
-      <li>گھر بیٹھے یا اپنے کام کے ساتھ اضافی آمدن</li>
-      <li>کوئی سرمایہ / فیس نہیں</li>
-      <li>اپنا الگ ایجنٹ کوڈ (مثلاً <span class="num">GS-001</span>)</li>
-      <li>ایجنٹ پورٹل پر ہر کاروبار اور کمیشن کا حساب</li>
-      <li>ادائیگی کا پورا ریکارڈ اور ڈویلپر سے براہِ راست چیٹ</li>
-      <li>اپنے شہر کے کاروبار کو آگے بڑھانے کا ذریعہ</li>
+      <li><i>💵</i><span><b>نقد آمدن</b> — ہر ممبرشپ کا کمیشن سیدھا آپ کے ایزی پیسہ / جاز کیش / بینک میں</span></li>
+      <li><i>🏪</i><span><b>اپنا کاروبار چمکائیں</b> — آپ کی اپنی دکان بھی ایپ پر نمایاں، لوگ آپ کو پہچانیں</span></li>
+      <li><i>👨‍👩‍👧</i><span><b>گھر والوں کو خوشحال کریں</b> — اپنے کام کے ساتھ اضافی، عزت والی آمدن</span></li>
+      <li><i>🤝</i><span><b>شہر میں پہچان</b> — آپ اپنے علاقے کے ڈیجیٹل نمائندے بن جاتے ہیں</span></li>
+      <li><i>🔖</i><span><b>اپنا ایجنٹ کوڈ</b> — مثلاً <span class="n">GS-001</span> — ہمیشہ کے لیے صرف آپ کا</span></li>
+      <li><i>📊</i><span><b>اپنا ایجنٹ پورٹل</b> — ہر کاروبار، کمیشن اور ادائیگی کا پورا حساب</span></li>
+      <li><i>⏰</i><span><b>اپنی مرضی کا وقت</b> — جب چاہیں، جتنا چاہیں کام کریں</span></li>
+      <li><i>💬</i><span><b>ڈویلپر سے براہِ راست رابطہ</b> — پورٹل میں چیٹ، رہنمائی اور مدد</span></li>
     </ul>
-  </div>
+    <div class="quote">«اپنا شہر چمکائیں، اپنا کاروبار چمکائیں، <span>اپنا گھر چمکائیں</span>»</div>
 
-  <div class="card">
-    <h2>📋 کیا کیا درکار ہے</h2>
-    <ul class="req">
-      <li>📱 اسمارٹ فون اور واٹس ایپ نمبر</li>
-      <li>🪪 اپنا شناختی کارڈ (CNIC) — سامنے اور پیچھے کی تصویر</li>
-      <li>🤳 اپنی ایک صاف سیلفی</li>
-      <li>🏪 مائی سٹی شائنز ایپ میں اپنی کاروبار / پروفیشن کی <b>ایک سال کی ممبرشپ</b> (پہلے خود ممبر، پھر ایجنٹ)</li>
-    </ul>
+    <h2>🏪 دکاندار کو کیا فائدہ؟ (یہ بتا کر راغب کریں)</h2>
+    <div class="two">
+      <div class="box"><ul>
+        <li>📸 دکان کی تصویریں، ریٹ لسٹ، اوقات — ایک جگہ</li>
+        <li>📞 گاہک ایک ٹچ پر کال اور واٹس ایپ کرتے ہیں</li>
+        <li>🗺️ نقشے پر سیدھا راستہ — نئے گاہک آسانی سے پہنچیں</li>
+      </ul></div>
+      <div class="box"><ul>
+        <li>🎁 <b>15 دن بالکل مفت</b> نمائش — پہلے آزمائیں</li>
+        <li>📈 دیکھیں کتنے لوگوں نے دیکھا، کال کی، واٹس ایپ کیا</li>
+        <li>💡 پورا سال صرف <b class="n">Rs 1,000</b> — یعنی روزانہ 3 روپے سے بھی کم</li>
+      </ul></div>
+    </div>
   </div>
+  <span class="pgno n">1 / 2</span>
+</div>
 
-  <div class="card">
-    <h2>🪜 قدم بہ قدم طریقہ</h2>
+<!-- ======= صفحہ 2 ======= -->
+<div class="sheet">
+  <div class="pg" style="padding-top:14px">
+    <h2>📋 ایجنٹ بننے کی ضروریات</h2>
+    <div class="two">
+      <div class="box"><ul>
+        <li>📱 اسمارٹ فون اور واٹس ایپ نمبر</li>
+        <li>🪪 اپنا شناختی کارڈ (سامنے اور پیچھے کی تصویر)</li>
+        <li>🤳 ایک صاف سیلفی</li>
+      </ul></div>
+      <div class="box"><ul>
+        <li>🏪 مائی سٹی شائنز میں اپنی دکان یا پروفیشن کی <b>ایک سال کی ممبرشپ</b></li>
+        <li>❤️ لوگوں سے ملنے جلنے کا شوق اور سچائی</li>
+      </ul></div>
+    </div>
+
+    <h2>🪜 ایجنٹ بننے کا طریقہ — قدم بہ قدم</h2>
     <ol class="steps">
-      <li>Google Play سے <b>My City Shines</b> ایپ انسٹال کریں۔</li>
-      <li>نیچے <b>➕ Membership</b> دبا کر اپنی دکان / پروفیشن کی ممبرشپ بنائیں — 15 دن مفت۔ پہلے سے آپ کا کارڈ موجود ہو تو اسے دبا کر <b>«👤 یہ میرا کاروبار ہے»</b>۔</li>
-      <li>اپنی ممبرشپ <b>ایک سال کے لیے جاری</b> کریں۔</li>
-      <li>ہوم پر <b>«🤝 MCS ایجنٹ بنیں»</b> دبائیں — شناختی کارڈ نمبر لکھیں، تین تصویریں لگائیں (کارڈ سامنے، پیچھے، سیلفی) اور بھیج دیں۔</li>
-      <li>منظوری کے بعد آپ کو ملے گا: <b>ایجنٹ کوڈ</b> (جیسے <span class="num">GS-001</span>) اور <b>6 ہندسوں کا PIN</b>۔</li>
-      <li>دکانداروں سے ملیں، ایپ دکھائیں، ان کی ممبرشپ بنوائیں — فارم میں <b>«🤝 ایجنٹ کا ریفرل کوڈ»</b> میں اپنا کوڈ لکھوائیں۔</li>
-      <li>اپنا حساب دیکھیں: <span class="link">pbtcodelabs-pbt.github.io/agent</span> — موبائل نمبر + PIN سے لاگ اِن۔ وہاں آپ کے سب کاروبار، کمیشن، ادائیگیاں اور ڈویلپر سے چیٹ۔</li>
+      <li>Google Play سے <b>My City Shines</b> انسٹال کریں۔</li>
+      <li><b>پہلے خود ممبر بنیں:</b> نیچے <b>➕ Membership</b> دبا کر اپنی دکان یا پروفیشن کا <b>پورا فارم</b> بھریں — نام، موبائل، شہر، پتہ، تفصیل، ریٹ، اوقات۔ آپ کا کارڈ پہلے سے ایپ میں ہے تو اسے دبا کر <b>«👤 یہ میرا کاروبار ہے»</b>۔</li>
+      <li>اپنا کاروبار <b>ایک سال کے لیے جاری</b> کریں — اب آپ مائی سٹی شائنز کے باقاعدہ ممبر ہیں۔</li>
+      <li>ہوم پر <b>«🤝 MCS ایجنٹ بنیں»</b> دبائیں — شناختی کارڈ نمبر لکھیں، تین تصویریں لگائیں اور بھیج دیں۔ <b>پہلے سے چلتے کاروبار</b> بھی یہی بٹن اپنے «میرا کاروبار» میں دیکھ سکتے ہیں۔</li>
+      <li>منظوری پر آپ کو ملے گا: <b>ایجنٹ کوڈ</b> (جیسے <span class="n">GS-001</span>) اور <b>6 ہندسوں کا PIN</b>۔</li>
+      <li>دکانداروں سے ملیں، ایپ دکھائیں، ان کا کاروبار جوڑیں — فارم کے <b>«🤝 ایجنٹ کا ریفرل کوڈ»</b> خانے میں اپنا کوڈ لکھوانا نہ بھولیں۔</li>
+      <li>اپنا حساب دیکھیں: <span class="n">pbtcodelabs-pbt.github.io/agent</span> — موبائل + PIN۔</li>
     </ol>
-  </div>
 
-  <div class="card note">
-    <b>💵 کمیشن کب ملتا ہے؟</b><br>
-    Google Play پر خریدی ممبرشپ کے پیسے Google ہمیں اگلے مہینے کی تقریباً <b>15 تاریخ</b> کو بھیجتا ہے — اس کے بعد آپ کا کمیشن آپ کے اکاؤنٹ (ایزی پیسہ / جاز کیش / بینک) میں بھیج دیا جاتا ہے۔ پورٹل پر ہر کمیشن کی حالت نظر آتی ہے۔<br>
-    ⚠️ ایک شناختی کارڈ پر ایک ہی ایجنٹ کوڈ — ہمیشہ کے لیے۔ ایک کاروبار ایک ہی ایجنٹ کے کوڈ سے جڑتا ہے۔
-  </div>
+    <h2>🎯 لوگوں کو راغب کرنے کے طریقے</h2>
+    <ul class="ben">
+      <li><i>📲</i><span>دکاندار کو اپنے فون پر <b>اپنا کاروبار</b> دکھائیں — سب سے بڑا ثبوت</span></li>
+      <li><i>🎁</i><span>کہیں: <b>«15 دن مفت آزمائیں»</b> — کوئی خطرہ نہیں</span></li>
+      <li><i>📈</i><span>بتائیں کہ ایپ <b>خود بتاتی ہے</b> کتنے لوگوں نے کال کی</span></li>
+      <li><i>🧮</i><span><b>روزانہ 3 روپے</b> سے کم — ایک چائے سے بھی سستا</span></li>
+      <li><i>🏘️</i><span>پہلے <b>اپنے محلے اور بازار</b> سے شروع کریں — پہچان سے اعتماد</span></li>
+      <li><i>📤</i><span>واٹس ایپ گروپس اور اسٹیٹس پر <b>ویڈیو اور یہ کتابچہ</b> شیئر کریں</span></li>
+    </ul>
 
-  <div class="foot">پی بی ٹی کوڈ لیبز — My City Shines · <span class="num">AGP0511TH004</span></div>
+    <div class="note">💵 <b>کمیشن کب ملے گا؟</b> Google Play پر خریدی ممبرشپ کے پیسے Google اگلے مہینے کی تقریباً <b>15 تاریخ</b> کو بھیجتا ہے — اس کے بعد آپ کا کمیشن آپ کے اکاؤنٹ میں۔ پورٹل پر ہر کمیشن کی حالت نظر آتی ہے۔ ⚠️ ایک شناختی کارڈ = ایک ایجنٹ کوڈ، ہمیشہ کے لیے۔</div>
+
+    <div class="cta">
+      <div class="t"><b>آج ہی ایجنٹ بنیں!</b><span>Google Play پر <span class="n">My City Shines</span> تلاش کریں — یا یہ QR اسکین کریں</span></div>
+      <img src="qr_mcs.png" alt="QR">
+    </div>
+    <div class="foot">پی بی ٹی کوڈ لیبز — My City Shines · <span class="n">AGP0511TH008</span></div>
+  </div>
+  <span class="pgno n">2 / 2</span>
 </div>
 </body>
 </html>
