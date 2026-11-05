@@ -161,11 +161,7 @@
     };
     var set = function (c) { for (var i = 0; i < all.length; i++) { all[i].classList.remove('pbthd-mini', 'pbthd-help', 'pbthd-tiny'); if (c) all[i].classList.add(c); } };
     fitAt = Date.now();
-    set('pbthd-tiny'); var base = over() + 1;          // بٹن کے بغیر جو پہلے سے تنگ ہو، وہ بٹن کا قصور نہیں
-    set(''); if (over() <= base) return;
-    set('pbthd-mini'); if (over() <= base) return;
-    set('pbthd-help'); if (over() <= base) return;
-    set('pbthd-tiny');
+    set(''); // #86 (مالک کا حکم): بٹن کبھی چھوٹا / «?» نہیں — ہر ایپ میں ایک ہی پورا «? Help Desk» + نیچے کی لائن؛ جگہ ایپ بناتی ہے
   }
   var sosT = 0, fitAt = 0, fitT = 0, ro = null;
   // چھپی پٹی بعد میں کھلے (ہوم، مینیو) تب بھی ناپ کر چھوٹا/بڑا
