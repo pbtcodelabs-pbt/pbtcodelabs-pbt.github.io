@@ -45,13 +45,15 @@ button.sec{background:var(--line);color:var(--ink)}button.red{background:#fee2e2
 .ag{cursor:pointer}.ag:hover{background:rgba(15,118,110,.06)}
 .cp{padding:1px 8px!important;font-size:12px!important;border-radius:8px!important;background:#ecfeff!important;color:var(--pri)!important;border:1px solid var(--pri)!important;vertical-align:middle}
 #tst{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#0f172a;color:#fff;border-radius:12px;padding:8px 14px;font-size:14px;opacity:0;transition:.2s;pointer-events:none;z-index:9}#tst.on{opacity:1}
+.fin{width:100%;border-collapse:collapse;margin-top:10px;font-size:14.5px}.fin th,.fin td{border-bottom:1px solid var(--line);padding:7px 4px;text-align:right}.fin td.num{text-align:left;font-weight:800;font-family:'Segoe UI',Arial}.fin tr.tot td{border-top:2px solid var(--ink);font-weight:900}
+@media print{header,.foot,.noP,#tst{display:none!important}body{background:#fff}.card{box-shadow:none;break-inside:avoid}main{margin:0;max-width:none}}
 .foot{text-align:center;font-size:12px;color:var(--mut);margin:20px 0}
 </style>
 </head>
 <body>
 <header><h1>🤝 MCS ایجنٹ پورٹل</h1><small>My City Shines — Agent Portal</small></header>
 <main id="app"></main>
-<div class="foot">پی بی ٹی کوڈ لیبز · <span class="num">AGP0511TH002</span></div>
+<div class="foot">پی بی ٹی کوڈ لیبز · <span class="num">AGP0511TH003</span></div>
 <script>
 const API = 'https://aio-pos-verify.pbtcodelabs.workers.dev';
 const FB_KEY = 'AIzaSyAvu8ymIZAGEPaYwd_LBJzKS2lZ3Q4_Mog'; // My City Shines (ایڈمن لاگ اِن)
@@ -144,9 +146,48 @@ async function admDoLogin(){
 async function admCall(path, body){ if(!admTok || Date.now() > admTokExp){ admLogin('دوبارہ لاگ اِن کریں'); throw new Error('login'); } const r = await post(path, Object.assign({admin: path === '/agportal'}, body), admTok); if(r && r.error === 'admin_only'){ admLogin('صرف ایڈمن'); throw new Error('admin'); } return r; }
 async function admHome(){
   const r = await admCall('/agadmin', {op:'list'}); admList = (r.list||[]).filter(a => a.status === 'approved'); admRate = r.rate || 0;
-  app.innerHTML = `<div class="card"><h2>⚙️ کمیشن کی شرح</h2><div style="font-size:14px">ہر خریدے سال پر ایجنٹ کا کمیشن</div><div class="btns"><input id="rate" class="num" inputmode="numeric" value="${admRate}" style="max-width:140px"><button onclick="admSetRate()">💾 محفوظ</button></div></div>
+  app.innerHTML = `<div class="card"><h2>💰 کمپنی کا حساب</h2><div style="font-size:14px">ہر مہینے کی فروخت اور پیسوں کی تقسیم — گوگل، مینٹیننس، ایجنٹ، ڈویلپر، کو-ڈویلپر</div><div class="btns"><button onclick="admFin()">📊 ماہانہ رپورٹ کھولیں</button></div></div>
+    <div class="card"><h2>⚙️ کمیشن کی شرح</h2><div style="font-size:14px">ہر خریدے سال پر ایجنٹ کا کمیشن</div><div class="btns"><input id="rate" class="num" inputmode="numeric" value="${admRate}" style="max-width:140px"><button onclick="admSetRate()">💾 محفوظ</button></div></div>
     <div class="card"><h2>🤝 ایجنٹ (${admList.length})</h2>${admList.map(a => `<div class="row ag" onclick="admOpen('${E(a.code)}')"><b>${E(a.name)}</b> — <span class="num">${E(a.code)}</span><br><small>${E(a.biz)} · ${E(a.city)} · 🏪 ${N(a.refs)}${a.newProofs ? ` · <span class="tag t-w">📸 ${a.newProofs} نئے ثبوت</span>` : ''}</small></div>`).join('') || '<div class="row">ابھی کوئی منظور ایجنٹ نہیں — منظوری سٹی شائنز ایپ کے کنٹرول پینل سے</div>'}</div>`;
 }
+/* AGP0511TH003 (مالک کا حکم): 1000 = گوگل 150 (اصل — فرق مینٹیننس سے) + مینٹیننس 150 + لانے والا 170 + ڈویلپر 265 + کو-ڈویلپر 265؛
+   لانے والا: ایجنٹ / PBT-D ڈویلپر / PBT-C کو-ڈویلپر؛ PBT (خود آیا) = 170 آدھا آدھا */
+const SH = {price:1000, g:150, m:150, a:170, d:265, c:265};
+const monNow = () => { const t = new Date(Date.now() + 5*3600e3); return t.getUTCFullYear() + '_' + String(t.getUTCMonth()+1).padStart(2,'0'); };
+const MN = ['جنوری','فروری','مارچ','اپریل','مئی','جون','جولائی','اگست','ستمبر','اکتوبر','نومبر','دسمبر'];
+const monName = m => { const [y, mm] = m.split('_'); return MN[+mm-1] + ' ' + y; };
+const monStep = (m, k) => { let [y, mm] = m.split('_').map(Number); mm += k; if(mm < 1){ mm = 12; y--; } if(mm > 12){ mm = 1; y++; } return y + '_' + String(mm).padStart(2,'0'); };
+let finMon = '';
+async function admFin(mon){
+  finMon = mon || finMon || monNow();
+  const r = await admCall('/agadmin', {op:'fin', mon: finMon}); const L = r.sales || [];
+  const U = L.reduce((a,x)=>a+x.units,0), Up = L.filter(x=>x.src==='play').reduce((a,x)=>a+x.units,0), Um = U - Up;
+  const gEst = SH.g * Up, G = r.gcut == null ? gEst : r.gcut;
+  const by = k => L.filter(x=>x.by===k).reduce((a,x)=>a+x.units,0);
+  const uA = by('agent'), uD = by('dev'), uC = by('codev'), uP = by('pbt');
+  const maint = (SH.g + SH.m) * U - G;
+  const dev = SH.d*U + SH.a*uD + (SH.a/2)*uP, codev = SH.c*U + SH.a*uC + (SH.a/2)*uP, agents = SH.a*uA;
+  const ag = {}; L.filter(x=>x.by==='agent').forEach(x=>{ const k = x.code; ag[k] = ag[k] || {name:x.agent, code:k, u:0}; ag[k].u += x.units; });
+  const pay = monStep(finMon, 1).split('_'); const payOn = '15 ' + MN[+pay[1]-1] + ' ' + pay[0];
+  const who = x => x.by==='agent' ? '🤝 ' + E(x.agent || x.code) + ' <span class="num">' + E(x.code) + '</span>' : x.by==='dev' ? '👨‍💻 ڈویلپر (PBT-D)' : x.by==='codev' ? '👥 کو-ڈویلپر (PBT-C)' : '🏢 PBT — خود آیا';
+  app.innerHTML = `<div class="card noP"><div class="btns" style="margin:0"><button class="sec" onclick="admHome()">← واپس</button><button class="sec" onclick="admFin(monStep(finMon,-1))">◀ پچھلا</button><button class="sec" onclick="admFin(monStep(finMon,1))">اگلا ▶</button><button onclick="window.print()">🖨️ پرنٹ / PDF</button></div></div>
+    <div class="card"><h2>💰 کمپنی کا حساب — ${monName(finMon)}</h2>
+      <div class="stats"><div class="st"><b>${N(U)}</b><span>ممبرشپ (سال)</span></div><div class="st"><b>Rs ${N(U*SH.price)}</b><span>کل فروخت</span></div><div class="st"><b>${N(Up)} / ${N(Um)}</b><span>گوگل پلے / براہِ راست</span></div></div>
+      <table class="fin"><tr><th>مد</th><th>حساب</th><th>رقم</th></tr>
+        <tr><td>🟦 گوگل</td><td>${r.gcut == null ? `اندازہ: ${N(Up)} × ${SH.g}` : 'اصل (آپ نے درج کیا)'}</td><td class="num">${N(G)}</td></tr>
+        <tr><td>🛠️ ایپ مینٹیننس</td><td>${N(U)} × ${SH.m}${G !== gEst || Um ? ' ± گوگل کا فرق' : ''}</td><td class="num">${N(maint)}</td></tr>
+        <tr><td>🤝 ایجنٹ</td><td>${N(uA)} × ${SH.a}</td><td class="num">${N(agents)}</td></tr>
+        <tr><td>👨‍💻 ڈویلپر</td><td>${N(U)} × ${SH.d}${uD ? ` + ${N(uD)} × ${SH.a} (خود لایا)` : ''}${uP ? ` + ${N(uP)} × ${SH.a/2} (PBT)` : ''}</td><td class="num">${N(dev)}</td></tr>
+        <tr><td>👥 کو-ڈویلپر</td><td>${N(U)} × ${SH.c}${uC ? ` + ${N(uC)} × ${SH.a} (خود لایا)` : ''}${uP ? ` + ${N(uP)} × ${SH.a/2} (PBT)` : ''}</td><td class="num">${N(codev)}</td></tr>
+        <tr class="tot"><td>کل</td><td></td><td class="num">${N(G + maint + agents + dev + codev)}</td></tr></table>
+      <div class="noP" style="margin-top:10px"><label>🟦 گوگل نے اس مہینے اصل کتنا کاٹا؟ (Play Console ← Earnings سے) — خالی = اندازہ ${N(gEst)}</label>
+        <div class="btns" style="margin-top:2px"><input id="gcut" class="num" inputmode="numeric" value="${r.gcut == null ? '' : r.gcut}" style="max-width:160px" placeholder="${gEst}"><button onclick="admGcut()">💾 محفوظ</button></div></div>
+      <div style="font-size:13.5px;color:var(--mut);margin-top:8px">📅 ${monName(finMon)} کی گوگل پلے والی رقم گوگل تقریباً <b>${payOn}</b> کو بینک میں بھیجتا ہے — ایجنٹوں کا کمیشن اسی کے بعد ادا ہوگا۔ براہِ راست (اکاؤنٹ تفصیل والی) ممبرشپ کے پیسے آپ کو پہلے ہی مل چکے ہوتے ہیں۔</div></div>
+    <div class="card"><h2>🤝 ایجنٹوں کا کمیشن — ${monName(finMon)}</h2>${Object.values(ag).map(a=>`<div class="row"><b>${E(a.name)}</b> <span class="num">${E(a.code)}</span> — ${N(a.u)} × ${SH.a} = <b class="num">Rs ${N(a.u*SH.a)}</b></div>`).join('') || '<div class="row">اس مہینے کسی ایجنٹ کی فروخت نہیں</div>'}</div>
+    <div class="card"><h2>🧾 فروخت کی فہرست (${L.length})</h2>${L.map(x=>`<div class="row"><span class="num">${D(x.ts)}</span> · ${x.src==='play' ? '▶️ پلے' : '🏦 براہِ راست'} · ${x.units > 1 ? x.units + ' سال · ' : ''}${E(x.biz || '')} <span class="num" style="font-size:12px">${E(x.rec)}</span><br><small>لایا: ${who(x)}</small></div>`).join('') || '<div class="row">اس مہینے کوئی فروخت نہیں</div>'}</div>
+    <div class="card"><h2>📊 پچھلے مہینے</h2>${(r.mons||[]).map(m=>`<div class="row ag" onclick="admFin('${m.mon}')">${monName(m.mon)} — <b class="num">${N(m.u)}</b> ممبرشپ · Rs ${N(m.u*SH.price)}</div>`).join('') || '<div class="row">—</div>'}</div>`;
+}
+async function admGcut(){ await admCall('/agadmin', {op:'gcut', mon: finMon, amount: $('#gcut').value.trim()}); admFin(finMon); }
 async function admSetRate(){ await admCall('/agadmin', {op:'rate', amount: $('#rate').value}); alert('✅ محفوظ'); admHome(); }
 async function admOpen(code, extra){
   admCode = code; const s = await admCall('/agportal', Object.assign({code}, extra||{})); if(!s.ok) return alert('نہیں ملا'); S = s;
