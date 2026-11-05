@@ -53,7 +53,7 @@ button.sec{background:var(--line);color:var(--ink)}button.red{background:#fee2e2
 <body>
 <header><h1>🤝 MCS ایجنٹ پورٹل</h1><small>My City Shines — Agent Portal</small></header>
 <main id="app"></main>
-<div class="foot"><a href="guide.html" style="color:var(--pri);font-weight:800">📄 MCS ایجنٹ کیسے بنیں — طریقہ (پرنٹ / PDF)</a><br>پی بی ٹی کوڈ لیبز · <span class="num">AGP0511TH009</span></div>
+<div class="foot"><a href="guide.html" style="color:var(--pri);font-weight:800">📄 MCS ایجنٹ کیسے بنیں — طریقہ (پرنٹ / PDF)</a><br>پی بی ٹی کوڈ لیبز · <span class="num">AGP0511TH010</span></div>
 <script>
 const API = 'https://aio-pos-verify.pbtcodelabs.workers.dev';
 const FB_KEY = 'AIzaSyAvu8ymIZAGEPaYwd_LBJzKS2lZ3Q4_Mog'; // My City Shines (ایڈمن لاگ اِن)
@@ -106,6 +106,8 @@ function agLogin(msg){
     <label>📱 موبائل نمبر</label><input id="lp" inputmode="tel" dir="ltr" value="${E((ls.get('me')||{}).phone||'')}">
     <label>🔑 PIN</label><input id="lpin" inputmode="numeric" dir="ltr" maxlength="6">
     <div class="err" id="lerr">${E(msg||'')}</div><div class="btns"><button onclick="agDoLogin()">✅ داخل ہوں</button></div></div>
+    <div class="card"><h2>🎬 MCS ایجنٹ کیسے بنیں؟</h2><video src="../help/media/promo/MCS-Agent-Banen-ur.mp4" controls playsinline preload="metadata" style="width:100%;max-height:70vh;border-radius:12px;background:#000"></video>
+      <div class="btns"><a href="guide.html" target="_blank" rel="noopener"><button>📄 پورا طریقہ پڑھیں (PDF / پرنٹ)</button></a><a href="MCS-Agent-Guide.pdf" download><button class="sec">⬇️ PDF ڈاؤن لوڈ</button></a><a href="../help/media/promo/MCS-Agent-Banen-ur.mp4" download><button class="sec">⬇️ ویڈیو ڈاؤن لوڈ</button></a></div></div>
     <div class="card" style="text-align:center"><a href="#codev" onclick="setTimeout(()=>location.reload(),50)" style="color:var(--pri);font-weight:800">👥 کو-ڈویلپر — کمپنی کا حساب دیکھیں</a></div>`;
 }
 /* AGP0511TH005 (مالک کا حکم): کو-ڈویلپر — موبائل + PIN (سٹی شائنز کا کو-ڈویلپر PIN)؛ کمپنی کا حساب صرف دیکھنا، کچھ بدل نہیں سکتا */
