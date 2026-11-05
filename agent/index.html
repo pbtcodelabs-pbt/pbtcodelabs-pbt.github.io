@@ -53,7 +53,7 @@ button.sec{background:var(--line);color:var(--ink)}button.red{background:#fee2e2
 <body>
 <header><h1>🤝 MCS ایجنٹ پورٹل</h1><small>My City Shines — Agent Portal</small></header>
 <main id="app"></main>
-<div class="foot"><a href="guide.html" style="color:var(--pri);font-weight:800">📄 MCS ایجنٹ کیسے بنیں — طریقہ (پرنٹ / PDF)</a><br>پی بی ٹی کوڈ لیبز · <span class="num">AGP0511TH006</span></div>
+<div class="foot"><a href="guide.html" style="color:var(--pri);font-weight:800">📄 MCS ایجنٹ کیسے بنیں — طریقہ (پرنٹ / PDF)</a><br>پی بی ٹی کوڈ لیبز · <span class="num">AGP0511TH007</span></div>
 <script>
 const API = 'https://aio-pos-verify.pbtcodelabs.workers.dev';
 const FB_KEY = 'AIzaSyAvu8ymIZAGEPaYwd_LBJzKS2lZ3Q4_Mog'; // My City Shines (ایڈمن لاگ اِن)
@@ -90,7 +90,7 @@ function scrollChat(){ const c = $('#chat'); if(c) c.scrollTop = c.scrollHeight;
 function summaryHtml(s){
   return `<div class="stats">
     <div class="st"><b>${N(s.refs.length)}</b><span>🏪 لگوائے کاروبار</span></div>
-    <div class="st"><b>${N(s.refs.filter(r => r.paid > 0).length)}</b><span>⭐ جاری (خریدی) پروفائلیں</span></div>
+    <div class="st"><b>${N(s.refs.filter(r => r.paid > 0).length)}</b><span>⭐ جاری (خریدے) کاروبار</span></div>
     <div class="st"><b>${N(s.years)}</b><span>📅 کل خریدے سال</span></div>
     <div class="st"><b class="num">Rs ${N(s.due)}</b><span>💰 کل کمیشن (${N(s.rate)} فی سال)</span></div>
     <div class="st"><b class="num">Rs ${N(s.paidOut)}</b><span>✅ ادا ہو چکا</span></div>
@@ -155,7 +155,7 @@ function agRender(){
     <div class="card"><h2>🏪 میرے لگوائے کاروبار</h2>${refsHtml(s)}</div>
     <div class="card"><h2>✅ مجھے ادائیگیاں</h2>${paysHtml(s)}</div>
     <div class="card"><h2>📸 دکاندار کی ادائیگی کا ثبوت بھیجیں</h2><div style="color:var(--mut);font-size:13px">کسی دکاندار سے رقم لی ہو تو اسکرین شاٹ اور اس کی پروفائل ID لگائیں — ڈویلپر جاری کر دیں گے۔</div>
-      <label>🏪 پروفائل ID</label><select id="pfRk">${s.refs.map(r => `<option value="${E(r.rk)}">${E(r.name)} — ${E(r.rk)}</option>`).join('')}<option value="">— دوسرا (نوٹ میں لکھیں) —</option></select>
+      <label>🏪 کاروبار ID</label><select id="pfRk">${s.refs.map(r => `<option value="${E(r.rk)}">${E(r.name)} — ${E(r.rk)}</option>`).join('')}<option value="">— دوسرا (نوٹ میں لکھیں) —</option></select>
       <label>📝 نوٹ (رقم، کس ذریعے سے، TID)</label><input id="pfNote" maxlength="400">
       <div class="att"><label>🖼️ اسکرین شاٹ<input type="file" accept="image/*" onchange="pickProof(this)"></label></div><div class="prev" id="pfPrev"></div>
       <div class="err" id="pfErr"></div><div class="btns"><button onclick="sendProof()">📨 ثبوت بھیجیں</button></div>
@@ -236,7 +236,7 @@ async function admOpen(code, extra){
     <div class="card"><h2>➕ ادائیگی درج کریں</h2><div class="btns"><input id="payAmt" class="num" inputmode="numeric" placeholder="رقم" style="max-width:140px"><input id="payNote" placeholder="نوٹ (ایزی پیسہ، TID…)" style="flex:1;min-width:160px"><button onclick="admPay()">💾</button></div>
       <h2 style="margin-top:10px">✅ ادائیگیاں</h2>${paysHtml(s, true)}</div>
     <div class="card"><h2>🏪 کاروبار</h2>${refsHtml(s)}</div>
-    <div class="card"><h2>📸 ادائیگی کے ثبوت</h2><div style="font-size:13px;color:var(--mut)">ثبوت دیکھ کر سٹی شائنز ایپ ← کنٹرول پینل ← «👤 Account Access» سے پروفائل ایک سال جاری کریں — کمیشن خود جڑ جائے گا۔</div>${proofsHtml(s, true)}</div>
+    <div class="card"><h2>📸 ادائیگی کے ثبوت</h2><div style="font-size:13px;color:var(--mut)">ثبوت دیکھ کر سٹی شائنز ایپ ← کنٹرول پینل ← «👤 Account Access» سے کاروبار ایک سال کے لیے جاری کریں — کمیشن خود جڑ جائے گا۔</div>${proofsHtml(s, true)}</div>
     <div class="card"><h2>💬 چیٹ</h2>${chatHtml(s.msgs, 'dev')}</div>`;
   scrollChat();
 }
