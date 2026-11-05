@@ -53,7 +53,7 @@ button.sec{background:var(--line);color:var(--ink)}button.red{background:#fee2e2
 <body>
 <header><h1>🤝 MCS ایجنٹ پورٹل</h1><small>My City Shines — Agent Portal</small></header>
 <main id="app"></main>
-<div class="foot"><a href="guide.html" style="color:var(--pri);font-weight:800">📄 MCS ایجنٹ کیسے بنیں — طریقہ (پرنٹ / PDF)</a><br>پی بی ٹی کوڈ لیبز · <span class="num">AGP0511TH003</span></div>
+<div class="foot"><a href="guide.html" style="color:var(--pri);font-weight:800">📄 MCS ایجنٹ کیسے بنیں — طریقہ (پرنٹ / PDF)</a><br>پی بی ٹی کوڈ لیبز · <span class="num">AGP0511TH005</span></div>
 <script>
 const API = 'https://aio-pos-verify.pbtcodelabs.workers.dev';
 const FB_KEY = 'AIzaSyAvu8ymIZAGEPaYwd_LBJzKS2lZ3Q4_Mog'; // My City Shines (ایڈمن لاگ اِن)
@@ -66,7 +66,8 @@ function cpy(v){ const done = () => toast('📋 ' + v + ' کاپی ہو گیا')
 function toast(t){ let el = document.getElementById('tst'); if(!el){ el = document.createElement('div'); el.id = 'tst'; document.body.appendChild(el); } el.textContent = t; el.className = 'on'; clearTimeout(el._t); el._t = setTimeout(() => el.className = '', 2200); }
 const D = t => t ? new Date(t).toLocaleDateString('en-GB') : '—';
 const ls = { get(k, d){ try{ const v = localStorage.getItem('agp_' + k); return v ? JSON.parse(v) : d; }catch(e){ return d; } }, set(k, v){ try{ localStorage.setItem('agp_' + k, JSON.stringify(v)); }catch(e){} }, del(k){ try{ localStorage.removeItem('agp_' + k); }catch(e){} } };
-const ADMIN = location.hash.startsWith('#admin');
+const ADMIN = location.hash.startsWith('#admin'), CODEV = location.hash.startsWith('#codev');
+let CDV = null;   /* AGP0511TH005: کو-ڈویلپر {phone, pin} — صرف دیکھنا */
 let S = null, admTok = null, admTokExp = 0, admList = [], admRate = 0, admCode = '';
 async function post(path, body, tok){ const r = await fetch(API + path, {method:'POST', headers: Object.assign({'Content-Type':'text/plain'}, tok ? {Authorization: 'Bearer ' + tok} : {}), body: JSON.stringify(body)}); return r.json(); }
 function shrink(file, max, q){ return new Promise((res, rej) => { const im = new Image(); im.onload = () => { const k = Math.min(1, max / Math.max(im.width, im.height)); const c = document.createElement('canvas'); c.width = Math.round(im.width*k); c.height = Math.round(im.height*k); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(im.src); res(c.toDataURL('image/jpeg', q)); }; im.onerror = rej; im.src = URL.createObjectURL(file); }); }
@@ -104,8 +105,20 @@ function agLogin(msg){
   app.innerHTML = `<div class="card"><h2>🔐 لاگ اِن</h2><div style="color:var(--mut);font-size:14px">موبائل نمبر اور وہ PIN جو منظوری پر ملا (سٹی شائنز ایپ میں «🤝 MCS ایجنٹ» میں بھی لکھا ہے)۔</div>
     <label>📱 موبائل نمبر</label><input id="lp" inputmode="tel" dir="ltr" value="${E((ls.get('me')||{}).phone||'')}">
     <label>🔑 PIN</label><input id="lpin" inputmode="numeric" dir="ltr" maxlength="6">
-    <div class="err" id="lerr">${E(msg||'')}</div><div class="btns"><button onclick="agDoLogin()">✅ داخل ہوں</button></div></div>`;
+    <div class="err" id="lerr">${E(msg||'')}</div><div class="btns"><button onclick="agDoLogin()">✅ داخل ہوں</button></div></div>
+    <div class="card" style="text-align:center"><a href="#codev" onclick="setTimeout(()=>location.reload(),50)" style="color:var(--pri);font-weight:800">👥 کو-ڈویلپر — کمپنی کا حساب دیکھیں</a></div>`;
 }
+/* AGP0511TH005 (مالک کا حکم): کو-ڈویلپر — موبائل + PIN (سٹی شائنز کا کو-ڈویلپر PIN)؛ کمپنی کا حساب صرف دیکھنا، کچھ بدل نہیں سکتا */
+function cdLogin(msg){
+  const me = ls.get('cd') || {};
+  app.innerHTML = `<div class="card"><h2>👥 کو-ڈویلپر — لاگ اِن</h2><div style="color:var(--mut);font-size:14px">وہی موبائل نمبر اور PIN جو سٹی شائنز کے «👥 کو-ڈویلپر جانچ موڈ» میں ہے۔ یہاں صرف حساب دیکھ سکتے ہیں — بدلنے کا اختیار صرف ڈویلپر کے پاس ہے۔</div>
+    <label>📱 موبائل نمبر</label><input id="cp" inputmode="tel" dir="ltr" value="${E(me.phone||'')}">
+    <label>🔑 PIN</label><input id="cpin" inputmode="numeric" dir="ltr" maxlength="6" onkeydown="if(event.key==='Enter')cdDoLogin()">
+    <div class="err">${E(msg||'')}</div><div class="btns"><button onclick="cdDoLogin()">✅ داخل ہوں</button></div></div>`;
+}
+async function cdDoLogin(){ const phone = $('#cp').value.trim(), pin = $('#cpin').value.trim(); if(!phone || !pin) return; CDV = {phone, pin};
+  try{ const r = await post('/cdfin', {phone, pin, mon: monNow()}); if(!r || !r.ok){ CDV = null; return cdLogin('❌ نمبر یا PIN غلط'); } ls.set('cd', {phone}); CDV.name = r.name; admFin(); }catch(e){ CDV = null; cdLogin('📶 انٹرنیٹ نہیں'); } }
+function cdLogout(){ CDV = null; cdLogin(); }
 async function agDoLogin(){ const phone = $('#lp').value.trim(), pin = $('#lpin').value.trim(); if(!phone || !pin) return; ls.set('me', {phone, pin}); agLoad(); }
 async function agLoad(extra){
   const me = ls.get('me'); if(!me || !me.pin) return agLogin();
@@ -160,7 +173,8 @@ const monStep = (m, k) => { let [y, mm] = m.split('_').map(Number); mm += k; if(
 let finMon = '';
 async function admFin(mon){
   finMon = mon || finMon || monNow();
-  const r = await admCall('/agadmin', {op:'fin', mon: finMon}); const L = r.sales || [];
+  const r = CDV ? await post('/cdfin', {phone: CDV.phone, pin: CDV.pin, mon: finMon}) : await admCall('/agadmin', {op:'fin', mon: finMon});
+  if(CDV && (!r || !r.ok)) return cdLogin('دوبارہ لاگ اِن کریں'); const L = r.sales || [];
   const U = L.reduce((a,x)=>a+x.units,0), Up = L.filter(x=>x.src==='play').reduce((a,x)=>a+x.units,0), Um = U - Up;
   const gEst = SH.g * Up, G = r.gcut == null ? gEst : r.gcut;
   const by = k => L.filter(x=>x.by===k).reduce((a,x)=>a+x.units,0);
@@ -170,17 +184,17 @@ async function admFin(mon){
   const ag = {}; L.filter(x=>x.by==='agent').forEach(x=>{ const k = x.code; ag[k] = ag[k] || {name:x.agent, code:k, u:0}; ag[k].u += x.units; });
   const pay = monStep(finMon, 1).split('_'); const payOn = '15 ' + MN[+pay[1]-1] + ' ' + pay[0];
   const who = x => x.by==='agent' ? '🤝 ' + E(x.agent || x.code) + ' <span class="num">' + E(x.code) + '</span>' : x.by==='dev' ? '👨‍💻 ڈویلپر (PBT-D)' : x.by==='codev' ? '👥 کو-ڈویلپر (PBT-C)' : '🏢 PBT — خود آیا';
-  app.innerHTML = `<div class="card noP"><div class="btns" style="margin:0"><button class="sec" onclick="admHome()">← واپس</button><button class="sec" onclick="admFin(monStep(finMon,-1))">◀ پچھلا</button><button class="sec" onclick="admFin(monStep(finMon,1))">اگلا ▶</button><button onclick="window.print()">🖨️ پرنٹ / PDF</button></div></div>
+  app.innerHTML = `<div class="card noP"><div class="btns" style="margin:0">${CDV ? `<span style="align-self:center;font-weight:800">👥 ${E(CDV.name||'')} — صرف دیکھیں</span><button class="sec" onclick="cdLogout()">🚪 باہر</button>` : '<button class="sec" onclick="admHome()">← واپس</button>'}<button class="sec" onclick="admFin(monStep(finMon,-1))">◀ پچھلا</button><button class="sec" onclick="admFin(monStep(finMon,1))">اگلا ▶</button><button onclick="window.print()">🖨️ پرنٹ / PDF</button></div></div>
     <div class="card"><h2>💰 کمپنی کا حساب — ${monName(finMon)}</h2>
       <div class="stats"><div class="st"><b>${N(U)}</b><span>ممبرشپ (سال)</span></div><div class="st"><b>Rs ${N(U*SH.price)}</b><span>کل فروخت</span></div><div class="st"><b>${N(Up)} / ${N(Um)}</b><span>گوگل پلے / براہِ راست</span></div></div>
       <table class="fin"><tr><th>مد</th><th>حساب</th><th>رقم</th></tr>
-        <tr><td>🟦 گوگل</td><td>${r.gcut == null ? `اندازہ: ${N(Up)} × ${SH.g}` : 'اصل (آپ نے درج کیا)'}</td><td class="num">${N(G)}</td></tr>
+        <tr><td>🟦 گوگل</td><td>${r.gcut == null ? `اندازہ: ${N(Up)} × ${SH.g}` : (CDV ? 'اصل (ڈویلپر نے درج کیا)' : 'اصل (آپ نے درج کیا)')}</td><td class="num">${N(G)}</td></tr>
         <tr><td>🛠️ ایپ مینٹیننس</td><td>${N(U)} × ${SH.m}${G !== gEst || Um ? ' ± گوگل کا فرق' : ''}</td><td class="num">${N(maint)}</td></tr>
         <tr><td>🤝 ایجنٹ</td><td>${N(uA)} × ${SH.a}</td><td class="num">${N(agents)}</td></tr>
         <tr><td>👨‍💻 ڈویلپر</td><td>${N(U)} × ${SH.d}${uD ? ` + ${N(uD)} × ${SH.a} (خود لایا)` : ''}${uP ? ` + ${N(uP)} × ${SH.a/2} (PBT)` : ''}</td><td class="num">${N(dev)}</td></tr>
         <tr><td>👥 کو-ڈویلپر</td><td>${N(U)} × ${SH.c}${uC ? ` + ${N(uC)} × ${SH.a} (خود لایا)` : ''}${uP ? ` + ${N(uP)} × ${SH.a/2} (PBT)` : ''}</td><td class="num">${N(codev)}</td></tr>
         <tr class="tot"><td>کل</td><td></td><td class="num">${N(G + maint + agents + dev + codev)}</td></tr></table>
-      <div class="noP" style="margin-top:10px"><label>🟦 گوگل نے اس مہینے اصل کتنا کاٹا؟ (Play Console ← Earnings سے) — خالی = اندازہ ${N(gEst)}</label>
+      <div class="noP" style="margin-top:10px;${CDV ? 'display:none' : ''}"><label>🟦 گوگل نے اس مہینے اصل کتنا کاٹا؟ (Play Console ← Earnings سے) — خالی = اندازہ ${N(gEst)}</label>
         <div class="btns" style="margin-top:2px"><input id="gcut" class="num" inputmode="numeric" value="${r.gcut == null ? '' : r.gcut}" style="max-width:160px" placeholder="${gEst}"><button onclick="admGcut()">💾 محفوظ</button></div></div>
       <div style="font-size:13.5px;color:var(--mut);margin-top:8px">📅 ${monName(finMon)} کی گوگل پلے والی رقم گوگل تقریباً <b>${payOn}</b> کو بینک میں بھیجتا ہے — ایجنٹوں کا کمیشن اسی کے بعد ادا ہوگا۔ براہِ راست (اکاؤنٹ تفصیل والی) ممبرشپ کے پیسے آپ کو پہلے ہی مل چکے ہوتے ہیں۔</div></div>
     <div class="card"><h2>🤝 ایجنٹوں کا کمیشن — ${monName(finMon)}</h2>${Object.values(ag).map(a=>`<div class="row"><b>${E(a.name)}</b> <span class="num">${E(a.code)}</span> — ${N(a.u)} × ${SH.a} = <b class="num">Rs ${N(a.u*SH.a)}</b></div>`).join('') || '<div class="row">اس مہینے کسی ایجنٹ کی فروخت نہیں</div>'}</div>
@@ -203,7 +217,7 @@ async function admOpen(code, extra){
 async function admPay(){ const amount = parseInt($('#payAmt').value, 10); if(!(amount > 0)) return; if(!confirm('Rs ' + N(amount) + ' ادائیگی درج کریں؟')) return; await admCall('/agadmin', {op:'pay', code: admCode, amount, note: $('#payNote').value}); admOpen(admCode); }
 async function admUnpay(id){ if(!confirm('یہ ادائیگی ہٹا دیں؟')) return; await admCall('/agadmin', {op:'unpay', pid: id}); admOpen(admCode); }
 async function admProofDone(id){ await admCall('/agadmin', {op:'proofdone', pid: id}); admOpen(admCode); }
-if(ADMIN) admLogin(); else agLoad();
+if(ADMIN) admLogin(); else if(CODEV) cdLogin(); else agLoad();
 </script>
 </body>
 </html>
