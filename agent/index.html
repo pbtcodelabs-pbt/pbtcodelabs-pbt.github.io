@@ -53,7 +53,7 @@ button.sec{background:var(--line);color:var(--ink)}button.red{background:#fee2e2
 <body>
 <header><h1>🤝 MCS ایجنٹ پورٹل</h1><small>My City Shines — Agent Portal</small></header>
 <main id="app"></main>
-<div class="foot"><a href="guide.html" style="color:var(--pri);font-weight:800">📄 MCS ایجنٹ کیسے بنیں — طریقہ (پرنٹ / PDF)</a><br>پی بی ٹی کوڈ لیبز · <span class="num">AGP0511TH007</span></div>
+<div class="foot"><a href="guide.html" style="color:var(--pri);font-weight:800">📄 MCS ایجنٹ کیسے بنیں — طریقہ (پرنٹ / PDF)</a><br>پی بی ٹی کوڈ لیبز · <span class="num">AGP0511TH009</span></div>
 <script>
 const API = 'https://aio-pos-verify.pbtcodelabs.workers.dev';
 const FB_KEY = 'AIzaSyAvu8ymIZAGEPaYwd_LBJzKS2lZ3Q4_Mog'; // My City Shines (ایڈمن لاگ اِن)
@@ -208,7 +208,7 @@ async function admFin(mon){
   const maint = (SH.g + SH.m) * U - G;
   const dev = SH.d*U + SH.a*uD + (SH.a/2)*uP, codev = SH.c*U + SH.a*uC + (SH.a/2)*uP, agents = SH.a*uA;
   const ag = {}; L.filter(x=>x.by==='agent').forEach(x=>{ const k = x.code; ag[k] = ag[k] || {name:x.agent, code:k, u:0}; ag[k].u += x.units; });
-  const pay = monStep(finMon, 1).split('_'); const payOn = '15 ' + MN[+pay[1]-1] + ' ' + pay[0];
+  const pay = monStep(finMon, 1).split('_'); const payOn = '15 سے 20 ' + MN[+pay[1]-1] + ' ' + pay[0] + ' کے درمیان';
   const who = x => x.by==='agent' ? '🤝 ' + E(x.agent || x.code) + ' <span class="num">' + E(x.code) + '</span>' : x.by==='dev' ? '👨‍💻 ڈویلپر (PBT-D)' : x.by==='codev' ? '👥 کو-ڈویلپر (PBT-C)' : '🏢 PBT — خود آیا';
   app.innerHTML = `<div class="card noP"><div class="btns" style="margin:0">${CDV ? `<span style="align-self:center;font-weight:800">👥 ${E(CDV.name||'')} — صرف دیکھیں</span><button onclick="cdChatView()">💬 ڈویلپر سے چیٹ</button><button class="sec" onclick="cdLogout()">🚪 باہر</button>` : '<button class="sec" onclick="admHome()">← واپس</button>'}<button class="sec" onclick="admFin(monStep(finMon,-1))">◀ پچھلا</button><button class="sec" onclick="admFin(monStep(finMon,1))">اگلا ▶</button><button onclick="window.print()">🖨️ پرنٹ / PDF</button></div></div>
     <div class="card"><h2>💰 کمپنی کا حساب — ${monName(finMon)}</h2>
@@ -222,7 +222,7 @@ async function admFin(mon){
         <tr class="tot"><td>کل</td><td></td><td class="num">${N(G + maint + agents + dev + codev)}</td></tr></table>
       <div class="noP" style="margin-top:10px;${CDV ? 'display:none' : ''}"><label>🟦 گوگل نے اس مہینے اصل کتنا کاٹا؟ (Play Console ← Earnings سے) — خالی = اندازہ ${N(gEst)}</label>
         <div class="btns" style="margin-top:2px"><input id="gcut" class="num" inputmode="numeric" value="${r.gcut == null ? '' : r.gcut}" style="max-width:160px" placeholder="${gEst}"><button onclick="admGcut()">💾 محفوظ</button></div></div>
-      <div style="font-size:13.5px;color:var(--mut);margin-top:8px">📅 ${monName(finMon)} کی گوگل پلے والی رقم گوگل تقریباً <b>${payOn}</b> کو بینک میں بھیجتا ہے — ایجنٹوں کا کمیشن اسی کے بعد ادا ہوگا۔ براہِ راست (اکاؤنٹ تفصیل والی) ممبرشپ کے پیسے آپ کو پہلے ہی مل چکے ہوتے ہیں۔</div></div>
+      <div style="font-size:13.5px;color:var(--mut);margin-top:8px">📅 ${monName(finMon)} کی گوگل پلے والی رقم گوگل سے <b>${payOn}</b> بینک میں آتی ہے — ایجنٹوں کا کمیشن اسی کے بعد ادا ہوگا۔ براہِ راست (اکاؤنٹ تفصیل والی) ممبرشپ کے پیسے آپ کو پہلے ہی مل چکے ہوتے ہیں۔</div></div>
     <div class="card"><h2>🤝 ایجنٹوں کا کمیشن — ${monName(finMon)}</h2>${Object.values(ag).map(a=>`<div class="row"><b>${E(a.name)}</b> <span class="num">${E(a.code)}</span> — ${N(a.u)} × ${SH.a} = <b class="num">Rs ${N(a.u*SH.a)}</b></div>`).join('') || '<div class="row">اس مہینے کسی ایجنٹ کی فروخت نہیں</div>'}</div>
     <div class="card"><h2>🧾 فروخت کی فہرست (${L.length})</h2>${L.map(x=>`<div class="row"><span class="num">${D(x.ts)}</span> · ${x.src==='play' ? '▶️ پلے' : '🏦 براہِ راست'} · ${x.units > 1 ? x.units + ' سال · ' : ''}${E(x.biz || '')} <span class="num" style="font-size:12px">${E(x.rec)}</span><br><small>لایا: ${who(x)}</small></div>`).join('') || '<div class="row">اس مہینے کوئی فروخت نہیں</div>'}</div>
     <div class="card"><h2>📊 پچھلے مہینے</h2>${(r.mons||[]).map(m=>`<div class="row ag" onclick="admFin('${m.mon}')">${monName(m.mon)} — <b class="num">${N(m.u)}</b> ممبرشپ · Rs ${N(m.u*SH.price)}</div>`).join('') || '<div class="row">—</div>'}</div>`;
