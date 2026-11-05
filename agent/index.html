@@ -53,7 +53,7 @@ button.sec{background:var(--line);color:var(--ink)}button.red{background:#fee2e2
 <body>
 <header><h1>🤝 MCS ایجنٹ پورٹل</h1><small>My City Shines — Agent Portal</small></header>
 <main id="app"></main>
-<div class="foot"><a href="guide.html" style="color:var(--pri);font-weight:800">📄 MCS ایجنٹ کیسے بنیں — طریقہ (پرنٹ / PDF)</a><br>پی بی ٹی کوڈ لیبز · <span class="num">AGP0511TH005</span></div>
+<div class="foot"><a href="guide.html" style="color:var(--pri);font-weight:800">📄 MCS ایجنٹ کیسے بنیں — طریقہ (پرنٹ / PDF)</a><br>پی بی ٹی کوڈ لیبز · <span class="num">AGP0511TH006</span></div>
 <script>
 const API = 'https://aio-pos-verify.pbtcodelabs.workers.dev';
 const FB_KEY = 'AIzaSyAvu8ymIZAGEPaYwd_LBJzKS2lZ3Q4_Mog'; // My City Shines (ایڈمن لاگ اِن)
@@ -119,6 +119,29 @@ function cdLogin(msg){
 async function cdDoLogin(){ const phone = $('#cp').value.trim(), pin = $('#cpin').value.trim(); if(!phone || !pin) return; CDV = {phone, pin};
   try{ const r = await post('/cdfin', {phone, pin, mon: monNow()}); if(!r || !r.ok){ CDV = null; return cdLogin('❌ نمبر یا PIN غلط'); } ls.set('cd', {phone}); CDV.name = r.name; admFin(); }catch(e){ CDV = null; cdLogin('📶 انٹرنیٹ نہیں'); } }
 function cdLogout(){ CDV = null; cdLogin(); }
+/* AGP0511TH006 (مالک کا حکم): مسئلہ / مشورہ سیدھا PBT Help Desk میں (وہاں مالک منظور کرے تو کام شروع) — چیٹ صرف ڈویلپر سے بات کے لیے */
+function hdLink(prefix, name, phone){ const q = new URLSearchParams({app:'MCS', text: prefix + '\n', name: name || '', phone: phone || '', type: 'idea'}); return 'https://pbtcodelabs-pbt.github.io/help/?' + q.toString() + '#/new/MCS'; }
+function hdBox(prefix, name, phone){ return `<div class="card" style="border:2px dashed var(--gold);background:#fffbeb"><h2>🛠️ ایپ میں مسئلہ یا نیا مشورہ؟</h2><div style="font-size:14px;color:var(--mut)">ایپ کی کوئی خرابی یا بہتری کا مشورہ یہاں سے بھیجیں — سیدھا ڈویلپر کی منظوری کی فہرست میں جائے گا اور منظوری کے بعد کام شروع ہوگا۔ (عام بات چیت اور رسید نیچے چیٹ میں)</div><div class="btns"><a href="${E(hdLink(prefix, name, phone))}" target="_blank" rel="noopener"><button>🛠️ مسئلہ / مشورہ — Help Desk میں بھیجیں</button></a></div></div>`; }
+let THR = '';   /* ایڈمن: کھلا ہوا چیٹ دھاگہ (ایجنٹ کوڈ یا CD-<نمبر>) */
+async function cdChatView(x){
+  const r = await post('/cdchat', Object.assign({phone: CDV.phone, pin: CDV.pin}, x || {})); if(!r || !r.ok) return cdLogin('دوبارہ لاگ اِن کریں');
+  app.innerHTML = `<div class="card"><div class="btns" style="margin:0"><span style="align-self:center;font-weight:800">👥 ${E(r.name)}</span><button class="sec" onclick="admFin()">💰 حساب</button><button class="sec" onclick="cdLogout()">🚪 باہر</button></div></div>
+    ${hdBox('👥 کو-ڈویلپر (' + r.name + ', ' + CDV.phone + '):', r.name, CDV.phone)}
+    <div class="card"><h2>💬 ڈویلپر سے بات کریں</h2><div style="font-size:13px;color:var(--mut)">یہ چیٹ صرف آپ اور ڈویلپر کے درمیان ہے — لکھیں، اسکرین شاٹ لگائیں یا آواز بھیجیں۔</div>${chatHtml(r.msgs, 'agent')}</div>`;
+  scrollChat();
+}
+async function admInbox(){
+  THR = ''; const r = await admCall('/agadmin', {op:'inbox'}); const L = r.list || [], have = new Set(L.map(x => x.code));
+  const extra = (r.cds || []).filter(c => !have.has(c.code));
+  const row = x => `<div class="row ag" onclick="admThread('${E(x.code)}', null, '${E(x.name||'')}')">${x.cd ? '👥' : '🤝'} <b>${E(x.name || x.code)}</b> <span class="num" style="font-size:12px">${E(x.cd ? 'کو-ڈویلپر' : x.code)}</span>${x.nw ? ` <span class="tag t-w">${x.nw} نئے</span>` : ''}<br><small>${x.lw === 'dev' ? '↩️ آپ: ' : ''}${E(x.lt || 'ابھی کوئی پیغام نہیں')}${x.last ? ' · <span class="num">' + D(x.last) + '</span>' : ''}</small></div>`;
+  app.innerHTML = `<div class="card"><div class="btns" style="margin:0 0 6px"><button class="sec" onclick="admHome()">← واپس</button></div><h2>💬 سب چیٹس</h2><div style="font-size:13px;color:var(--mut)">ہر ایجنٹ اور کو-ڈویلپر کی آپ سے الگ چیٹ — کوئی دوسرے کی بات نہیں دیکھ سکتا۔</div>${L.map(row).join('') || '<div class="row">ابھی کوئی چیٹ نہیں</div>'}${extra.length ? '<h2 style="margin-top:10px">👥 کو-ڈویلپر سے نئی بات</h2>' + extra.map(row).join('') : ''}</div>`;
+}
+async function admThread(code, x, name){
+  THR = code; const r = await admCall('/agadmin', Object.assign({op:'thread', code}, x || {}));
+  app.innerHTML = `<div class="card"><div class="btns" style="margin:0 0 6px"><button class="sec" onclick="admInbox()">← سب چیٹس</button>${code.startsWith('CD-') ? '' : `<button class="sec" onclick="admOpen('${E(code)}')">🤝 ایجنٹ کا پورا حساب</button>`}</div><h2>💬 ${E(name || code)}</h2>${chatHtml(r.msgs, 'dev')}</div>`;
+  scrollChat(); if(name) admThreadName = name;
+}
+let admThreadName = '';
 async function agDoLogin(){ const phone = $('#lp').value.trim(), pin = $('#lpin').value.trim(); if(!phone || !pin) return; ls.set('me', {phone, pin}); agLoad(); }
 async function agLoad(extra){
   const me = ls.get('me'); if(!me || !me.pin) return agLogin();
@@ -137,7 +160,8 @@ function agRender(){
       <div class="att"><label>🖼️ اسکرین شاٹ<input type="file" accept="image/*" onchange="pickProof(this)"></label></div><div class="prev" id="pfPrev"></div>
       <div class="err" id="pfErr"></div><div class="btns"><button onclick="sendProof()">📨 ثبوت بھیجیں</button></div>
       <h2 style="margin-top:10px">میرے بھیجے ثبوت</h2>${proofsHtml(s)}</div>
-    <div class="card"><h2>💬 ڈویلپر سے بات کریں</h2>${chatHtml(s.msgs, 'agent')}</div>`;
+    ${hdBox('🤝 ایجنٹ (' + s.agent.name + ', ' + s.agent.code + '):', s.agent.name, '0' + String(s.agent.phone).slice(2))}
+    <div class="card"><h2>💬 ڈویلپر سے بات کریں</h2><div style="font-size:13px;color:var(--mut)">یہ چیٹ صرف آپ اور ڈویلپر کے درمیان ہے — رہنمائی، ادائیگی کی رسید (تصویر)، آواز۔</div>${chatHtml(s.msgs, 'agent')}</div>`;
   scrollChat();
 }
 let proofImg = '';
@@ -146,7 +170,7 @@ async function sendProof(){ if(!proofImg) return ($('#pfErr').textContent = '⚠
 async function sendMsg(){
   const text = ($('#msgTx').value||'').trim(); if(!text && !att.img && !att.audio) return;
   const x = {act:'msg', text, img: att.img, audio: att.audio}; att.img = att.audio = '';
-  if(ADMIN) await admOpen(admCode, x); else await agLoad(x);
+  if(CDV) await cdChatView(x); else if(ADMIN && THR) await admThread(THR, x, admThreadName); else if(ADMIN) await admOpen(admCode, x); else await agLoad(x);
 }
 /* ===== ایڈمن (صرف مالک — My City Shines ایڈمن لاگ اِن) ===== */
 function admLogin(msg){
@@ -159,7 +183,9 @@ async function admDoLogin(){
 async function admCall(path, body){ if(!admTok || Date.now() > admTokExp){ admLogin('دوبارہ لاگ اِن کریں'); throw new Error('login'); } const r = await post(path, Object.assign({admin: path === '/agportal'}, body), admTok); if(r && r.error === 'admin_only'){ admLogin('صرف ایڈمن'); throw new Error('admin'); } return r; }
 async function admHome(){
   const r = await admCall('/agadmin', {op:'list'}); admList = (r.list||[]).filter(a => a.status === 'approved'); admRate = r.rate || 0;
-  app.innerHTML = `<div class="card"><h2>💰 کمپنی کا حساب</h2><div style="font-size:14px">ہر مہینے کی فروخت اور پیسوں کی تقسیم — گوگل، مینٹیننس، ایجنٹ، ڈویلپر، کو-ڈویلپر</div><div class="btns"><button onclick="admFin()">📊 ماہانہ رپورٹ کھولیں</button></div></div>
+  let nw = 0; try{ const ib = await admCall('/agadmin', {op:'inbox'}); nw = (ib.list||[]).reduce((a,x)=>a+(x.nw||0),0); }catch(e){}
+  app.innerHTML = `<div class="card"><h2>💬 سب چیٹس ${nw ? `<span class="tag t-w">${nw} نئے</span>` : ''}</h2><div style="font-size:14px">ایجنٹوں اور کو-ڈویلپر سے بات — ہر ایک کی الگ چیٹ</div><div class="btns"><button onclick="admInbox()">💬 چیٹس کھولیں</button></div></div>
+    <div class="card"><h2>💰 کمپنی کا حساب</h2><div style="font-size:14px">ہر مہینے کی فروخت اور پیسوں کی تقسیم — گوگل، مینٹیننس، ایجنٹ، ڈویلپر، کو-ڈویلپر</div><div class="btns"><button onclick="admFin()">📊 ماہانہ رپورٹ کھولیں</button></div></div>
     <div class="card"><h2>⚙️ کمیشن کی شرح</h2><div style="font-size:14px">ہر خریدے سال پر ایجنٹ کا کمیشن</div><div class="btns"><input id="rate" class="num" inputmode="numeric" value="${admRate}" style="max-width:140px"><button onclick="admSetRate()">💾 محفوظ</button></div></div>
     <div class="card"><h2>🤝 ایجنٹ (${admList.length})</h2>${admList.map(a => `<div class="row ag" onclick="admOpen('${E(a.code)}')"><b>${E(a.name)}</b> — <span class="num">${E(a.code)}</span><br><small>${E(a.biz)} · ${E(a.city)} · 🏪 ${N(a.refs)}${a.newProofs ? ` · <span class="tag t-w">📸 ${a.newProofs} نئے ثبوت</span>` : ''}</small></div>`).join('') || '<div class="row">ابھی کوئی منظور ایجنٹ نہیں — منظوری سٹی شائنز ایپ کے کنٹرول پینل سے</div>'}</div>`;
 }
@@ -184,7 +210,7 @@ async function admFin(mon){
   const ag = {}; L.filter(x=>x.by==='agent').forEach(x=>{ const k = x.code; ag[k] = ag[k] || {name:x.agent, code:k, u:0}; ag[k].u += x.units; });
   const pay = monStep(finMon, 1).split('_'); const payOn = '15 ' + MN[+pay[1]-1] + ' ' + pay[0];
   const who = x => x.by==='agent' ? '🤝 ' + E(x.agent || x.code) + ' <span class="num">' + E(x.code) + '</span>' : x.by==='dev' ? '👨‍💻 ڈویلپر (PBT-D)' : x.by==='codev' ? '👥 کو-ڈویلپر (PBT-C)' : '🏢 PBT — خود آیا';
-  app.innerHTML = `<div class="card noP"><div class="btns" style="margin:0">${CDV ? `<span style="align-self:center;font-weight:800">👥 ${E(CDV.name||'')} — صرف دیکھیں</span><button class="sec" onclick="cdLogout()">🚪 باہر</button>` : '<button class="sec" onclick="admHome()">← واپس</button>'}<button class="sec" onclick="admFin(monStep(finMon,-1))">◀ پچھلا</button><button class="sec" onclick="admFin(monStep(finMon,1))">اگلا ▶</button><button onclick="window.print()">🖨️ پرنٹ / PDF</button></div></div>
+  app.innerHTML = `<div class="card noP"><div class="btns" style="margin:0">${CDV ? `<span style="align-self:center;font-weight:800">👥 ${E(CDV.name||'')} — صرف دیکھیں</span><button onclick="cdChatView()">💬 ڈویلپر سے چیٹ</button><button class="sec" onclick="cdLogout()">🚪 باہر</button>` : '<button class="sec" onclick="admHome()">← واپس</button>'}<button class="sec" onclick="admFin(monStep(finMon,-1))">◀ پچھلا</button><button class="sec" onclick="admFin(monStep(finMon,1))">اگلا ▶</button><button onclick="window.print()">🖨️ پرنٹ / PDF</button></div></div>
     <div class="card"><h2>💰 کمپنی کا حساب — ${monName(finMon)}</h2>
       <div class="stats"><div class="st"><b>${N(U)}</b><span>ممبرشپ (سال)</span></div><div class="st"><b>Rs ${N(U*SH.price)}</b><span>کل فروخت</span></div><div class="st"><b>${N(Up)} / ${N(Um)}</b><span>گوگل پلے / براہِ راست</span></div></div>
       <table class="fin"><tr><th>مد</th><th>حساب</th><th>رقم</th></tr>
@@ -204,7 +230,7 @@ async function admFin(mon){
 async function admGcut(){ await admCall('/agadmin', {op:'gcut', mon: finMon, amount: $('#gcut').value.trim()}); admFin(finMon); }
 async function admSetRate(){ await admCall('/agadmin', {op:'rate', amount: $('#rate').value}); alert('✅ محفوظ'); admHome(); }
 async function admOpen(code, extra){
-  admCode = code; const s = await admCall('/agportal', Object.assign({code}, extra||{})); if(!s.ok) return alert('نہیں ملا'); S = s;
+  THR = ''; admCode = code; const s = await admCall('/agportal', Object.assign({code}, extra||{})); if(!s.ok) return alert('نہیں ملا'); S = s;
   app.innerHTML = `<div class="card"><div class="btns" style="margin:0 0 6px"><button class="sec" onclick="admHome()">← سب ایجنٹ</button></div><h2>${E(s.agent.name)} <span class="num" style="font-size:13px">${E(s.agent.code)}</span> ${CP(s.agent.code)}</h2><div style="font-size:14px">📱 <span class="num">0${E(String(s.agent.phone).slice(2))}</span> · ${E(s.agent.biz)} · ${E(s.agent.city)} · منظور: ${D(s.agent.okAt)}</div></div>
     ${summaryHtml(s)}
     <div class="card"><h2>➕ ادائیگی درج کریں</h2><div class="btns"><input id="payAmt" class="num" inputmode="numeric" placeholder="رقم" style="max-width:140px"><input id="payNote" placeholder="نوٹ (ایزی پیسہ، TID…)" style="flex:1;min-width:160px"><button onclick="admPay()">💾</button></div>
