@@ -53,7 +53,7 @@ button.sec{background:var(--line);color:var(--ink)}button.red{background:#fee2e2
 <body>
 <header><h1>🤝 MCS ایجنٹ پورٹل</h1><small>My City Shines — Agent Portal</small></header>
 <main id="app"></main>
-<div class="foot"><a href="guide.html" style="color:var(--pri);font-weight:800">📄 MCS ایجنٹ کیسے بنیں — طریقہ (پرنٹ / PDF)</a><br>پی بی ٹی کوڈ لیبز · <span class="num">AGP0511TH010</span></div>
+<div class="foot"><a href="guide.html" style="color:var(--pri);font-weight:800">📄 MCS ایجنٹ کیسے بنیں — طریقہ (پرنٹ / PDF)</a><br>پی بی ٹی کوڈ لیبز · <span class="num">AGP0511TH011</span></div>
 <script>
 const API = 'https://aio-pos-verify.pbtcodelabs.workers.dev';
 const FB_KEY = 'AIzaSyAvu8ymIZAGEPaYwd_LBJzKS2lZ3Q4_Mog'; // My City Shines (ایڈمن لاگ اِن)
@@ -189,7 +189,7 @@ async function admHome(){
   app.innerHTML = `<div class="card"><h2>💬 سب چیٹس ${nw ? `<span class="tag t-w">${nw} نئے</span>` : ''}</h2><div style="font-size:14px">ایجنٹوں اور کو-ڈویلپر سے بات — ہر ایک کی الگ چیٹ</div><div class="btns"><button onclick="admInbox()">💬 چیٹس کھولیں</button></div></div>
     <div class="card"><h2>💰 کمپنی کا حساب</h2><div style="font-size:14px">ہر مہینے کی فروخت اور پیسوں کی تقسیم — گوگل، مینٹیننس، ایجنٹ، ڈویلپر، کو-ڈویلپر</div><div class="btns"><button onclick="admFin()">📊 ماہانہ رپورٹ کھولیں</button></div></div>
     <div class="card"><h2>⚙️ کمیشن کی شرح</h2><div style="font-size:14px">ہر خریدے سال پر ایجنٹ کا کمیشن</div><div class="btns"><input id="rate" class="num" inputmode="numeric" value="${admRate}" style="max-width:140px"><button onclick="admSetRate()">💾 محفوظ</button></div></div>
-    <div class="card"><h2>🤝 ایجنٹ (${admList.length})</h2>${admList.map(a => `<div class="row ag" onclick="admOpen('${E(a.code)}')"><b>${E(a.name)}</b> — <span class="num">${E(a.code)}</span><br><small>${E(a.biz)} · ${E(a.city)} · 🏪 ${N(a.refs)}${a.newProofs ? ` · <span class="tag t-w">📸 ${a.newProofs} نئے ثبوت</span>` : ''}</small></div>`).join('') || '<div class="row">ابھی کوئی منظور ایجنٹ نہیں — منظوری سٹی شائنز ایپ کے کنٹرول پینل سے</div>'}</div>`;
+    <div class="card"><h2>🤝 ایجنٹ (${admList.length})</h2>${admList.map(a => `<div class="row ag" onclick="admOpen('${E(a.code)}')"><b>${E(a.name)}</b> — <span class="num">${E(a.code)}</span><br><small>${E(a.biz)} · ${E(a.city)} · 🏪 ${N(a.refs)}${a.newProofs ? ` · <span class="tag t-w">📸 ${a.newProofs} نئے ثبوت</span>` : ''}${a.off ? ' · <span class="tag" style="background:#fee2e2;color:var(--red)">⛔ غیر فعال</span>' : ''}</small></div>`).join('') || '<div class="row">ابھی کوئی منظور ایجنٹ نہیں — منظوری سٹی شائنز ایپ کے کنٹرول پینل سے</div>'}</div>`;
 }
 /* AGP0511TH003 (مالک کا حکم): 1000 = گوگل 150 (اصل — فرق مینٹیننس سے) + مینٹیننس 150 + لانے والا 170 + ڈویلپر 265 + کو-ڈویلپر 265؛
    لانے والا: ایجنٹ / PBT-D ڈویلپر / PBT-C کو-ڈویلپر؛ PBT (خود آیا) = 170 آدھا آدھا */
@@ -233,14 +233,20 @@ async function admGcut(){ await admCall('/agadmin', {op:'gcut', mon: finMon, amo
 async function admSetRate(){ await admCall('/agadmin', {op:'rate', amount: $('#rate').value}); alert('✅ محفوظ'); admHome(); }
 async function admOpen(code, extra){
   THR = ''; admCode = code; const s = await admCall('/agportal', Object.assign({code}, extra||{})); if(!s.ok) return alert('نہیں ملا'); S = s;
-  app.innerHTML = `<div class="card"><div class="btns" style="margin:0 0 6px"><button class="sec" onclick="admHome()">← سب ایجنٹ</button></div><h2>${E(s.agent.name)} <span class="num" style="font-size:13px">${E(s.agent.code)}</span> ${CP(s.agent.code)}</h2><div style="font-size:14px">📱 <span class="num">0${E(String(s.agent.phone).slice(2))}</span> · ${E(s.agent.biz)} · ${E(s.agent.city)} · منظور: ${D(s.agent.okAt)}</div></div>
+  app.innerHTML = `<div class="card"><div class="btns" style="margin:0 0 6px"><button class="sec" onclick="admHome()">← سب ایجنٹ</button></div><h2>${E(s.agent.name)} <span class="num" style="font-size:13px">${E(s.agent.code)}</span> ${CP(s.agent.code)} ${s.agent.off ? '<span class="tag" style="background:#fee2e2;color:var(--red)">⛔ غیر فعال</span>' : ''}</h2><div style="font-size:14px">📱 <span class="num">0${E(String(s.agent.phone).slice(2))}</span> · ${E(s.agent.biz)} · ${E(s.agent.city)} · منظور: ${D(s.agent.okAt)}</div></div>
     ${summaryHtml(s)}
+    <div class="card"><div class="btns" style="margin:0">${s.agent.off ? '<button onclick="admDeact(false)">✅ دوبارہ فعال کریں</button>' : '<button class="red" onclick="admDeact(true)">⛔ ایجنٹ غیر فعال کریں</button>'}</div><div style="font-size:13px;color:var(--mut);margin-top:4px">غیر فعال ایجنٹ کے کاروبار کی آئندہ تجدید / فروخت کا کمیشن کمپنی (PBT) کا ہوتا ہے — اب تک کا حساب نہیں بدلتا۔</div></div>
     <div class="card"><h2>➕ ادائیگی درج کریں</h2><div class="btns"><input id="payAmt" class="num" inputmode="numeric" placeholder="رقم" style="max-width:140px"><input id="payNote" placeholder="نوٹ (ایزی پیسہ، TID…)" style="flex:1;min-width:160px"><button onclick="admPay()">💾</button></div>
       <h2 style="margin-top:10px">✅ ادائیگیاں</h2>${paysHtml(s, true)}</div>
     <div class="card"><h2>🏪 کاروبار</h2>${refsHtml(s)}</div>
     <div class="card"><h2>📸 ادائیگی کے ثبوت</h2><div style="font-size:13px;color:var(--mut)">ثبوت دیکھ کر سٹی شائنز ایپ ← کنٹرول پینل ← «👤 Account Access» سے کاروبار ایک سال کے لیے جاری کریں — کمیشن خود جڑ جائے گا۔</div>${proofsHtml(s, true)}</div>
     <div class="card"><h2>💬 چیٹ</h2>${chatHtml(s.msgs, 'dev')}</div>`;
   scrollChat();
+}
+/* AGP0511TH011 (مالک کا حکم): ایجنٹ غیر فعال — اس کے کاروبار کی آئندہ ہر فروخت / تجدید کمپنی (PBT) کی؛ پرانا حساب ویسا؛ اس کا کوڈ نئے کاروبار پر نہیں لگتا */
+async function admDeact(off){
+  if(!confirm(off ? 'یہ ایجنٹ غیر فعال کریں؟\n\n• اس کے کاروبار کی آئندہ ہر تجدید / فروخت کا کمیشن کمپنی (PBT) کا ہوگا\n• اب تک کا کمایا ہوا حساب ویسا رہے گا\n• اس کا کوڈ نئے کاروبار پر نہیں لگے گا' : 'یہ ایجنٹ دوبارہ فعال کریں؟ (آئندہ کی فروخت پھر اس کی)')) return;
+  const r = await admCall('/agadmin', {op: off ? 'deact' : 'react', code: admCode}); if(!r || !r.ok) return alert('نہیں ہو سکا'); admOpen(admCode);
 }
 async function admPay(){ const amount = parseInt($('#payAmt').value, 10); if(!(amount > 0)) return; if(!confirm('Rs ' + N(amount) + ' ادائیگی درج کریں؟')) return; await admCall('/agadmin', {op:'pay', code: admCode, amount, note: $('#payNote').value}); admOpen(admCode); }
 async function admUnpay(id){ if(!confirm('یہ ادائیگی ہٹا دیں؟')) return; await admCall('/agadmin', {op:'unpay', pid: id}); admOpen(admCode); }
