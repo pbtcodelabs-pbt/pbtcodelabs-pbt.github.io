@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0811SA052';
-const UPDATE_NOTE = 'Developer panel: weekly limit bars for both Claude accounts; oldest issue first; my own = green, co-developer = amber zebra; ⏭️ Later';
+const APP_VERSION = 'HD0811SU053';
+const UPDATE_NOTE = 'اپڈیٹ کے دوران ہی پرانا → نیا ورژن اور کیا بدلا نظر آتا ہے';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
