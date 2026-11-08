@@ -198,6 +198,12 @@ textarea.big:focus,.inp:focus{outline:0;border-color:var(--b2);box-shadow:0 0 0 
 .upSteps li.stOk{color:#047857}.upSteps li.stOk .d{background:#10b981;color:#fff;font-weight:900}
 .upSteps li.now{color:#9a3412;font-weight:700;border-color:#fb923c;box-shadow:0 0 0 2px rgba(251,146,60,.25)}.upSteps li.now .d{background:#f97316;color:#fff;animation:urgP 1.4s infinite}
 .upWhen{font-size:12px;color:var(--mut);margin-top:6px}
+.upR{display:flex;align-items:center;gap:8px}
+.rsBtn{display:inline-flex;align-items:center;gap:6px;border:1.5px solid #fb923c;background:#fff;color:#ea580c;border-radius:999px;padding:4px 12px 4px 6px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 2px 6px rgba(234,88,12,.18)}
+.rsBtn svg{width:26px;height:26px;flex:none}.rsBtn .rsG{transform-origin:20px 20px;animation:rsSpin 2.4s linear infinite}
+.rsBtn.go{background:#ea580c;color:#fff}.rsBtn.go .rsG{animation-duration:.5s}
+.rsBtn.mini{padding:2px;border-radius:50%;vertical-align:middle;margin-inline-start:6px}.rsBtn.mini svg{width:22px;height:22px}
+@keyframes rsSpin{to{transform:rotate(360deg)}}
 .upMini{margin:6px 0 2px}.upMini .upBar{height:9px;margin:3px 0}.upMini span{font-size:12.5px;color:#9a3412}.upMini.fin span{color:#047857}.upMini .num{font-family:var(--en)}
 @media (min-width:700px){.upSteps{grid-template-columns:repeat(4,1fr)}}
 .urgHome{border:2px solid #fb923c;background:linear-gradient(180deg,#fff7ed,#fff)}.urgHome>b{font-size:16px;color:#9a3412}
