@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0911MO062';
-const UPDATE_NOTE = '👥 پارٹیاں — ہر گاہک کے سب مسائل ایک جگہ، حالت کی ترچھی پٹی، کال / واٹس ایپ';
+const APP_VERSION = 'HD0911MO063';
+const UPDATE_NOTE = '👥 پارٹیاں: ترچھی پٹی بائیں کونے پر؛ تفصیل کا انتظار پیلا، کام روکا گہرا سرخ';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
