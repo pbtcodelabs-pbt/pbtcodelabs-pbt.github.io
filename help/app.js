@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0811SU054';
-const UPDATE_NOTE = 'ڈویلپر پینل: Claude کی حد میں 5 گھنٹے کے سیشن کی پٹی بھی؛ اکاؤنٹ / موبائل جوڑنے / اشتہار کی درخواستیں الگ ٹیب «🔑 درخواستیں» میں، ہمیشہ موجود';
+const APP_VERSION = 'HD0811SU055';
+const UPDATE_NOTE = 'ڈویلپر پینل سے «Claude کی حد» والی پٹیاں ہٹا دیں — یہ خود اپڈیٹ نہیں ہو سکتی تھیں';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -963,7 +963,6 @@ function vOwner() {
     <div class="card" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
       <b style="font-size:19px;flex:1">🛠️ ${LANG === 'en' ? 'Developer panel' : 'ڈویلپر پینل'}</b>
       <button class="tb ${pushOn() ? 'grn' : 'pri'}" data-act="push" title="Notifications">🔔${pushOn() ? ' ✓' : ` ${LANG === 'en' ? 'Turn on alerts' : 'اطلاعات چالو کریں'}`}</button><button class="tb" data-act="settings">⚙️</button><button class="tb" data-act="logout">🚪</button></div>
-    ${limitsCard()}
     <div class="card stats" style="grid-template-columns:repeat(4,1fr)">
       ${countsHTML(hdCounts(ISSUES.filter(i => !O.app || i.app === O.app)))}
       <div class="st g"><span class="v">${weekSolved(ISSUES.filter(i => !O.app || i.app === O.app))}</span><span class="l">✅ ${T('solvedWeek')}</span></div></div>
