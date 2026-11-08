@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0911MO061';
-const UPDATE_NOTE = 'ہر جاری کام کے کونے پر 🔄 دوبارہ چلائیں — رکا کام پھر سے Claude کو';
+const APP_VERSION = 'HD0911MO062';
+const UPDATE_NOTE = '👥 پارٹیاں — ہر گاہک کے سب مسائل ایک جگہ، حالت کی ترچھی پٹی، کال / واٹس ایپ';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -313,6 +313,7 @@ function vHome() {
       : `<div class="st b"><span class="v" style="font-size:19px">${avgReply()}</span><span class="l">⏱️ ${T('avgReply')}</span></div>`}
   </div>`}
   ${own ? ownMineCard() : ''}
+  ${own ? partyHomeBtn() : ''}
   ${mine && !own ? `<button class="mineBtn" data-act="mine"><span class="i">📋</span><span class="t"><b>${T('mine')} <span class="num">(${mine})</span></b><small>${T('mineSub')}</small></span>${un ? `<span class="dot">${un}</span>` : ''}<span>${LANG === 'en' ? '›' : '‹'}</span></button>` : ''}
   ${own ? urgHome() : ''}
   ${own ? rankBtns() : ''}
@@ -412,6 +413,74 @@ function ownMineCard() {
   return `<div class="card ownMine"><div class="omH"><span class="i">📋</span><b>${E ? 'Requests suggested by PBT Code Labs' : 'پی بی ٹی کوڈ لیبز کے تجویز کردہ مسائل'}</b></div>
     <div class="omB"><button class="omW" data-act="ownMine" data-id="work">🔧 ${E ? 'In progress' : 'کام جاری'} <span class="num">${wk}</span></button>
     <button class="omD" data-act="ownMine" data-id="done">✅ ${E ? 'Solved' : 'حل شدہ'} <span class="num">${dn}</span></button></div></div>`;
+}
+
+/* HD0911MO062 (مالک کا فرمان): «👥 پارٹیاں» — ہر مسئلہ بھیجنے والی پارٹی (نام + موبائل) کے آج تک کے سب مسائل ایک جگہ؛
+   ہر ڈبے پر ایپ کا آئیکن اور ترچھی رنگین پٹی: ✅ حل · جواب جا چکا / 🔧 کام جاری / ⏳ زیر التوا / ❓ تفصیل کا انتظار / ⏸️ کام روکا گیا */
+const partyKey = i => { const d = digits(i.phone || '').replace(/\D/g, ''); return d.length >= 10 ? 'p' + d.slice(-10) : 'n' + (i.name || '').trim().toLowerCase(); };
+function partyList() {
+  const M = new Map();
+  ISSUES.filter(i => !isOwnIssue(i) && ((i.phone || '').trim() || (i.name || '').trim())).forEach(i => {
+    const k = partyKey(i); let g = M.get(k);
+    if (!g) M.set(k, g = { k, name: '', phone: '', L: [], last: 0 });
+    g.L.push(i);
+    if ((i.created || 0) >= g.last) { g.last = i.created || 0; if ((i.name || '').trim()) g.name = i.name.trim(); if ((i.phone || '').trim()) g.phone = i.phone.trim(); }
+    if (!g.name && i.name) g.name = i.name.trim(); if (!g.phone && i.phone) g.phone = i.phone.trim();
+  });
+  return [...M.values()].sort((a, b) => b.last - a.last);
+}
+function partyState(i) {
+  const E = LANG === 'en';
+  if (i.status === 'done' || i.stage === 'done') return ['done', E ? '✅ SOLVED · REPLY SENT' : '✅ حل ہو گیا · جواب جا چکا', 100];
+  if (i.status === 'dup') return ['dup', E ? '🔗 DUPLICATE' : '🔗 پہلے سے درج', 100];
+  if (i.hold === 'info') return ['info', E ? '❓ WAITING FOR DETAILS' : '❓ گاہک سے تفصیل کا انتظار', 25];
+  if (i.hold === 'later' || i.hold === 'draft') return ['stop', E ? '⏸️ WORK STOPPED' : '⏸️ کام روک دیا گیا', 15];
+  const pct = (STAGES.find(x => x[0] === urgStage(i)) || [0, 10])[1];
+  if (i.status === 'work' || ['work', 'test', 'push', 'live'].includes(i.stage)) return ['work', E ? '🔧 WORK IN PROGRESS' : '🔧 کام جاری ہے', Math.max(pct, 50)];
+  if (i.hold === 'decide' || i.hold === 'approve') return ['pend', E ? '⏳ PENDING — APPROVAL' : '⏳ زیر التوا — منظوری', Math.max(pct, 20)];
+  return ['pend', E ? '⏳ PENDING' : '⏳ زیر التوا (پینڈنگ)', i.status === 'seen' ? Math.max(pct, 30) : pct];
+}
+function partyCard(i) {
+  const E = LANG === 'en', [c, lbl, pct] = partyState(i), app = appOf(i.app);
+  return `<div class="pIs ps-${c}" data-act="open" data-id="${i.id}">
+    <div class="pRib"><span>${lbl}</span></div>
+    <div class="pTop">${appIcon(app, 'appMini')} <b>${esc(AN(app))}</b> <span class="num">#${i.no}</span> ${tyChip(i.type)}</div>
+    ${c === 'done' ? `<div class="pTick">✓</div>` : ''}
+    <div class="tx clamp" dir="auto">${esc(i.text || '🎤')}</div>
+    <div class="pBar"><i style="width:${pct}%"></i><span class="num">${pct}%</span></div>
+    ${i.reply ? `<div class="reply" dir="auto"><span class="rh">${T('pbtReply')}</span>${esc(i.reply)}</div>` : ''}
+    <div class="pWhen">🕒 <span class="num">${fullDate(i.created)}</span>${i.doneAt ? ` · ✅ <span class="num">${fullDate(i.doneAt)}</span>` : ''}</div></div>`;
+}
+const partyCnt = L => { const d = L.filter(i => i.status === 'done' || i.stage === 'done').length, u = L.filter(i => i.status === 'dup').length; return { d, o: L.length - d - u, n: L.length }; };
+function partyContact(g) {
+  const E = LANG === 'en'; if (!g.phone) return '';
+  return `<a class="pC call" href="tel:${esc(g.phone)}" onclick="event.stopPropagation()">📞 ${E ? 'Call' : 'کال'}</a><a class="pC wa" href="https://wa.me/${waNum(digits(g.phone).replace(/\D/g, ''))}" target="_blank" rel="noopener" onclick="event.stopPropagation()">💬 WhatsApp</a>`;
+}
+function partyHomeBtn() {
+  const n = partyList().length, E = LANG === 'en';
+  return `<button class="partyBtn" data-act="parties"><span class="i">👥</span><span class="t"><b>${E ? 'Parties — every customer’s issues in one place' : 'پارٹیاں — ہر گاہک کے سب مسائل ایک جگہ'}</b><small>${E ? 'Name, mobile, call / WhatsApp, solved / pending' : 'نام، موبائل، کال / واٹس ایپ — حل شدہ اور باقی'}</small></span><span class="num c">${n}</span></button>`;
+}
+function vParty() {
+  const E = LANG === 'en';
+  if (!Store.isOwner()) { setTimeout(loginSheet, 50); return `<div class="card empty"><span class="e">🔒</span>Developer</div>`; }
+  const all = partyList();
+  if (R.a) {
+    const g = all.find(x => x.k === R.a);
+    if (!g) return `<div class="card empty"><span class="e">🔎</span>${T('notFound')}</div>` + foot();
+    const c = partyCnt(g.L), L = g.L.slice().sort((a, b) => b.created - a.created);
+    const apps = [...new Set(L.map(i => i.app))].map(a => appIcon(appOf(a), 'appMini')).join('');
+    return `<div class="card pHead"><div class="pN">👤 <b dir="auto">${esc(g.name || (E ? 'No name' : 'بغیر نام'))}</b></div>
+      ${g.phone ? `<div class="pPh num">📱 ${esc(g.phone)}</div>` : ''}
+      <div class="pApps">${apps}</div>
+      <div class="pCnt"><span>📋 ${E ? 'Total' : 'کل'} <b class="num">${c.n}</b></span><span class="g">✅ ${E ? 'Solved' : 'حل'} <b class="num">${c.d}</b></span><span class="o">🔧 ${E ? 'Remaining' : 'باقی'} <b class="num">${c.o}</b></span></div>
+      <div class="pCs">${partyContact(g)}</div></div>` + L.map(partyCard).join('') + foot();
+  }
+  return `<div class="secT top">👥 ${E ? 'Parties' : 'پارٹیاں'} <span class="num">(${all.length})</span> <small>— ${E ? 'tap a name to see all their issues' : 'نام دبائیں — اس کے آج تک کے سب مسائل'}</small></div>
+    <label class="search">🔍<input id="partyQ" placeholder="${E ? 'Name or mobile…' : 'نام یا موبائل…'}" oninput="var q=this.value.trim().toLowerCase();document.querySelectorAll('.pRow').forEach(function(r){r.style.display=r.dataset.s.indexOf(q)>-1?'':'none'})"></label>
+    ${all.map(g => { const c = partyCnt(g.L), apps = [...new Set(g.L.map(i => i.app))].slice(0, 5).map(a => appIcon(appOf(a), 'appMini')).join('');
+      return `<div class="pRow" data-act="party" data-id="${esc(g.k)}" data-s="${esc(((g.name || '') + ' ' + (g.phone || '') + ' ' + digits(g.phone || '')).toLowerCase())}">
+        <div class="pL"><b dir="auto">${esc(g.name || (E ? 'No name' : 'بغیر نام'))}</b>${g.phone ? `<span class="num">${esc(g.phone)}</span>` : ''}<span class="pApps">${apps}</span></div>
+        <div class="pR"><span class="pk g">✅ <b class="num">${c.d}</b></span><span class="pk o">🔧 <b class="num">${c.o}</b></span><div class="pCs">${partyContact(g)}</div></div></div>`; }).join('') || `<div class="card empty"><span class="e">📭</span></div>`}` + foot();
 }
 function vMine() {
   if (Store.isOwner() && (R.a === 'work' || R.a === 'done')) {
@@ -1267,7 +1336,7 @@ function settingsSheet() {
 /* ---------- رینڈر ---------- */
 function render() {
   header();
-  const V = { home: vHome, app: vApp, new: vForm, thanks: vThanks, mine: vMine, i: vOne, owner: vOwner }[R.v] || vHome;
+  const V = { home: vHome, app: vApp, new: vForm, thanks: vThanks, mine: vMine, i: vOne, owner: vOwner, party: vParty }[R.v] || vHome;
   $('#main').innerHTML = V();
   if (R.v === 'new' && F && F.acct) { setTimeout(acctSend, 300); }
   else if (R.v === 'new') { bindForm(); const ft = $('#fText'); if (ft && ft.value) { ft.style.height = 'auto'; ft.style.height = Math.min(ft.scrollHeight + 4, Math.round(innerHeight * 0.6)) + 'px'; } }
@@ -1362,6 +1431,8 @@ document.addEventListener('click', async e => {
     case 'app': appTab = 'open'; appQ = ''; go('#/app/' + encodeURIComponent(id)); break;
     case 'mine': go('#/mine'); break;
     case 'ownMine': go('#/mine/' + id); break;
+    case 'parties': go('#/party'); break;
+    case 'party': go('#/party/' + encodeURIComponent(id)); break;
     case 'new': go('#/new/' + encodeURIComponent(id)); break;
     case 'atab': appTab = id; render(); break;
     case 'expand': t.classList.toggle('clamp'); break;
