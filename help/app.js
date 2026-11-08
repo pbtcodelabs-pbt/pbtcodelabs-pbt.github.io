@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0811SU060';
-const UPDATE_NOTE = 'ویڈیو شیئر ٹھیک — ویڈیو تیار ہوتے ہی «📤 ابھی شیئر کریں» بٹن';
+const APP_VERSION = 'HD0911MO061';
+const UPDATE_NOTE = 'ہر جاری کام کے کونے پر 🔄 دوبارہ چلائیں — رکا کام پھر سے Claude کو';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -842,12 +842,19 @@ function urgStage(i) {
   if (i.status === 'work') return 'work';
   return 'sent';
 }
+/* HD0911MO061 (مالک کا حکم): ہر جاری کام کے کونے پر 🔄 «دوبارہ چلائیں» — تین گھومتے تیر ایک دوسرے کے پیچھے؛ رکا ہوا کام دوبارہ Claude کی قطار میں (stage=claude، ⚡) + ایک لائن کاپی کر کے Claude کی چیٹ */
+const RETRY_SVG = '<svg viewBox="0 0 40 40" aria-hidden="true"><g class="rsG">' + [0, 120, 240].map(r => `<g transform="rotate(${r} 20 20)"><path d="M20 5 A15 15 0 0 1 33 12.5" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><path d="M35.6 7.6 L34.4 15.6 L27.2 12.2 Z" fill="currentColor"/></g>`).join('') + '</g></svg>';
+function retryBtn(i, mini) {
+  if (!Store.isOwner() || i.status === 'done' || i.status === 'dup' || i.stage === 'done') return '';
+  const E = LANG === 'en';
+  return `<button class="rsBtn ${mini ? 'mini' : ''}" data-act="urgRetry" data-id="${i.id}" title="${E ? 'Restart — send again to Claude' : 'دوبارہ چلائیں — رکا کام پھر Claude کو'}">${RETRY_SVG}${mini ? '' : `<span>${E ? 'Restart' : 'دوبارہ چلائیں'}</span>`}</button>`;
+}
 function urgProgress(i, mini) {
   const E = LANG === 'en', st = urgStage(i), k = STAGES.findIndex(x => x[0] === st), cur = STAGES[k], nx = STAGES[k + 1];
   const pct = cur[1], done = st === 'done';
-  if (mini) return `<div class="upMini ${done ? 'fin' : ''}"><div class="upBar"><i style="width:${pct}%"></i></div><span>${cur[2]} ${E ? cur[4] : cur[3]} · <b class="num">${pct}%</b></span></div>`;
+  if (mini) return `<div class="upMini ${done ? 'fin' : ''}"><div class="upBar"><i style="width:${pct}%"></i></div><span>${cur[2]} ${E ? cur[4] : cur[3]} · <b class="num">${pct}%</b></span>${retryBtn(i, true)}</div>`;
   return `<div class="urgProg ${done ? 'fin' : ''}">
-    <div class="upHead"><b>${cur[2]} ${E ? cur[4] : cur[3]}</b><span class="num">${pct}%</span></div>
+    <div class="upHead"><b>${cur[2]} ${E ? cur[4] : cur[3]}</b><span class="upR">${retryBtn(i)}<span class="num">${pct}%</span></span></div>
     <div class="upBar"><i style="width:${pct}%"></i></div>
     <div class="upLeft">${done ? (E ? '🎉 All done' : '🎉 کام مکمل') : `${E ? 'Remaining' : 'باقی'} <b class="num">${100 - pct}%</b>${nx ? ` · ${E ? 'next' : 'اگلا قدم'}: ${nx[2]} ${E ? nx[4] : nx[3]}` : ''}`}</div>
     <ol class="upSteps">${STAGES.map((x, j) => `<li class="${j < k || done ? 'stOk' : j === k ? 'now' : ''}"><span class="d">${j < k || done ? '✓' : x[2]}</span><span class="t">${E ? x[4] : x[3]}</span></li>`).join('')}</ol>
@@ -1330,6 +1337,16 @@ document.addEventListener('click', async e => {
       const hp = on && i.hold === 'decide' ? { hold: 'go' } : {}; Object.assign(i, hp);   // HD0511TH051: ⚡ = منظوری
       try { await Store.update(i.id, Object.assign({ urgent: on, stage: i.stage, stageAt: i.stageAt }, hp)); } catch (e) { i.urgent = !on; toast('⚠️ ' + (e.message || e), 4000); break; }
       if (on) setTimeout(() => urgSheet(i), 1100); else toast(LANG === 'en' ? '⏸️ Urgent off — it will be done in the next round (11 AM / 8:30 PM)' : '⏸️ فوری بند — اب یہ اگلی باری (صبح 11 / رات ساڑھے 8 بجے) میں ہوگا', 4000);
+      break; }
+    case 'urgRetry': { const i = ISSUES.find(x => x.id === id); if (!i) break;
+      document.querySelectorAll(`.rsBtn[data-id="${i.id}"]`).forEach(b => b.classList.add('go'));
+      i.urgent = true; i.stage = 'claude'; i.stageAt = Date.now(); i.cAt = i.cAt || Date.now();
+      const hp = i.hold === 'decide' || i.hold === 'draft' ? { hold: 'go' } : {}; Object.assign(i, hp);
+      try { await Store.update(i.id, Object.assign({ urgent: true, stage: 'claude', stageAt: i.stageAt, cAt: i.cAt }, hp)); } catch (e) { toast('⚠️ ' + (e.message || e), 4000); document.querySelectorAll('.rsBtn.go').forEach(b => b.classList.remove('go')); break; }
+      try { await navigator.clipboard.writeText(urgMsg(i)); } catch (e) {}
+      setTimeout(() => { document.querySelectorAll(`[data-urgbox="${i.id}"]`).forEach(b => { b.outerHTML = urgSwitch(i); }); }, 1400);
+      toast(LANG === 'en' ? '🔄 Restarted — line copied, paste it in the Claude chat and send' : '🔄 دوبارہ چالو — لائن کاپی ہو گئی، Claude کی چیٹ میں پیسٹ کر کے بھیج دیں', 6000);
+      setTimeout(() => window.open(CLAUDE_CHAT, '_blank'), 1200);
       break; }
     case 'urgTell': { const i = ISSUES.find(x => x.id === id); if (!i) break; if (!i.cAt) Store.update(i.id, { cAt: Date.now() }).catch(() => {});
       const msg = urgMsg(i);
