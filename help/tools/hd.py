@@ -241,7 +241,11 @@ def cmd_limit(tok, pairs):
     now = int(time.time() * 1000)
     for p in pairs:
         k, v = p.split('=', 1)
-        if k.endswith('_reset'):
+        if k.endswith('_sreset'):   # HD0811SU054: 5 گھنٹے کا سیشن — pbt_s=40 pbt_sreset="2 گھنٹے میں"
+            lim.setdefault(k[:-7], {}).setdefault('s', {})['reset'] = v
+        elif k.endswith('_s'):
+            o = lim.setdefault(k[:-2], {}).setdefault('s', {}); o['pct'] = max(0, min(100, int(float(v)))); o['at'] = now
+        elif k.endswith('_reset'):
             lim.setdefault(k[:-6], {})['reset'] = v
         else:
             lim.setdefault(k, {})['pct'] = max(0, min(100, int(float(v))))

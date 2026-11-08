@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0811SU053';
-const UPDATE_NOTE = 'اپڈیٹ کے دوران ہی پرانا → نیا ورژن اور کیا بدلا نظر آتا ہے';
+const APP_VERSION = 'HD0811SU054';
+const UPDATE_NOTE = 'ڈویلپر پینل: Claude کی حد میں 5 گھنٹے کے سیشن کی پٹی بھی؛ اکاؤنٹ / موبائل جوڑنے / اشتہار کی درخواستیں الگ ٹیب «🔑 درخواستیں» میں، ہمیشہ موجود';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -640,17 +640,23 @@ const CODEV_RX = /^\s*👥\s*کو-?\s*ڈویلپر/;
 function coDevOf(i) { if (CODEV_RX.test(i.text || '') || digits(i.phone || '').replace(/[^0-9]/g, '').endsWith('3138469706')) return true; const h = PHH[i.phone || '']; if (h === undefined && i.phone) { PHH[i.phone] = null; phHash(i.phone).then(v => { PHH[i.phone] = v; if (v && ((PANEL && PANEL.coDevH) || []).includes(v) && R.v === 'owner') render(); }); return false; } return !!h && ((PANEL && PANEL.coDevH) || []).includes(h); }
 function limitsCard() {
   const E = LANG === 'en', L = (PANEL && PANEL.lim) || {};
-  const row = ([k, mail, nm]) => {
-    const o = L[k] || {}, has = o.pct != null && o.pct !== '', pct = Math.max(0, Math.min(100, +o.pct || 0)), left = 100 - pct;
+  /* HD0811SU054 (مالک کا حکم): ہر اکاؤنٹ کی دو پٹیاں — ⏱️ موجودہ 5 گھنٹے کا سیشن (o.s) اور 📅 ہفتہ وار (o.pct)؛ دونوں claude.ai/settings/usage سے ہاتھ سے (کوئی خودکار ذریعہ نہیں) */
+  const bar = (lab, pct0, reset, at) => {
+    const has = pct0 != null && pct0 !== '', pct = Math.max(0, Math.min(100, +pct0 || 0)), left = 100 - pct;
     const col = !has ? '#94a3b8' : pct >= 80 ? '#dc2626' : pct >= 50 ? '#f59e0b' : '#16a34a';
-    return `<div class="limRow" data-act="limEdit" data-id="${k}"><div class="limTop"><b>${esc(nm)}</b><span class="limMail">${esc(mail)}</span>
-        <span class="limPct" style="color:${col}">${has ? (E ? `${pct}% used · ${left}% left` : `${pct}٪ استعمال · ${left}٪ باقی`) : (E ? 'tap to enter' : 'دبا کر لکھیں')}</span></div>
+    return `<div class="limLine"><span class="limLab">${lab}</span><span class="limPct" style="color:${col}">${has ? (E ? `${pct}% used · ${left}% left` : `${pct}٪ استعمال · ${left}٪ باقی`) : (E ? 'tap to enter' : 'دبا کر لکھیں')}</span></div>
       <div class="limBar"><i style="width:${has ? pct : 0}%;background:${col}"></i></div>
-      <div class="limSub">${o.reset ? (E ? '🔄 Resets: ' : '🔄 دوبارہ شروع: ') + esc(o.reset) : ''}${o.at ? ` · 🕒 ${ago(o.at)}` : ''}</div></div>`;
+      <div class="limSub">${reset ? (E ? '🔄 Resets: ' : '🔄 دوبارہ شروع: ') + esc(reset) : ''}${at ? ` · 🕒 ${ago(at)}` : ''}</div>`;
+  };
+  const row = ([k, mail, nm]) => {
+    const o = L[k] || {}, s = o.s || {};
+    return `<div class="limRow" data-act="limEdit" data-id="${k}"><div class="limTop"><b>${esc(nm)}</b><span class="limMail">${esc(mail)}</span></div>
+      ${bar('⏱️ ' + (E ? 'Current session (5 h)' : 'موجودہ سیشن (5 گھنٹے)'), s.pct, s.reset, s.at)}
+      ${bar('📅 ' + (E ? 'Weekly' : 'ہفتہ وار'), o.pct, o.reset, o.at)}</div>`;
   };
   const a = L.pbt && L.pbt.pct != null ? +L.pbt.pct : null, b = L.piary && L.piary.pct != null ? +L.piary.pct : null;
   const tip = a != null && b != null && Math.abs(a - b) >= 10 ? `<div class="limTip">👉 ${E ? 'Use' : 'اب'} <b>${a < b ? LIM_ACC[0][2] : LIM_ACC[1][2]}</b> ${E ? 'more — it is behind' : 'زیادہ استعمال کریں — یہ پیچھے ہے'}</div>` : '';
-  return `<div class="card limCard"><div class="limHd"><b>📊 ${E ? 'Claude weekly limit' : 'Claude کی ہفتہ وار حد'}</b>
+  return `<div class="card limCard"><div class="limHd"><b>📊 ${E ? 'Claude limits' : 'Claude کی حد — سیشن اور ہفتہ'}</b>
       <a class="tb" href="https://claude.ai/settings/usage" target="_blank" rel="noopener">↗ ${E ? 'Usage page' : 'استعمال کا صفحہ'}</a></div>${LIM_ACC.map(row).join('')}${tip}</div>`;
 }
 function limSheet(k) {
@@ -658,6 +664,8 @@ function limSheet(k) {
   sheet(`<h2>📊 ${esc(acc[2])}<button class="x" data-act="close">✕</button></h2>
     <p style="font-size:14px;line-height:2;margin:0">${esc(acc[1])}<br>${E ? 'Open claude.ai → Settings → Usage, and type the weekly % used:' : 'claude.ai ← Settings ← Usage کھول کر ہفتہ وار حد کا استعمال شدہ ٪ لکھیں:'}</p>
     <a class="tb" style="display:inline-block;margin:6px 0" href="https://claude.ai/settings/usage" target="_blank" rel="noopener">↗ claude.ai/settings/usage</a>
+    <label class="lbl">⏱️ ${E ? 'Current session (5 h) used %' : 'موجودہ سیشن (5 گھنٹے) استعمال ٪'}</label><input class="inp num" id="limSPct" inputmode="numeric" value="${o.s && o.s.pct != null ? esc(String(o.s.pct)) : ''}" placeholder="0 – 100">
+    <label class="lbl">${E ? 'Session resets in / at' : 'سیشن کب دوبارہ شروع (مثلاً 2 گھنٹے 10 منٹ میں)'}</label><input class="inp" id="limSReset" dir="auto" value="${esc((o.s && o.s.reset) || '')}" placeholder="${E ? 'e.g. in 2 hr 10 min' : 'مثلاً شام 6 بجے'}">
     <label class="lbl">${E ? 'Weekly used %' : 'ہفتہ وار استعمال ٪'}</label><input class="inp num" id="limPct" inputmode="numeric" value="${o.pct != null ? esc(String(o.pct)) : ''}" placeholder="0 – 100">
     <label class="lbl">${E ? 'Resets (as shown)' : 'دوبارہ کب شروع (جیسا وہاں لکھا ہو)'}</label><input class="inp" id="limReset" dir="auto" value="${esc(o.reset || '')}" placeholder="${E ? 'e.g. Thu 9:00 AM' : 'مثلاً جمعرات صبح 9 بجے'}">
     <button class="bigBtn blue" style="margin-top:12px" data-act="limSave" data-id="${k}">💾 ${E ? 'Save' : 'محفوظ'}</button>`);
@@ -718,7 +726,7 @@ function rankSheet(m) {
 async function cleanup() {
   if (cleaned) return; cleaned = true;
   await recordStats(); // مٹانے سے پہلے مہینے کی گنتی محفوظ
-  const old = ISSUES.filter(i => (i.status === 'done' || i.status === 'dup') && Date.now() - (i.doneAt || i.upd) > keepDays() * 864e5);
+  const old = ISSUES.filter(i => !isReq(i) && (i.status === 'done' || i.status === 'dup') && Date.now() - (i.doneAt || i.upd) > keepDays() * 864e5);
   for (const i of old) await Store.remove(i.id);
   if (old.length) toast('🧹 ' + old.length + (LANG === 'en' ? ' old solved removed' : ' پرانے حل شدہ ہٹا دیے'));
 }
@@ -903,6 +911,8 @@ function urgSheet(i) {
 const pushOn = () => { try { return window.Notification && Notification.permission === 'granted' && localStorage.getItem('pbthd_push') === '1'; } catch (e) { return false; } };
 const isUrg = i => !!i.urgent && i.status !== 'dup' && i.status !== 'done' && i.stage !== 'done'; // HD0511TH045 (مالک کا حکم): مکمل ہوتے ہی ⚡ فہرست سے غائب — دیکھنا ہو تو «✅ حل» ٹیب
 function tabOk(i, t) {
+  if (t === 'req') return isReq(i);
+  if (isReq(i)) return false;
   // HD0511TH045 (مالک کا حکم): مکمل (✅ / stage done) اور ڈپلیکیٹ لمبی فہرستوں میں نہیں — صرف «✅ حل» / «🔗» / «📨 بھیجنا باقی» ٹیب میں
   const fin = i.status === 'done' || i.status === 'dup' || i.stage === 'done';
   if (t === 'done') return i.status === 'done' || (i.stage === 'done' && i.status !== 'dup');
@@ -928,7 +938,7 @@ function vOwner() {
   cleanup();
   if (!PANEL) loadPanel();
   const C = s => ISSUES.filter(i => tabOk(i, s) && (!O.app || i.app === O.app)).length;
-  const tabs = [['urg', '⚡ ' + (LANG === 'en' ? 'Urgent' : 'فوری')], ['open', '🔓 ' + (LANG === 'en' ? 'Open' : 'کھلے')], ['hold', '⏳ ' + (LANG === 'en' ? 'Approval' : 'منظوری')], ['park', '⏸️ ' + (LANG === 'en' ? 'Parked' : 'رکے')], ['send', '📨 ' + (LANG === 'en' ? 'To send' : 'بھیجنا باقی')], ['new', '📥 ' + T('s_new')], ['seen', '👀 ' + T('s_seen')], ['work', '🔧 ' + T('s_work')], ['done', '✅ ' + T('s_done')], ['dup', '🔗 ' + T('s_dup')], ['all', LANG === 'en' ? 'All' : 'سب']];
+  const tabs = [['urg', '⚡ ' + (LANG === 'en' ? 'Urgent' : 'فوری')], ['open', '🔓 ' + (LANG === 'en' ? 'Open' : 'کھلے')], ['req', '🔑 ' + (LANG === 'en' ? 'Account / Ad requests' : 'اکاؤنٹ / اشتہار درخواستیں')], ['hold', '⏳ ' + (LANG === 'en' ? 'Approval' : 'منظوری')], ['park', '⏸️ ' + (LANG === 'en' ? 'Parked' : 'رکے')], ['send', '📨 ' + (LANG === 'en' ? 'To send' : 'بھیجنا باقی')], ['new', '📥 ' + T('s_new')], ['seen', '👀 ' + T('s_seen')], ['work', '🔧 ' + T('s_work')], ['done', '✅ ' + T('s_done')], ['dup', '🔗 ' + T('s_dup')], ['all', LANG === 'en' ? 'All' : 'سب']];
   const list = ownFiltered();
   const opts = `<option value="">${LANG === 'en' ? 'All apps' : 'سب ایپس'}</option>` + APPS.map(a => {
     const n = ISSUES.filter(i => i.app === a.id && isOpen(i)).length;
@@ -977,6 +987,8 @@ async function openDetail(id) {
 }
 /* HD0411WE038: ایپ سے «Send account details to developer» — UID، Name، Mobile no.، Gmail */
 const isAcctReq = t => /(^|\n)\s*UID\s*:/i.test(t || '') && /(^|\n)\s*(Gmail|Mobile)/i.test(t || '');
+/* HD0811SU054 (مالک کا حکم): اکاؤنٹ / موبائل جوڑنے / اشتہار کی درخواستیں عام مسائل سے الگ — اپنا ٹیب «🔑 درخواستیں»، حل ہونے کے بعد بھی ہمیشہ (خود حذف نہیں) */
+function isReq(i) { return !!i && (i.type === 'acct' || /(^|\n)\s*UID\s*:/i.test(i.text || '') && /(^|\n)\s*(Gmail|Mobile)/i.test(i.text || '') || /📢\s*Ad request|Account sign-in request/i.test(i.text || '')); }
 function detailHTML() {
   // HD0311TU034 (مالک کا حکم): ایک صفحے پر — اوپر 🗑️ حذف اور ✕؛ چھوٹی تصویریں؛ عام فہرست / Claude «➕ مزید» میں بند
   const i = ISSUES.find(x => x.id === DET.id); if (!i) return '<div class="empty">—</div>';
@@ -1380,7 +1392,8 @@ document.addEventListener('click', async e => {
     case 'skip': if (SKIP.has(id)) SKIP.delete(id); else SKIP.add(id); render(); break;
     case 'limEdit': limSheet(id); break;
     case 'limSave': { const v = parseInt(digits($('#limPct').value).replace(/[^0-9]/g, ''), 10); if (isNaN(v) || v < 0 || v > 100) { toast('0 – 100'); break; }
-      const lim = Object.assign({}, (PANEL && PANEL.lim) || {}); lim[id] = { pct: v, reset: $('#limReset').value.trim(), at: Date.now(), by: 'owner' };
+      const lim = Object.assign({}, (PANEL && PANEL.lim) || {}); const sv = parseInt(digits($('#limSPct').value).replace(/[^0-9]/g, ''), 10);
+      lim[id] = { pct: v, reset: $('#limReset').value.trim(), at: Date.now(), by: 'owner', s: isNaN(sv) ? ((lim[id] && lim[id].s) || null) : { pct: Math.max(0, Math.min(100, sv)), reset: $('#limSReset').value.trim(), at: Date.now() } };
       try { await Store.panelSave({ lim }); } catch (e) { toast('⚠️ ' + (e.message || e), 4000); break; }
       PANEL = Object.assign({}, PANEL, { lim }); closeSheet(); render(); toast('✅'); break; }
     case 'coDev': { const i = ISSUES.find(x => x.id === DET.id); if (!i || !i.phone) break; const h = await phHash(i.phone); PHH[i.phone] = h;
