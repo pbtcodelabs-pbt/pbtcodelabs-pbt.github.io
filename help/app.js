@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0811SU059';
-const UPDATE_NOTE = 'نئی ویڈیو: AIO POS — ملازم کا فون جوڑیں (انگلش)';
+const APP_VERSION = 'HD0811SU060';
+const UPDATE_NOTE = 'ویڈیو شیئر ٹھیک — ویڈیو تیار ہوتے ہی «📤 ابھی شیئر کریں» بٹن';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -253,21 +253,35 @@ function videosHTML() {
       <button class="tb grn" data-act="vshare" data-id="${v.id}">📤 ${E ? 'Share' : 'شیئر'}</button></div></div>`).join('')}</div>
   <button class="tb" style="margin:2px 0 6px" data-act="copyPost">📋 ${E ? 'Copy the post message' : 'ساتھ والا پیغام کاپی کریں'}</button>`;
 }
+/* HD0811SU060 (مالک کی جانچ): ویڈیو (≈8MB) پہلے لانی پڑتی ہے — اتنی دیر میں فون شیئر کی اجازت (user gesture) ختم کر دیتا اور
+   «Failed to execute 'share'… Must be handling a user gesture» آتا۔ اب: فائل ایک بار لا کر یاد (VFILE)، پھر «📤 ابھی شیئر کریں» بٹن —
+   اسے دبانے پر فوراً شیئر (نئی اجازت کے ساتھ)؛ دوسری بار پہلی ہی دبانے پر۔ */
+const VFILE = {};
+function vShareText(v) { const E = LANG === 'en'; return v.share ? v.share + '\nPBT Code Labs' : 'PBT Help Desk — ' + (E ? 'Help Desk in every app' : 'ہر ایپ میں Help Desk') + ' ❓\nhttps://pbtcodelabs-pbt.github.io/help/'; }
+function vDownload(v) { const a = document.createElement('a'); a.href = v.file; a.download = vName(v); document.body.appendChild(a); a.click(); a.remove(); }
 async function shareVideo(id) {
   const v = VIDEOS.find(x => x.id === id); if (!v) return;
   const E = LANG === 'en';
+  const file = VFILE[id];
+  if (file) {
+    if (!(navigator.canShare && navigator.canShare({ files: [file] }))) { vDownload(v); toast(E ? 'Sharing not supported here — video downloaded' : 'یہاں سیدھا شیئر نہیں ہو سکتا — ویڈیو ڈاؤن لوڈ ہو گئی', 4000); return; }
+    try { await navigator.share({ files: [file], text: vShareText(v) }); }
+    catch (e) { if (e && e.name !== 'AbortError') { if (e.name === 'NotAllowedError') shareReady(v); else toast('⚠️ ' + (e.message || e)); } }
+    return;
+  }
   busy(true, E ? 'Preparing video…' : 'ویڈیو تیار ہو رہی ہے…');
   try {
     const blob = await (await fetch(v.file)).blob();
-    const file = new File([blob], vName(v), { type: 'video/mp4' });
+    VFILE[id] = new File([blob], vName(v), { type: 'video/mp4' });
     busy(false);
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({ files: [file], text: v.share ? v.share + '\nPBT Code Labs' : 'PBT Help Desk — ' + (E ? 'Help Desk in every app' : 'ہر ایپ میں Help Desk') + ' ❓\nhttps://pbtcodelabs-pbt.github.io/help/' });
-    } else {
-      const a = document.createElement('a'); a.href = v.file; a.download = file.name; document.body.appendChild(a); a.click(); a.remove();
-      toast(E ? 'Sharing not supported here — video downloaded' : 'یہاں سیدھا شیئر نہیں ہو سکتا — ویڈیو ڈاؤن لوڈ ہو گئی', 4000);
-    }
-  } catch (e) { busy(false); if (e && e.name !== 'AbortError') toast('⚠️ ' + (e.message || e)); }
+    shareReady(v);
+  } catch (e) { busy(false); toast('⚠️ ' + (e && e.message || e)); }
+}
+function shareReady(v) {
+  const E = LANG === 'en';
+  sheet(`<h2>📤 ${E ? 'Video ready' : 'ویڈیو تیار ہے'}<button class="x" data-act="close">✕</button></h2>
+    <p style="margin:4px 0 12px">${esc(E ? v.en : v.ur)}</p>
+    <button class="tb grn" style="width:100%;font-size:19px;padding:14px" data-act="vshare" data-id="${v.id}">📤 ${E ? 'Share now (WhatsApp status…)' : 'ابھی شیئر کریں (واٹس ایپ اسٹیٹس…)'}</button>`);
 }
 function playVideo(id) {
   const v = VIDEOS.find(x => x.id === id); if (!v) return;
