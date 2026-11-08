@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0811SU057';
-const UPDATE_NOTE = 'نئی ویڈیو: AIO POS — ملازم کا فون دکان سے کیسے جوڑیں (چلائیں، ڈاؤن لوڈ، شیئر)';
+const APP_VERSION = 'HD0811SU058';
+const UPDATE_NOTE = 'اردو عنوانات نوری نستعلیق کشیدہ میں؛ ملازم کا فون جوڑنے والی ویڈیو بھی نوری نستعلیق میں';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
