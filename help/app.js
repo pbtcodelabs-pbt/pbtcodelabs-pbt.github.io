@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0811SU055';
-const UPDATE_NOTE = 'ڈویلپر پینل سے «Claude کی حد» والی پٹیاں ہٹا دیں — یہ خود اپڈیٹ نہیں ہو سکتی تھیں';
+const APP_VERSION = 'HD0811SU056';
+const UPDATE_NOTE = 'مالک کی «تجویز کردہ مسائل» فہرست (کام جاری / حل شدہ) میں ہر مسئلے پر 🗑️ حذف — تنبیہ اور تصدیق کے بعد';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -358,7 +358,8 @@ function issueCard(i, opts) {
     ${i.reply ? `<div class="reply" dir="auto"><span class="rh">${T('pbtReply')}</span>${esc(i.reply)}</div>` : ''}
     ${i.status === 'dup' && i.dupOf ? `<div class="dupNote">🔗 ${T('dupOf')} <b class="num">#${i.dupOf}</b></div>` : ''}
     <div class="ft"><span class="when">🕒 ${ago(i.created)}</span>
-      ${opts.mine && i.status === 'new' ? `<button class="tb red" style="font-size:12.5px;padding:0 10px" data-act="withdraw" data-id="${i.id}">${T('delMine')}</button>` : ''}
+      ${opts.ownDel ? `<button class="tb red" style="font-size:12.5px;padding:0 10px" data-act="ownDel" data-id="${i.id}">🗑️ ${LANG === 'en' ? 'Delete' : 'حذف'}</button>` : ''}
+      ${opts.mine && !opts.ownDel && i.status === 'new' ? `<button class="tb red" style="font-size:12.5px;padding:0 10px" data-act="withdraw" data-id="${i.id}">${T('delMine')}</button>` : ''}
       ${mineIt ? (n ? `<span class="mt">👋 <b>${n + 1}</b> ${T('people')}</span>` : '') :
       `<button class="mt ${on ? 'on' : ''}" data-act="metoo" data-id="${i.id}">👋 ${T(i.type === 'idea' ? 'metooIdea' : 'metoo')} <b>${n + 1}</b></button>`}
     </div></div>`;
@@ -401,7 +402,7 @@ function vMine() {
     const E = LANG === 'en', done = R.a === 'done';
     const l = ownList().filter(i => done ? i.status === 'done' : i.status !== 'done').sort((a, b) => (b.doneAt || b.upd || 0) - (a.doneAt || a.upd || 0));
     return `<div class="secT top">${done ? '✅ ' + (E ? 'Solved' : 'حل شدہ') : '🔧 ' + (E ? 'In progress' : 'کام جاری')} — ${E ? 'PBT Code Labs requests' : 'پی بی ٹی کوڈ لیبز کے تجویز کردہ مسائل'} <span class="num">(${l.length})</span></div>` +
-      (l.length ? l.map(i => issueCard(i, { mine: true, showApp: true, full: true })).join('') : `<div class="card empty"><span class="e">📭</span>${E ? 'Nothing here' : 'یہاں کچھ نہیں'}</div>`) + foot();
+      (l.length ? l.map(i => issueCard(i, { mine: true, showApp: true, full: true, ownDel: true })).join('') : `<div class="card empty"><span class="e">📭</span>${E ? 'Nothing here' : 'یہاں کچھ نہیں'}</div>`) + foot();
   }
   const l = myList();
   setTimeout(markMineSeen, 2500);
@@ -1340,6 +1341,12 @@ document.addEventListener('click', async e => {
       break;
     }
     case 'withdraw': if (confirm(T('delMineQ'))) await Store.remove(id); break;
+    /* HD0811SU056 (مالک کا حکم، ہیلپ ڈیسک #144): «تجویز کردہ مسائل» کی فہرست سے سیدھا حذف — تنبیہ + تصدیق */
+    case 'ownDel': { const x = ISSUES.find(y => y.id === id); if (!x || !Store.isOwner()) break; const E = LANG === 'en';
+      const ex = String(x.text || '').replace(/\s+/g, ' ').slice(0, 90);
+      if (!confirm((E ? '⚠️ Delete #' + x.no + ' permanently?\n\n' : '⚠️ کیا #' + x.no + ' ہمیشہ کے لیے حذف کر دیں؟\n\n') + ex + (E ? '\n\nThis cannot be undone.' : '\n\nیہ واپس نہیں آئے گا — تصویریں اور آواز بھی مٹ جائیں گی۔'))) break;
+      try { await Store.remove(id); toast(E ? '🗑️ Deleted' : '🗑️ #' + x.no + ' حذف ہو گیا'); } catch (e) { alert(E ? 'Could not delete — try again' : 'حذف نہیں ہوا — دوبارہ کوشش کریں'); }
+      render(); break; }
     case 'type': F.type = id; document.querySelectorAll('.ty').forEach(b => b.classList.toggle('on', b.dataset.id === id)); break;
     case 'pvText': pvTextSheet(); break;
     case 'acctSend': acctSend(); break;
