@@ -67,6 +67,9 @@
     // 🔔 HD0211MO016: اطلاعات — push/owner (صرف مالک پڑھ/لکھ سکتا ہے، firestore.rules)
     async pushGet() { const d = await F.getDoc(F.doc(db, 'push', 'owner')); return d.exists() ? d.data() : {}; },
     async pushSave(p) { await F.setDoc(F.doc(db, 'push', 'owner'), p, { merge: true }); },
+    // 📊 HD0811SA052: ڈویلپر پینل — push/panel (صرف مالک): دو Claude اکاؤنٹس کی ہفتہ وار حد + کو ڈویلپر کے نمبر (hash)
+    async panelGet() { const d = await F.getDoc(F.doc(db, 'push', 'panel')); return d.exists() ? d.data() : {}; },
+    async panelSave(p) { await F.setDoc(F.doc(db, 'push', 'panel'), p, { merge: true }); },
     async add(f, blobs) {
       if (!user) throw new Error('offline');
       const cref = F.doc(db, 'meta', 'counter');
@@ -209,6 +212,8 @@
     watch(f) { subs.push(f); f(cache.slice(), cfg); return () => { subs = subs.filter(x => x !== f); }; },
     cfg() { return cfg; },
     async setCfg(p) { cfg = Object.assign({}, cfg, p); await rq(tx('meta', 'readwrite').put({ k: 'cfg', v: cfg })); return changed(); },
+    async panelGet() { try { return JSON.parse(localStorage.getItem('pbthd_demo_panel') || '{}'); } catch (e) { return {}; } },
+    async panelSave(p) { const o = Object.assign(await this.panelGet(), p); try { localStorage.setItem('pbthd_demo_panel', JSON.stringify(o)); } catch (e) {} },
     async add(f, blobs) {
       const c = await rq(tx('meta').get('counter'));
       const no = ((c && c.v) || 0) + 1;

@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0511TH051';
-const UPDATE_NOTE = 'منظوری کی پیلی پٹی؛ اپنے مسئلے پر فوری / ڈرافٹ / اگلا جائزہ';
+const APP_VERSION = 'HD0811SA052';
+const UPDATE_NOTE = 'Developer panel: weekly limit bars for both Claude accounts; oldest issue first; my own = green, co-developer = amber zebra; ⏭️ Later';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -623,7 +623,43 @@ function vThanks() {
 }
 
 /* ================= ڈویلپر پینل ================= */
-let O = { tab: 'new', app: '', q: '', sort: 'new' };
+let O = { tab: 'new', app: '', q: '', sort: 'old' }; // HD0811SA052 (مالک کا حکم): سب سے پرانا مسئلہ سب سے اوپر
+/* 📊 HD0811SA052 (مالک کا حکم): ڈویلپر پینل — دو Claude اکاؤنٹس کی ہفتہ وار حد + کو ڈویلپر — push/panel (صرف مالک) */
+let PANEL = null, PANEL_LOADING = false;
+const SKIP = new Set(); // «⏭️ بعد میں» — صرف اسی وقت تک؛ صفحہ تازہ کریں تو پھر اپنی ترتیب پر
+const LIM_ACC = [['pbt', 'pbtcodelabs@gmail.com', 'PBT Code Labs (Pro)'], ['piary', 'piarybhai@gmail.com', 'پیارے بھائی']];
+async function loadPanel(force) {
+  if (PANEL_LOADING || (PANEL && !force)) return; PANEL_LOADING = true;
+  try { PANEL = (await Store.panelGet()) || {}; } catch (e) { PANEL = PANEL || {}; }
+  PANEL_LOADING = false; if (R.v === 'owner') render();
+}
+async function phHash(ph) { const d = waNum(digits(ph || '').replace(/[^0-9]/g, '')); if (!d) return ''; const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('pbthd-codev:' + d)); return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join('').slice(0, 24); }
+const PHH = {}; // phone → hash (یادداشت)
+function coDevOf(i) { const h = PHH[i.phone || '']; if (h === undefined && i.phone) { PHH[i.phone] = null; phHash(i.phone).then(v => { PHH[i.phone] = v; if (v && ((PANEL && PANEL.coDevH) || []).includes(v) && R.v === 'owner') render(); }); return false; } return !!h && ((PANEL && PANEL.coDevH) || []).includes(h); }
+function limitsCard() {
+  const E = LANG === 'en', L = (PANEL && PANEL.lim) || {};
+  const row = ([k, mail, nm]) => {
+    const o = L[k] || {}, has = o.pct != null && o.pct !== '', pct = Math.max(0, Math.min(100, +o.pct || 0)), left = 100 - pct;
+    const col = !has ? '#94a3b8' : pct >= 80 ? '#dc2626' : pct >= 50 ? '#f59e0b' : '#16a34a';
+    return `<div class="limRow" data-act="limEdit" data-id="${k}"><div class="limTop"><b>${esc(nm)}</b><span class="limMail">${esc(mail)}</span>
+        <span class="limPct" style="color:${col}">${has ? (E ? `${pct}% used · ${left}% left` : `${pct}٪ استعمال · ${left}٪ باقی`) : (E ? 'tap to enter' : 'دبا کر لکھیں')}</span></div>
+      <div class="limBar"><i style="width:${has ? pct : 0}%;background:${col}"></i></div>
+      <div class="limSub">${o.reset ? (E ? '🔄 Resets: ' : '🔄 دوبارہ شروع: ') + esc(o.reset) : ''}${o.at ? ` · 🕒 ${ago(o.at)}` : ''}</div></div>`;
+  };
+  const a = L.pbt && L.pbt.pct != null ? +L.pbt.pct : null, b = L.piary && L.piary.pct != null ? +L.piary.pct : null;
+  const tip = a != null && b != null && Math.abs(a - b) >= 10 ? `<div class="limTip">👉 ${E ? 'Use' : 'اب'} <b>${a < b ? LIM_ACC[0][2] : LIM_ACC[1][2]}</b> ${E ? 'more — it is behind' : 'زیادہ استعمال کریں — یہ پیچھے ہے'}</div>` : '';
+  return `<div class="card limCard"><div class="limHd"><b>📊 ${E ? 'Claude weekly limit' : 'Claude کی ہفتہ وار حد'}</b>
+      <a class="tb" href="https://claude.ai/settings/usage" target="_blank" rel="noopener">↗ ${E ? 'Usage page' : 'استعمال کا صفحہ'}</a></div>${LIM_ACC.map(row).join('')}${tip}</div>`;
+}
+function limSheet(k) {
+  const E = LANG === 'en', acc = LIM_ACC.find(x => x[0] === k) || LIM_ACC[0], o = ((PANEL && PANEL.lim) || {})[k] || {};
+  sheet(`<h2>📊 ${esc(acc[2])}<button class="x" data-act="close">✕</button></h2>
+    <p style="font-size:14px;line-height:2;margin:0">${esc(acc[1])}<br>${E ? 'Open claude.ai → Settings → Usage, and type the weekly % used:' : 'claude.ai ← Settings ← Usage کھول کر ہفتہ وار حد کا استعمال شدہ ٪ لکھیں:'}</p>
+    <a class="tb" style="display:inline-block;margin:6px 0" href="https://claude.ai/settings/usage" target="_blank" rel="noopener">↗ claude.ai/settings/usage</a>
+    <label class="lbl">${E ? 'Weekly used %' : 'ہفتہ وار استعمال ٪'}</label><input class="inp num" id="limPct" inputmode="numeric" value="${o.pct != null ? esc(String(o.pct)) : ''}" placeholder="0 – 100">
+    <label class="lbl">${E ? 'Resets (as shown)' : 'دوبارہ کب شروع (جیسا وہاں لکھا ہو)'}</label><input class="inp" id="limReset" dir="auto" value="${esc(o.reset || '')}" placeholder="${E ? 'e.g. Thu 9:00 AM' : 'مثلاً جمعرات صبح 9 بجے'}">
+    <button class="bigBtn blue" style="margin-top:12px" data-act="limSave" data-id="${k}">💾 ${E ? 'Save' : 'محفوظ'}</button>`);
+}
 let cleaned = false;
 /* 📊 مہینے کی گنتی — حل شدہ 7 دن بعد مٹ جاتے ہیں، اس لیے ہر مسئلے کا نمبر مہینہ وار cfg.stats میں محفوظ (صرف مالک لکھتا ہے) */
 const monthKey = t => { const d = new Date((t || Date.now()) + 5 * 3600e3); return d.getUTCFullYear() + '_' + String(d.getUTCMonth() + 1).padStart(2, '0'); };
@@ -880,11 +916,15 @@ function ownFiltered() {
   const q = O.q.trim().toLowerCase();
   let l = ISSUES.filter(i => tabOk(i, O.tab) && (!O.app || i.app === O.app));
   if (q) l = l.filter(i => [i.text, i.ptext, i.name, i.phone, i.reply, '#' + i.no, AN(appOf(i.app))].join(' ').toLowerCase().includes(q));
-  return l.sort(O.sort === 'votes' ? (a, b) => ((b.metoo || []).length - (a.metoo || []).length) || b.created - a.created : (a, b) => b.created - a.created);
+  const sk = i => SKIP.has(i.id) ? 1 : 0;
+  return l.sort(O.sort === 'votes' ? (a, b) => ((b.metoo || []).length - (a.metoo || []).length) || b.created - a.created
+    : O.sort === 'new' ? (a, b) => sk(a) - sk(b) || b.created - a.created
+    : (a, b) => sk(a) - sk(b) || a.created - b.created); // HD0811SA052: پرانے پہلے؛ «⏭️ بعد میں» والے نیچے
 }
 function vOwner() {
   if (!Store.isOwner()) { setTimeout(loginSheet, 50); return `<div class="card empty"><span class="e">🔒</span>Developer</div>`; }
   cleanup();
+  if (!PANEL) loadPanel();
   const C = s => ISSUES.filter(i => tabOk(i, s) && (!O.app || i.app === O.app)).length;
   const tabs = [['urg', '⚡ ' + (LANG === 'en' ? 'Urgent' : 'فوری')], ['open', '🔓 ' + (LANG === 'en' ? 'Open' : 'کھلے')], ['hold', '⏳ ' + (LANG === 'en' ? 'Approval' : 'منظوری')], ['park', '⏸️ ' + (LANG === 'en' ? 'Parked' : 'رکے')], ['send', '📨 ' + (LANG === 'en' ? 'To send' : 'بھیجنا باقی')], ['new', '📥 ' + T('s_new')], ['seen', '👀 ' + T('s_seen')], ['work', '🔧 ' + T('s_work')], ['done', '✅ ' + T('s_done')], ['dup', '🔗 ' + T('s_dup')], ['all', LANG === 'en' ? 'All' : 'سب']];
   const list = ownFiltered();
@@ -894,7 +934,9 @@ function vOwner() {
   }).join('');
   const cards = list.map(i => {
     const a = appOf(i.app), n = (i.metoo || []).length;
-    return `<div class="is s-${i.status} oi" data-act="open" data-id="${i.id}">
+    const own = isOwnIssue(i), co = !own && coDevOf(i);
+    return `<div class="is s-${i.status} oi${own ? ' oiOwn' : ''}${co ? ' oiCo' : ''}${SKIP.has(i.id) ? ' oiSkip' : ''}" data-act="open" data-id="${i.id}">
+      ${own ? `<div class="oiTag own">🟢 ${LANG === 'en' ? 'My request' : 'میرا اپنا'}</div>` : co ? `<div class="oiTag co">👨‍💻 ${LANG === 'en' ? 'Co-developer' : 'کو ڈویلپر'}</div>` : ''}
       <div class="top">${appIcon(a, 'appMini')} <b style="font-size:14px">${esc(AN(a))}</b>${tyChip(i.type)}${stChip(i.status)}
         <span class="chip ${i.pub ? 'globe' : 'lock'}">${i.pub ? '🌐' : '🔒'}</span>${isHeld(i) ? '<span class="chip work">⏳</span>' : ''}${i.urgent ? '<span class="chip work">⚡</span>' : ''}${needsSend(i) ? '<span class="chip mine">📨</span>' : ''}<span class="no">#${i.no}</span></div>
       <div class="tx clamp" dir="auto">${esc(i.text || (i.audio ? '🎤' : ''))}</div>
@@ -902,18 +944,20 @@ function vOwner() {
       ${i.status === 'done' ? `<button class="tb grn" style="font-size:13px;margin:6px 0 0" data-act="poster" data-id="${i.id}">🖼️ ${LANG === 'en' ? 'Solved post → WhatsApp' : 'حل کی پوسٹ ← واٹس ایپ'}${needsSend(i) ? ' 📨' : ' ✓'}</button>` : ''}
       <div class="ft"><span class="who">👤 ${esc(i.name)} · <span class="num">${esc(i.phone)}</span></span>
         <span class="when">🕒 ${ago(i.created)}</span>${i.shots ? `<span class="when">🖼️ ${i.shots}</span>` : ''}${i.audio ? '<span class="when">🎤</span>' : ''}
-        ${n ? `<span class="mt on">👋 <b>${n + 1}</b></span>` : ''}</div></div>`;
+        ${n ? `<span class="mt on">👋 <b>${n + 1}</b></span>` : ''}
+        ${bulkTodo(i) ? `<button class="tb skipB" data-act="skip" data-id="${i.id}">${SKIP.has(i.id) ? (LANG === 'en' ? '↩️ Back to its place' : '↩️ واپس اپنی جگہ') : (LANG === 'en' ? '⏭️ Later' : '⏭️ بعد میں')}</button>` : ''}</div></div>`;
   }).join('');
   return `<div class="own">
     <div class="card" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
       <b style="font-size:19px;flex:1">🛠️ ${LANG === 'en' ? 'Developer panel' : 'ڈویلپر پینل'}</b>
       <button class="tb ${pushOn() ? 'grn' : 'pri'}" data-act="push" title="Notifications">🔔${pushOn() ? ' ✓' : ` ${LANG === 'en' ? 'Turn on alerts' : 'اطلاعات چالو کریں'}`}</button><button class="tb" data-act="settings">⚙️</button><button class="tb" data-act="logout">🚪</button></div>
+    ${limitsCard()}
     <div class="card stats" style="grid-template-columns:repeat(4,1fr)">
       ${countsHTML(hdCounts(ISSUES.filter(i => !O.app || i.app === O.app)))}
       <div class="st g"><span class="v">${weekSolved(ISSUES.filter(i => !O.app || i.app === O.app))}</span><span class="l">✅ ${T('solvedWeek')}</span></div></div>
     <div class="oTabs">${tabs.map(([k, l]) => `<button class="${O.tab === k ? 'on' : ''}" data-act="otab" data-id="${k}">${l}${k !== 'all' ? `<i>${C(k)}</i>` : ''}</button>`).join('')}</div>
     <div class="row"><select class="inp" data-oin="app">${opts}</select>
-      <select class="inp" data-oin="sort"><option value="new" ${O.sort === 'new' ? 'selected' : ''}>🕒 ${LANG === 'en' ? 'Newest' : 'نئے پہلے'}</option><option value="votes" ${O.sort === 'votes' ? 'selected' : ''}>👋 ${LANG === 'en' ? 'Most voted' : 'زیادہ لوگ پہلے'}</option></select>
+      <select class="inp" data-oin="sort"><option value="old" ${O.sort === 'old' ? 'selected' : ''}>⏳ ${LANG === 'en' ? 'Oldest first' : 'پرانے پہلے'}</option><option value="new" ${O.sort === 'new' ? 'selected' : ''}>🕒 ${LANG === 'en' ? 'Newest' : 'نئے پہلے'}</option><option value="votes" ${O.sort === 'votes' ? 'selected' : ''}>👋 ${LANG === 'en' ? 'Most voted' : 'زیادہ لوگ پہلے'}</option></select>
       <input class="inp" data-oin="q" value="${esc(O.q)}" placeholder="🔍 ${LANG === 'en' ? 'name, phone, #no, text' : 'نام، نمبر، #، متن'}"></div>
     <div class="ownGrid">${cards || `<div class="card empty"><span class="e">🎉</span>${LANG === 'en' ? 'Nothing here' : 'یہاں کچھ نہیں'}</div>`}</div>
   </div>${foot()}`;
@@ -938,6 +982,7 @@ function detailHTML() {
   const shots = (DET.blobs || []).filter(b => b.kind === 'shot'), au = (DET.blobs || []).find(b => b.kind === 'audio');
   const E = LANG === 'en';
   return `<div class="det dc"><h2>${appIcon(a, 'appMini')} <span class="dcT">${esc(AN(a))} <span class="num" style="color:var(--mut)">#${i.no}</span></span>
+      ${i.phone && !isOwnIssue(i) ? `<button class="tb ${coDevOf(i) ? 'amb' : ''}" data-act="coDev" title="${E ? 'Mark sender as co-developer' : 'بھیجنے والا کو ڈویلپر'}">👨‍💻${coDevOf(i) ? ' ✓' : ''}</button>` : ''}
       <button class="tb red dcDel" data-act="del" title="${E ? 'Delete' : 'حذف'}">🗑️ ${E ? 'Delete' : 'حذف'}</button><button class="x" data-act="close">✕</button></h2>
     <div class="dcRow">${tyChip(i.type)}${stChip(i.status)}${n ? `<span class="chip work">👋 ${n + 1}</span>` : ''}
       <span class="dcMeta">👤 <b>${esc(i.name)}</b> · <a class="num" href="tel:${esc(i.phone)}">${esc(i.phone)}</a> · <a href="https://wa.me/${waNum(i.phone)}" target="_blank" rel="noopener">💬</a> · <span class="num">${fullDate(i.created)}</span>${i.ver ? ' · <span class="num">' + esc(i.ver) + '</span>' : ''}</span></div>
@@ -1330,6 +1375,16 @@ document.addEventListener('click', async e => {
     case 'shareLink': window.open('https://wa.me/?text=' + encodeURIComponent('السلام علیکم! PBT Code Labs کی کسی بھی ایپ میں مسئلہ ہو یا کوئی مشورہ دینا ہو تو یہاں لکھیں — جواب یہیں آئے گا:\n' + location.origin + location.pathname), '_blank'); break;
     case 'wipe': if (confirm('Demo data?')) { await Store.wipeDemo(); localStorage.removeItem('pbthd_demo_seeded'); closeSheet(); } break;
     case 'otab': O.tab = id; render(); break;
+    case 'skip': if (SKIP.has(id)) SKIP.delete(id); else SKIP.add(id); render(); break;
+    case 'limEdit': limSheet(id); break;
+    case 'limSave': { const v = parseInt(digits($('#limPct').value).replace(/[^0-9]/g, ''), 10); if (isNaN(v) || v < 0 || v > 100) { toast('0 – 100'); break; }
+      const lim = Object.assign({}, (PANEL && PANEL.lim) || {}); lim[id] = { pct: v, reset: $('#limReset').value.trim(), at: Date.now(), by: 'owner' };
+      try { await Store.panelSave({ lim }); } catch (e) { toast('⚠️ ' + (e.message || e), 4000); break; }
+      PANEL = Object.assign({}, PANEL, { lim }); closeSheet(); render(); toast('✅'); break; }
+    case 'coDev': { const i = ISSUES.find(x => x.id === DET.id); if (!i || !i.phone) break; const h = await phHash(i.phone); PHH[i.phone] = h;
+      const L = new Set((PANEL && PANEL.coDevH) || []); if (L.has(h)) L.delete(h); else L.add(h);
+      try { await Store.panelSave({ coDevH: Array.from(L) }); } catch (e) { toast('⚠️ ' + (e.message || e), 4000); break; }
+      PANEL = Object.assign({}, PANEL, { coDevH: Array.from(L) }); sheet(detailHTML(), true); render(); toast(L.has(h) ? '👨‍💻 ✓' : '✓'); break; }
     case 'open': openDetail(id); break;
     case 'close': closeSheet(); break;
     case 'setSt': {

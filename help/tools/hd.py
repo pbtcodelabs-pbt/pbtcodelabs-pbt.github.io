@@ -230,6 +230,31 @@ def wp_send(sub, P, payload):
     except ValueError: return 0
 
 
+def cmd_limit(tok, pairs):
+    """📊 HD0811SA052: ڈویلپر پینل کی ہفتہ وار حد — hd.py limit pbt=37 piary=62 pbt_reset="جمعرات صبح 9" """
+    try:
+        r = curl('GET', f'{FS}/push/panel', None, tok) or {}
+    except SystemExit:
+        r = {}  # ابھی دستاویز نہیں بنی
+    lim = dec({'mapValue': {'fields': (r.get('fields') or {}).get('lim', {}).get('mapValue', {}).get('fields', {})}}) if r.get('fields') else {}
+    lim = lim or {}
+    now = int(time.time() * 1000)
+    for p in pairs:
+        k, v = p.split('=', 1)
+        if k.endswith('_reset'):
+            lim.setdefault(k[:-6], {})['reset'] = v
+        else:
+            lim.setdefault(k, {})['pct'] = max(0, min(100, int(float(v))))
+            lim[k]['at'] = now; lim[k]['by'] = 'claude'
+    def ev(x):
+        if isinstance(x, dict): return {'mapValue': {'fields': {a: ev(b) for a, b in x.items()}}}
+        if isinstance(x, bool): return {'booleanValue': x}
+        if isinstance(x, int): return {'integerValue': str(x)}
+        return {'stringValue': str(x)}
+    curl('PATCH', f'{FS}/push/panel?updateMask.fieldPaths=lim', {'fields': {'lim': ev(lim)}}, tok)
+    print('ok', json.dumps(lim, ensure_ascii=False))
+
+
 def counts(L):
     held = lambda i: i.get('hold') in ('decide', 'approve')
     live = lambda i: i.get('status') not in ('done', 'dup')
@@ -279,4 +304,5 @@ if __name__ == '__main__':
     elif a[0] == 'set': cmd_set(t, a[1], a[2:])
     elif a[0] == 'add': cmd_add(t, a[1], a[2], a[3], a[4:])
     elif a[0] == 'notify': cmd_notify(t, '--force' in a)
+    elif a[0] == 'limit': cmd_limit(t, a[1:])
     else: sys.exit(__doc__)
