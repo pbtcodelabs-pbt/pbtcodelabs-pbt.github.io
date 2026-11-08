@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0811SU058';
-const UPDATE_NOTE = 'اردو عنوانات نوری نستعلیق کشیدہ میں؛ ملازم کا فون جوڑنے والی ویڈیو بھی نوری نستعلیق میں';
+const APP_VERSION = 'HD0811SU059';
+const UPDATE_NOTE = 'نئی ویڈیو: AIO POS — ملازم کا فون جوڑیں (انگلش)';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -236,6 +236,7 @@ function foot() {
 const VIDEOS = [
   { id: 'helpdesk', file: 'media/pbt-help-desk.mp4', poster: 'media/helpdesk.jpg', ur: 'Help Desk — مسئلہ کیسے بتائیں؟ مکمل طریقہ', en: 'Help Desk — how to report a problem', dur: '1:06', dl: 'PBT-Help-Desk' },
   { id: 'aio-staff', file: 'media/aio-staff-join-ur.mp4', poster: 'media/aio-staff-join.jpg', ur: 'AIO POS — ملازم کا فون دکان سے کیسے جوڑیں؟ (مالک اور ملازم کے قدم)', en: 'AIO POS — connect a staff phone to your shop (Urdu)', dur: '1:45', dl: 'AIO-POS-Staff-Phone-Urdu', share: '📱 AIO POS — ملازم کا فون دکان سے جوڑنے کا آسان طریقہ\n👑 مالک: User Management ← «➕ Add a staff phone» ← نام، موبائل ← پیغام واٹس ایپ پر\n🧑‍💼 ملازم: «📋 Paste owner\'s message» ← Paste ← Connect ✅' },
+  { id: 'aio-staff-en', file: 'media/aio-staff-join-en.mp4', poster: 'media/aio-staff-join-en.jpg', ur: 'AIO POS — ملازم کا فون جوڑیں (انگلش)', en: 'AIO POS — connect a staff phone to your shop (English)', dur: '1:45', dl: 'AIO-POS-Staff-Phone-English', share: '📱 AIO POS — connect a staff phone to your shop\n👑 Owner: User Management → «➕ Add a staff phone» → name, mobile → send the message on WhatsApp\n🧑‍💼 Staff: «📋 Paste owner\'s message» → Paste → Connect ✅' },
   { id: 'aio-ur', file: 'media/aio-pos-ur.mp4', poster: 'media/aio-ur.jpg', ur: 'AIO POS — تعارف (اردو)', en: 'AIO POS — introduction (Urdu)', dur: '0:50', dl: 'AIO-POS-Urdu', share: 'AIO POS — آپ کی دکان کا مکمل سافٹ ویئر 🧾📱\nGoogle Play: https://play.google.com/store/apps/details?id=com.pbtcodelabs.aiopos' },
   { id: 'aio-en', file: 'media/aio-pos-en.mp4', poster: 'media/aio-en.jpg', ur: 'AIO POS — تعارف (انگلش)', en: 'AIO POS — introduction (English)', dur: '0:50', dl: 'AIO-POS-English', share: 'AIO POS — all-in-one software for your shop 🧾📱\nGoogle Play: https://play.google.com/store/apps/details?id=com.pbtcodelabs.aiopos' }
 ];
