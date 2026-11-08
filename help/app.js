@@ -635,7 +635,9 @@ async function loadPanel(force) {
 }
 async function phHash(ph) { const d = waNum(digits(ph || '').replace(/[^0-9]/g, '')); if (!d) return ''; const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('pbthd-codev:' + d)); return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join('').slice(0, 24); }
 const PHH = {}; // phone → hash (یادداشت)
-function coDevOf(i) { const h = PHH[i.phone || '']; if (h === undefined && i.phone) { PHH[i.phone] = null; phHash(i.phone).then(v => { PHH[i.phone] = v; if (v && ((PANEL && PANEL.coDevH) || []).includes(v) && R.v === 'owner') render(); }); return false; } return !!h && ((PANEL && PANEL.coDevH) || []).includes(h); }
+// کو-ڈویلپر (مانی بھائی / عمران بھائی، 03138469706) خود پہچانا جاتا ہے: پیغام «👥 کو-ڈویلپر (…)» سے شروع یا یہی نمبر؛ باقی 👨‍💻 بٹن سے نشان
+const CODEV_RX = /^\s*👥\s*کو-?\s*ڈویلپر/;
+function coDevOf(i) { if (CODEV_RX.test(i.text || '') || digits(i.phone || '').replace(/[^0-9]/g, '').endsWith('3138469706')) return true; const h = PHH[i.phone || '']; if (h === undefined && i.phone) { PHH[i.phone] = null; phHash(i.phone).then(v => { PHH[i.phone] = v; if (v && ((PANEL && PANEL.coDevH) || []).includes(v) && R.v === 'owner') render(); }); return false; } return !!h && ((PANEL && PANEL.coDevH) || []).includes(h); }
 function limitsCard() {
   const E = LANG === 'en', L = (PANEL && PANEL.lim) || {};
   const row = ([k, mail, nm]) => {
