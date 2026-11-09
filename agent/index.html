@@ -56,7 +56,7 @@ button.sec{background:var(--line);color:var(--ink)}button.red{background:#fee2e2
 <body>
 <header><h1 id="hdT">🤝 PBT پورٹل</h1><small id="hdS">ایجنٹ · کو-ڈویلپر · ڈویلپر — PBT Code Labs</small></header>
 <main id="app"></main>
-<div class="foot"><a href="guide.html" style="color:var(--pri);font-weight:800">📄 MCS ایجنٹ کیسے بنیں — طریقہ (پرنٹ / PDF)</a><br><a href="#" onclick="roleSwitch();return false" style="color:var(--pri);font-weight:800">🔄 لاگ اِن بدلیں (ایجنٹ / کو-ڈویلپر / ڈویلپر)</a><br>پی بی ٹی کوڈ لیبز · <span class="num" id="agpVer">AGP0911MO013</span></div>
+<div class="foot"><a href="guide.html" style="color:var(--pri);font-weight:800">📄 MCS ایجنٹ کیسے بنیں — طریقہ (پرنٹ / PDF)</a><br><a href="#" onclick="roleSwitch();return false" style="color:var(--pri);font-weight:800">🔄 لاگ اِن بدلیں (ایجنٹ / کو-ڈویلپر / ڈویلپر)</a><br>پی بی ٹی کوڈ لیبز · <span class="num" id="agpVer">AGP0911MO014</span></div>
 <script>
 const API = 'https://aio-pos-verify.pbtcodelabs.workers.dev';
 const FB_KEY = 'AIzaSyAvu8ymIZAGEPaYwd_LBJzKS2lZ3Q4_Mog'; // My City Shines (ایڈمن لاگ اِن)
@@ -69,18 +69,18 @@ function cpy(v){ const done = () => toast('📋 ' + v + ' کاپی ہو گیا')
 function toast(t){ let el = document.getElementById('tst'); if(!el){ el = document.createElement('div'); el.id = 'tst'; document.body.appendChild(el); } el.textContent = t; el.className = 'on'; clearTimeout(el._t); el._t = setTimeout(() => el.className = '', 2200); }
 const D = t => t ? new Date(t).toLocaleDateString('en-GB') : '—';
 const ls = { get(k, d){ try{ const v = localStorage.getItem('agp_' + k); return v ? JSON.parse(v) : d; }catch(e){ return d; } }, set(k, v){ try{ localStorage.setItem('agp_' + k, JSON.stringify(v)); }catch(e){} }, del(k){ try{ localStorage.removeItem('agp_' + k); }catch(e){} } };
-/* AGP0911MO013 (مالک کا حکم، ہیلپ ڈیسک #174): ایک ہی «PBT Portal» ایپ (APK) — پہلے صفحے پر تین لاگ اِن؛ پچھلا چنا ہوا کردار یاد (agp_role) */
-const AGP_VER = 'AGP0911MO013';
+/* AGP0911MO014 (مالک کا حکم، ہیلپ ڈیسک #174): ایک ہی «PBT Portal» ایپ (APK) — پہلے صفحے پر تین لاگ اِن؛ پچھلا چنا ہوا کردار یاد (agp_role) */
+const AGP_VER = 'AGP0911MO014';
 const ROLE = location.hash.startsWith('#admin') ? 'admin' : location.hash.startsWith('#codev') ? 'codev' : location.hash.startsWith('#agent') ? 'agent' : (ls.get('role', '') || '');
 const ADMIN = ROLE === 'admin', CODEV = ROLE === 'codev';
 function roleGo(r){ ls.set('role', r); location.hash = '#' + r; location.reload(); }
 function roleSwitch(){ ls.del('role'); history.replaceState(null, '', location.pathname); location.reload(); }
 function rolePick(){
-  const b = (r, ic, t, d, c) => `<button onclick="roleGo('${r}')" style="display:flex;align-items:center;gap:12px;width:100%;text-align:right;padding:14px;margin:8px 0;border-radius:16px;background:${c};font-size:17px"><span style="font-size:34px">${ic}</span><span style="font-family:Noori,serif;line-height:1.6">${t}<br><small style="font-weight:400;font-size:13px;opacity:.9">${d}</small></span></button>`;
-  app.innerHTML = `<div class="card"><h2>👋 خوش آمدید — اپنا لاگ اِن چنیں</h2>
-    ${b('agent','🤝','MCS ایجنٹ','اپنے کاروبار، کمیشن، ادائیگیاں اور چیٹ','linear-gradient(135deg,#0f766e,#0d9488)')}
-    ${b('codev','👥','کو-ڈویلپر','کمپنی کا حساب (صرف دیکھنا) اور ڈویلپر سے چیٹ','linear-gradient(135deg,#b45309,#d97706)')}
-    ${b('admin','👨‍💻','ڈویلپر (مالک)','سب ایجنٹ، حساب، ادائیگیاں، چیٹس','linear-gradient(135deg,#0d3b66,#1e40af)')}
+  const b = (r, ic, t, c) => `<button onclick="roleGo('${r}')" style="display:flex;align-items:center;justify-content:center;gap:10px;width:min(260px,82%);margin:10px auto;padding:12px 16px;border-radius:16px;background:${c};font-size:18px"><span style="font-size:28px">${ic}</span><span style="font-family:Noori,serif;line-height:1.5">${t}</span></button>`;
+  app.innerHTML = `<div class="card" style="text-align:center"><h2>👋 خوش آمدید — اپنا لاگ اِن چنیں</h2>
+    ${b('agent','🤝','MCS ایجنٹ','linear-gradient(135deg,#0f766e,#0d9488)')}
+    ${b('codev','👥','کو-ڈویلپر','linear-gradient(135deg,#b45309,#d97706)')}
+    ${b('admin','👨‍💻','ڈویلپر (مالک)','linear-gradient(135deg,#0d3b66,#1e40af)')}
     <div style="color:var(--mut);font-size:13px;text-align:center">ایک بار لاگ اِن کریں — ایپ اگلی بار یاد رکھے گی</div></div>`;
 }
 let CDV = null;   /* AGP0511TH005: کو-ڈویلپر {phone, pin} — صرف دیکھنا */
@@ -219,7 +219,7 @@ async function admDoLogin(){
   try{ const r = await (await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=' + FB_KEY, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email: $('#ae').value.trim(), password: $('#ap').value, returnSecureToken: true})})).json();
     if(!r.idToken) return admLogin('❌ ای میل یا پاس ورڈ غلط'); admTok = r.idToken; admTokExp = Date.now() + 50*60e3; if(r.refreshToken) ls.set('admRt', r.refreshToken); admHome(); }catch(e){ admLogin('📶 انٹرنیٹ نہیں'); }
 }
-/* AGP0911MO013: ڈویلپر کا لاگ اِن یاد — فائربیس refresh token سے خاموش تجدید (ہر گھنٹے پاس ورڈ نہیں) */
+/* AGP0911MO014: ڈویلپر کا لاگ اِن یاد — فائربیس refresh token سے خاموش تجدید (ہر گھنٹے پاس ورڈ نہیں) */
 async function admRefresh(){ const rt = ls.get('admRt', ''); if(!rt) return false;
   try{ const r = await (await fetch('https://securetoken.googleapis.com/v1/token?key=' + FB_KEY, {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(rt)})).json();
     if(!r.id_token){ if(r.error) ls.del('admRt'); return false; } admTok = r.id_token; admTokExp = Date.now() + 50*60e3; if(r.refresh_token) ls.set('admRt', r.refresh_token); return true; }catch(e){ return false; } }
