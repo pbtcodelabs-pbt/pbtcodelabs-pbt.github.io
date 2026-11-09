@@ -268,7 +268,7 @@ window.ppScreen = function(role, msg, needPhone){
 };
 window.rolePick = function(){
   const b = (r, ic2, t) => `<button class="v2role" onclick="roleGo('${r}')"><span>${ic2}</span>${t}</button>`;
-  app.innerHTML = `<div class="v2wrap v2login"><div class="v2lhero"><img src="img/head-login.jpg" alt="My City Shines"><div class="lpill"><span>🤝</span>PBT Portal</div></div>
+  app.innerHTML = `<div class="v2wrap v2login"><div class="v2lhero"><img src="img/head-login.jpg" alt="My City Shines"><div class="lpill"><span>🤝</span>MCS Agent</div></div>
     <div class="v2lcard"><div class="lt" style="text-align:center;margin-bottom:6px">👋 خوش آمدید — اپنا لاگ اِن چنیں</div>
       ${b('agent','🤝','MCS ایجنٹ')}${b('codev','👥','کو-ڈویلپر')}${b('admin','👨‍💻','ڈویلپر (مالک)')}
       <div class="lauth"><i></i>${ic('users', 26)} <span>Authorized Members Only</span><i></i></div></div><img class="v2wave" src="img/wave.jpg" alt=""></div>`;

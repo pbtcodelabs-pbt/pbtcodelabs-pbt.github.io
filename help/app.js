@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0911MO067';
-const UPDATE_NOTE = '📱 PBT پورٹل ایپ بھی ہیلپ ڈیسک میں — پورٹل کے مشورے / مسائل یہیں';
+const APP_VERSION = 'HD0911MO068';
+const UPDATE_NOTE = '📱 پورٹل ایپ کا نیا نام «MCS Agent»';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -22,7 +22,7 @@ const APPS = [
   { id: 'Stylish-listing-', ur: 'سامان لسٹ', en: 'Shopping List', img: '../img/list.webp', repo: 'pbtcodelabs-pbt/Stylish-listing-' },
   { id: 'MT', lang: 'en', ur: 'میٹر ٹریکر', en: 'Meter Tracker', img: '../img/mt.webp', repo: 'pbtcodelabs-pbt/MT' },
   { id: 'MCS', ur: 'سٹی شائنز', en: 'My City Shines', img: '../img/mcs.webp', repo: 'pbtcodelabs-pbt/MCS' },
-  { id: 'PBT-Portal', ur: 'PBT پورٹل', en: 'PBT Portal', img: '../agent/icon-192.png', repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io', hide: true },   /* HD0911MO067: ایجنٹ / کو-ڈویلپر / ڈویلپر کی پورٹل ایپ — عام گاہک کی فہرست میں نہیں (پلے اسٹور ایپس کے اندر بھی ہیلپ ڈیسک کھلتا ہے)، صرف مالک کو اور پورٹل سے آئے تو */
+  { id: 'PBT-Portal', ur: 'MCS Agent', en: 'MCS Agent', img: '../agent/icon-192.png', repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io', hide: true },   /* HD0911MO067: ایجنٹ / کو-ڈویلپر / ڈویلپر کی پورٹل ایپ — عام گاہک کی فہرست میں نہیں (پلے اسٹور ایپس کے اندر بھی ہیلپ ڈیسک کھلتا ہے)، صرف مالک کو اور پورٹل سے آئے تو */
   { id: 'urdu-fonts-studio', ur: 'اردو فونٹس', en: 'Urdu Fonts', img: '../img/fonts.webp', repo: 'pbtcodelabs-pbt/urdu-fonts-studio' },
   { id: 'other', ur: 'کوئی اور', en: 'Other', emoji: '🧩', repo: '' }
 ];

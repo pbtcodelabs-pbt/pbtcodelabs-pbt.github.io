@@ -128,3 +128,8 @@ button.sm{padding:1px 8px!important;font-size:12px!important;border-radius:8px!i
 .v2dates{display:flex;gap:8px;align-items:end;direction:ltr}.v2dates label{flex:1;margin:0;font-family:'Segoe UI',Arial}
 .v2t tr.tap{cursor:pointer}.v2t tr.tap:hover td{background:#f4f8fe}
 .v2refbox{display:flex;gap:12px;align-items:center}.v2qr.big{width:120px;height:120px;flex:none}
+/* AGP0911MO020 (مالک کا حکم): فونٹ بالکل My City Shines جیسے — اردو جمیل نوری نستعلیق (عنوان کشیدہ)، انگریزی / ہندسے Arial / Segoe UI */
+@font-face{font-family:'Jameel Noori Nastaleeq Kasheeda';src:url(../fonts/JameelNooriNastaleeqKasheeda.woff2) format('woff2');font-display:swap}
+@font-face{font-family:MCSDigits;src:local('Arial'),local('ArialMT'),local('Arimo'),local('Liberation Sans'),local('Helvetica'),local('Roboto'),local('Noto Sans');unicode-range:U+0030-0039;font-display:swap}
+body.v2,.v2card,.v2note,.v2ok,.v2warn,.v2mut,.v2list button,.lu,.lrem,.lfg,.v2role,.v2login .err,.v2empty{font-family:MCSDigits,Noori,'Segoe UI',Tahoma,Arial,sans-serif}
+.v2card h2,.v2sh b:lang(ur),.lu{font-family:MCSDigits,'Jameel Noori Nastaleeq Kasheeda',Noori,serif}
