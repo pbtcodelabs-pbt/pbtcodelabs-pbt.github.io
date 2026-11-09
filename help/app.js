@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0911MO063';
-const UPDATE_NOTE = '👥 پارٹیاں: ترچھی پٹی بائیں کونے پر؛ تفصیل کا انتظار پیلا، کام روکا گہرا سرخ';
+const APP_VERSION = 'HD0911MO064';
+const UPDATE_NOTE = 'ہر جاری کام کے ڈبے کے کونے میں چمکتا 🔄 — رکا کام دوبارہ چلائیں؛ مکمل پر نہیں';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -442,7 +442,8 @@ function partyState(i) {
 }
 function partyCard(i) {
   const E = LANG === 'en', [c, lbl, pct] = partyState(i), app = appOf(i.app);
-  return `<div class="pIs ps-${c}" data-act="open" data-id="${i.id}">
+  const rc = retryCorner(i);
+  return `<div class="pIs ps-${c}${rc ? ' hasRs' : ''}" data-act="open" data-id="${i.id}">${rc}
     <div class="pRib"><span>${lbl}</span></div>
     <div class="pTop">${appIcon(app, 'appMini')} <b>${esc(AN(app))}</b> <span class="num">#${i.no}</span> ${tyChip(i.type)}</div>
     ${c === 'done' ? `<div class="pTick">✓</div>` : ''}
@@ -913,15 +914,23 @@ function urgStage(i) {
 }
 /* HD0911MO061 (مالک کا حکم): ہر جاری کام کے کونے پر 🔄 «دوبارہ چلائیں» — تین گھومتے تیر ایک دوسرے کے پیچھے؛ رکا ہوا کام دوبارہ Claude کی قطار میں (stage=claude، ⚡) + ایک لائن کاپی کر کے Claude کی چیٹ */
 const RETRY_SVG = '<svg viewBox="0 0 40 40" aria-hidden="true"><g class="rsG">' + [0, 120, 240].map(r => `<g transform="rotate(${r} 20 20)"><path d="M20 5 A15 15 0 0 1 33 12.5" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><path d="M35.6 7.6 L34.4 15.6 L27.2 12.2 Z" fill="currentColor"/></g>`).join('') + '</g></svg>';
+/* HD0911MO064 (مالک کا حکم): 🔄 صرف ان پر جن پر کام شروع / منظور ہو چکا اور ابھی مکمل نہیں — ⚡ فوری، منظور (go)، کوئی قدم (stage) یا «کام جاری»؛
+   حل / ڈپلیکیٹ / مکمل، ایک طرف رکھے / ڈرافٹ / تفصیل کے منتظر اور ابھی نہ چھیڑے نئے مسئلوں پر نہیں */
+const inWork = i => !!i && i.status !== 'done' && i.status !== 'dup' && i.stage !== 'done' && !['later', 'draft', 'info'].includes(i.hold) && !!(i.urgent || i.hold === 'go' || i.stage || i.status === 'work');
+function retryCorner(i) {
+  if (!Store.isOwner() || !inWork(i)) return '';
+  const E = LANG === 'en';
+  return `<button class="rsCorner" data-act="urgRetry" data-id="${i.id}" title="${E ? 'Stuck? Restart this job' : 'رکا ہے؟ دوبارہ چلائیں'}" aria-label="${E ? 'Restart' : 'دوبارہ چلائیں'}">${RETRY_SVG}</button>`;
+}
 function retryBtn(i, mini) {
-  if (!Store.isOwner() || i.status === 'done' || i.status === 'dup' || i.stage === 'done') return '';
+  if (!Store.isOwner() || !inWork(i)) return '';
   const E = LANG === 'en';
   return `<button class="rsBtn ${mini ? 'mini' : ''}" data-act="urgRetry" data-id="${i.id}" title="${E ? 'Restart — send again to Claude' : 'دوبارہ چلائیں — رکا کام پھر Claude کو'}">${RETRY_SVG}${mini ? '' : `<span>${E ? 'Restart' : 'دوبارہ چلائیں'}</span>`}</button>`;
 }
 function urgProgress(i, mini) {
   const E = LANG === 'en', st = urgStage(i), k = STAGES.findIndex(x => x[0] === st), cur = STAGES[k], nx = STAGES[k + 1];
   const pct = cur[1], done = st === 'done';
-  if (mini) return `<div class="upMini ${done ? 'fin' : ''}"><div class="upBar"><i style="width:${pct}%"></i></div><span>${cur[2]} ${E ? cur[4] : cur[3]} · <b class="num">${pct}%</b></span>${retryBtn(i, true)}</div>`;
+  if (mini) return `<div class="upMini ${done ? 'fin' : ''}"><div class="upBar"><i style="width:${pct}%"></i></div><span>${cur[2]} ${E ? cur[4] : cur[3]} · <b class="num">${pct}%</b></span></div>`;
   return `<div class="urgProg ${done ? 'fin' : ''}">
     <div class="upHead"><b>${cur[2]} ${E ? cur[4] : cur[3]}</b><span class="upR">${retryBtn(i)}<span class="num">${pct}%</span></span></div>
     <div class="upBar"><i style="width:${pct}%"></i></div>
@@ -935,7 +944,7 @@ function urgHome() {
   if (!L.length) return '';
   const E = LANG === 'en';
   return `<div class="card urgHome"><b>⚡ ${E ? 'Urgent jobs — live progress' : 'فوری کام — لائیو پیش رفت'}</b>
-    ${L.map(i => `<div class="uh" data-act="open" data-id="${i.id}"><span class="t">${appIcon(appOf(i.app), 'appMini')} <b class="num">#${i.no}</b> <span class="clamp" dir="auto">${esc(i.text || '🎤')}</span></span>${urgProgress(i, true)}</div>`).join('')}</div>`;
+    ${L.map(i => `<div class="uh${retryCorner(i) ? ' hasRs' : ''}" data-act="open" data-id="${i.id}">${retryCorner(i)}<span class="t">${appIcon(appOf(i.app), 'appMini')} <b class="num">#${i.no}</b> <span class="clamp" dir="auto">${esc(i.text || '🎤')}</span></span>${urgProgress(i, true)}</div>`).join('')}</div>`;
 }
 function urgSwitch(i) {
   // HD0311TU024 (مالک کا حکم): حل شدہ / ڈپلیکیٹ مسئلے پر ⚡ سوئچ نہیں (دبانے سے کام دوبارہ شروع ہوتا تھا) — صرف مکمل پیش رفت
@@ -1040,12 +1049,13 @@ function vOwner() {
   const cards = list.map(i => {
     const a = appOf(i.app), n = (i.metoo || []).length;
     const own = isOwnIssue(i), co = !own && coDevOf(i);
-    return `<div class="is s-${i.status} oi${own ? ' oiOwn' : ''}${co ? ' oiCo' : ''}${SKIP.has(i.id) ? ' oiSkip' : ''}" data-act="open" data-id="${i.id}">
+    const rc = retryCorner(i);
+    return `<div class="is s-${i.status} oi${own ? ' oiOwn' : ''}${co ? ' oiCo' : ''}${SKIP.has(i.id) ? ' oiSkip' : ''}${rc ? ' hasRs' : ''}" data-act="open" data-id="${i.id}">${rc}
       ${own ? `<div class="oiTag own">🟢 ${LANG === 'en' ? 'My request' : 'میرا اپنا'}</div>` : co ? `<div class="oiTag co">👨‍💻 ${LANG === 'en' ? 'Co-developer' : 'کو ڈویلپر'}</div>` : ''}
       <div class="top">${appIcon(a, 'appMini')} <b style="font-size:14px">${esc(AN(a))}</b>${tyChip(i.type)}${stChip(i.status)}
         <span class="chip ${i.pub ? 'globe' : 'lock'}">${i.pub ? '🌐' : '🔒'}</span>${isHeld(i) ? '<span class="chip work">⏳</span>' : ''}${i.urgent ? '<span class="chip work">⚡</span>' : ''}${needsSend(i) ? '<span class="chip mine">📨</span>' : ''}<span class="no">#${i.no}</span></div>
       <div class="tx clamp" dir="auto">${esc(i.text || (i.audio ? '🎤' : ''))}</div>
-      ${i.urgent ? urgProgress(i, true) : ''}
+      ${i.urgent || inWork(i) ? urgProgress(i, true) : ''}
       ${i.status === 'done' ? `<button class="tb grn" style="font-size:13px;margin:6px 0 0" data-act="poster" data-id="${i.id}">🖼️ ${LANG === 'en' ? 'Solved post → WhatsApp' : 'حل کی پوسٹ ← واٹس ایپ'}${needsSend(i) ? ' 📨' : ' ✓'}</button>` : ''}
       <div class="ft"><span class="who">👤 ${esc(i.name)} · <span class="num">${esc(i.phone)}</span></span>
         <span class="when">🕒 ${ago(i.created)}</span>${i.shots ? `<span class="when">🖼️ ${i.shots}</span>` : ''}${i.audio ? '<span class="when">🎤</span>' : ''}
@@ -1089,7 +1099,7 @@ function detailHTML() {
   const E = LANG === 'en';
   return `<div class="det dc"><h2>${appIcon(a, 'appMini')} <span class="dcT">${esc(AN(a))} <span class="num" style="color:var(--mut)">#${i.no}</span></span>
       ${i.phone && !isOwnIssue(i) ? `<button class="tb ${coDevOf(i) ? 'amb' : ''}" data-act="coDev" title="${E ? 'Mark sender as co-developer' : 'بھیجنے والا کو ڈویلپر'}">👨‍💻${coDevOf(i) ? ' ✓' : ''}</button>` : ''}
-      <button class="tb red dcDel" data-act="del" title="${E ? 'Delete' : 'حذف'}">🗑️ ${E ? 'Delete' : 'حذف'}</button><button class="x" data-act="close">✕</button></h2>
+      ${retryCorner(i).replace('rsCorner', 'rsCorner inH')}<button class="tb red dcDel" data-act="del" title="${E ? 'Delete' : 'حذف'}">🗑️ ${E ? 'Delete' : 'حذف'}</button><button class="x" data-act="close">✕</button></h2>
     <div class="dcRow">${tyChip(i.type)}${stChip(i.status)}${n ? `<span class="chip work">👋 ${n + 1}</span>` : ''}
       <span class="dcMeta">👤 <b>${esc(i.name)}</b> · <a class="num" href="tel:${esc(i.phone)}">${esc(i.phone)}</a> · <a href="https://wa.me/${waNum(i.phone)}" target="_blank" rel="noopener">💬</a> · <span class="num">${fullDate(i.created)}</span>${i.ver ? ' · <span class="num">' + esc(i.ver) + '</span>' : ''}</span></div>
     ${holdBox(i)}
@@ -1408,10 +1418,10 @@ document.addEventListener('click', async e => {
       if (on) setTimeout(() => urgSheet(i), 1100); else toast(LANG === 'en' ? '⏸️ Urgent off — it will be done in the next round (11 AM / 8:30 PM)' : '⏸️ فوری بند — اب یہ اگلی باری (صبح 11 / رات ساڑھے 8 بجے) میں ہوگا', 4000);
       break; }
     case 'urgRetry': { const i = ISSUES.find(x => x.id === id); if (!i) break;
-      document.querySelectorAll(`.rsBtn[data-id="${i.id}"]`).forEach(b => b.classList.add('go'));
+      document.querySelectorAll(`.rsBtn[data-id="${i.id}"],.rsCorner[data-id="${i.id}"]`).forEach(b => b.classList.add('go'));
       i.urgent = true; i.stage = 'claude'; i.stageAt = Date.now(); i.cAt = i.cAt || Date.now();
       const hp = i.hold === 'decide' || i.hold === 'draft' ? { hold: 'go' } : {}; Object.assign(i, hp);
-      try { await Store.update(i.id, Object.assign({ urgent: true, stage: 'claude', stageAt: i.stageAt, cAt: i.cAt }, hp)); } catch (e) { toast('⚠️ ' + (e.message || e), 4000); document.querySelectorAll('.rsBtn.go').forEach(b => b.classList.remove('go')); break; }
+      try { await Store.update(i.id, Object.assign({ urgent: true, stage: 'claude', stageAt: i.stageAt, cAt: i.cAt }, hp)); } catch (e) { toast('⚠️ ' + (e.message || e), 4000); document.querySelectorAll('.rsBtn.go,.rsCorner.go').forEach(b => b.classList.remove('go')); break; }
       try { await navigator.clipboard.writeText(urgMsg(i)); } catch (e) {}
       setTimeout(() => { document.querySelectorAll(`[data-urgbox="${i.id}"]`).forEach(b => { b.outerHTML = urgSwitch(i); }); }, 1400);
       toast(LANG === 'en' ? '🔄 Restarted — line copied, paste it in the Claude chat and send' : '🔄 دوبارہ چالو — لائن کاپی ہو گئی، Claude کی چیٹ میں پیسٹ کر کے بھیج دیں', 6000);
