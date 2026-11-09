@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0911MO064';
-const UPDATE_NOTE = 'ہر جاری کام کے ڈبے کے کونے میں چمکتا 🔄 — رکا کام دوبارہ چلائیں؛ مکمل پر نہیں';
+const APP_VERSION = 'HD0911MO065';
+const UPDATE_NOTE = '🔄 چھوٹا، کونے میں؛ صرف دبانے پر گھومتا اور چمکتا ہے';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -1424,6 +1424,7 @@ document.addEventListener('click', async e => {
       try { await Store.update(i.id, Object.assign({ urgent: true, stage: 'claude', stageAt: i.stageAt, cAt: i.cAt }, hp)); } catch (e) { toast('⚠️ ' + (e.message || e), 4000); document.querySelectorAll('.rsBtn.go,.rsCorner.go').forEach(b => b.classList.remove('go')); break; }
       try { await navigator.clipboard.writeText(urgMsg(i)); } catch (e) {}
       setTimeout(() => { document.querySelectorAll(`[data-urgbox="${i.id}"]`).forEach(b => { b.outerHTML = urgSwitch(i); }); }, 1400);
+      setTimeout(() => { document.querySelectorAll('.rsBtn.go,.rsCorner.go').forEach(b => b.classList.remove('go')); }, 1600);
       toast(LANG === 'en' ? '🔄 Restarted — line copied, paste it in the Claude chat and send' : '🔄 دوبارہ چالو — لائن کاپی ہو گئی، Claude کی چیٹ میں پیسٹ کر کے بھیج دیں', 6000);
       setTimeout(() => window.open(CLAUDE_CHAT, '_blank'), 1200);
       break; }
