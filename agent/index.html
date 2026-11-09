@@ -3,9 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>MCS Agent Portal</title>
+<title>PBT Portal</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0d3b66">
+<link rel="apple-touch-icon" href="icon-192.png">
 <meta name="robots" content="noindex">
-<link rel="icon" href="../favicon.png">
+<link rel="icon" href="icon-192.png">
 <!-- AGP0511TH001 — 🤝 My City Shines ایجنٹ پورٹل (پلے اسٹور ایپ سے باہر)۔ ڈیٹا: aio-pos-verify /agportal /agadmin (ایک ہی سرور — ایپ اور پورٹل ایک جگہ سے) -->
 <style>
 @font-face{font-family:Noori;src:url(../fonts/JameelNooriNastaleeq.woff2) format('woff2');font-display:swap}
@@ -51,9 +54,9 @@ button.sec{background:var(--line);color:var(--ink)}button.red{background:#fee2e2
 </style>
 </head>
 <body>
-<header><h1>🤝 MCS ایجنٹ پورٹل</h1><small>My City Shines — Agent Portal</small></header>
+<header><h1 id="hdT">🤝 PBT پورٹل</h1><small id="hdS">ایجنٹ · کو-ڈویلپر · ڈویلپر — PBT Code Labs</small></header>
 <main id="app"></main>
-<div class="foot"><a href="guide.html" style="color:var(--pri);font-weight:800">📄 MCS ایجنٹ کیسے بنیں — طریقہ (پرنٹ / PDF)</a><br>پی بی ٹی کوڈ لیبز · <span class="num">AGP0511TH012</span></div>
+<div class="foot"><a href="guide.html" style="color:var(--pri);font-weight:800">📄 MCS ایجنٹ کیسے بنیں — طریقہ (پرنٹ / PDF)</a><br><a href="#" onclick="roleSwitch();return false" style="color:var(--pri);font-weight:800">🔄 لاگ اِن بدلیں (ایجنٹ / کو-ڈویلپر / ڈویلپر)</a><br>پی بی ٹی کوڈ لیبز · <span class="num" id="agpVer">AGP0911MO013</span></div>
 <script>
 const API = 'https://aio-pos-verify.pbtcodelabs.workers.dev';
 const FB_KEY = 'AIzaSyAvu8ymIZAGEPaYwd_LBJzKS2lZ3Q4_Mog'; // My City Shines (ایڈمن لاگ اِن)
@@ -66,7 +69,20 @@ function cpy(v){ const done = () => toast('📋 ' + v + ' کاپی ہو گیا')
 function toast(t){ let el = document.getElementById('tst'); if(!el){ el = document.createElement('div'); el.id = 'tst'; document.body.appendChild(el); } el.textContent = t; el.className = 'on'; clearTimeout(el._t); el._t = setTimeout(() => el.className = '', 2200); }
 const D = t => t ? new Date(t).toLocaleDateString('en-GB') : '—';
 const ls = { get(k, d){ try{ const v = localStorage.getItem('agp_' + k); return v ? JSON.parse(v) : d; }catch(e){ return d; } }, set(k, v){ try{ localStorage.setItem('agp_' + k, JSON.stringify(v)); }catch(e){} }, del(k){ try{ localStorage.removeItem('agp_' + k); }catch(e){} } };
-const ADMIN = location.hash.startsWith('#admin'), CODEV = location.hash.startsWith('#codev');
+/* AGP0911MO013 (مالک کا حکم، ہیلپ ڈیسک #174): ایک ہی «PBT Portal» ایپ (APK) — پہلے صفحے پر تین لاگ اِن؛ پچھلا چنا ہوا کردار یاد (agp_role) */
+const AGP_VER = 'AGP0911MO013';
+const ROLE = location.hash.startsWith('#admin') ? 'admin' : location.hash.startsWith('#codev') ? 'codev' : location.hash.startsWith('#agent') ? 'agent' : (ls.get('role', '') || '');
+const ADMIN = ROLE === 'admin', CODEV = ROLE === 'codev';
+function roleGo(r){ ls.set('role', r); location.hash = '#' + r; location.reload(); }
+function roleSwitch(){ ls.del('role'); history.replaceState(null, '', location.pathname); location.reload(); }
+function rolePick(){
+  const b = (r, ic, t, d, c) => `<button onclick="roleGo('${r}')" style="display:flex;align-items:center;gap:12px;width:100%;text-align:right;padding:14px;margin:8px 0;border-radius:16px;background:${c};font-size:17px"><span style="font-size:34px">${ic}</span><span style="font-family:Noori,serif;line-height:1.6">${t}<br><small style="font-weight:400;font-size:13px;opacity:.9">${d}</small></span></button>`;
+  app.innerHTML = `<div class="card"><h2>👋 خوش آمدید — اپنا لاگ اِن چنیں</h2>
+    ${b('agent','🤝','MCS ایجنٹ','اپنے کاروبار، کمیشن، ادائیگیاں اور چیٹ','linear-gradient(135deg,#0f766e,#0d9488)')}
+    ${b('codev','👥','کو-ڈویلپر','کمپنی کا حساب (صرف دیکھنا) اور ڈویلپر سے چیٹ','linear-gradient(135deg,#b45309,#d97706)')}
+    ${b('admin','👨‍💻','ڈویلپر (مالک)','سب ایجنٹ، حساب، ادائیگیاں، چیٹس','linear-gradient(135deg,#0d3b66,#1e40af)')}
+    <div style="color:var(--mut);font-size:13px;text-align:center">ایک بار لاگ اِن کریں — ایپ اگلی بار یاد رکھے گی</div></div>`;
+}
 let CDV = null;   /* AGP0511TH005: کو-ڈویلپر {phone, pin} — صرف دیکھنا */
 let S = null, admTok = null, admTokExp = 0, admList = [], admRate = 0, admCode = '';
 async function post(path, body, tok){ const r = await fetch(API + path, {method:'POST', headers: Object.assign({'Content-Type':'text/plain'}, tok ? {Authorization: 'Bearer ' + tok} : {}), body: JSON.stringify(body)}); return r.json(); }
@@ -108,7 +124,7 @@ function agLogin(msg){
     <div class="err" id="lerr">${E(msg||'')}</div><div class="btns"><button onclick="agDoLogin()">✅ داخل ہوں</button><button class="sec" onclick="forgotPin('ag')">🔑 PIN بھول گئے؟</button></div><div id="fpBox"></div></div>
     <div class="card"><h2>🎬 MCS ایجنٹ کیسے بنیں؟</h2><video src="../help/media/promo/MCS-Agent-Banen-ur.mp4" controls playsinline preload="metadata" style="width:100%;max-height:70vh;border-radius:12px;background:#000"></video>
       <div class="btns"><a href="guide.html" target="_blank" rel="noopener"><button>📄 پورا طریقہ پڑھیں (PDF / پرنٹ)</button></a><a href="MCS-Agent-Guide.pdf" download><button class="sec">⬇️ PDF ڈاؤن لوڈ</button></a><a href="../help/media/promo/MCS-Agent-Banen-ur.mp4" download><button class="sec">⬇️ ویڈیو ڈاؤن لوڈ</button></a></div></div>
-    <div class="card" style="text-align:center"><a href="#codev" onclick="setTimeout(()=>location.reload(),50)" style="color:var(--pri);font-weight:800">👥 کو-ڈویلپر — کمپنی کا حساب دیکھیں</a></div>`;
+    <div class="card" style="text-align:center"><a href="#" onclick="roleGo('codev');return false" style="color:var(--pri);font-weight:800">👥 کو-ڈویلپر — کمپنی کا حساب دیکھیں</a></div>`;
 }
 /* AGP0511TH005 (مالک کا حکم): کو-ڈویلپر — موبائل + PIN (سٹی شائنز کا کو-ڈویلپر PIN)؛ کمپنی کا حساب صرف دیکھنا، کچھ بدل نہیں سکتا */
 function cdLogin(msg){
@@ -119,8 +135,8 @@ function cdLogin(msg){
     <div class="err">${E(msg||'')}</div><div class="btns"><button onclick="cdDoLogin()">✅ داخل ہوں</button><button class="sec" onclick="forgotPin('cd')">🔑 PIN بھول گئے؟</button></div><div id="fpBox"></div></div>`;
 }
 async function cdDoLogin(){ const phone = $('#cp').value.trim(), pin = $('#cpin').value.trim(); if(!phone || !pin) return; CDV = {phone, pin};
-  try{ const r = await post('/cdfin', {phone, pin, mon: monNow()}); if(!r || !r.ok){ CDV = null; return cdLogin('❌ نمبر یا PIN غلط'); } ls.set('cd', {phone}); CDV.name = r.name; admFin(); }catch(e){ CDV = null; cdLogin('📶 انٹرنیٹ نہیں'); } }
-function cdLogout(){ CDV = null; cdLogin(); }
+  try{ const r = await post('/cdfin', {phone, pin, mon: monNow()}); if(!r || !r.ok){ CDV = null; return cdLogin('❌ نمبر یا PIN غلط'); } ls.set('cd', {phone, pin}); CDV.name = r.name; admFin(); }catch(e){ CDV = null; cdLogin('📶 انٹرنیٹ نہیں'); } }
+function cdLogout(){ CDV = null; ls.set('cd', {phone: (ls.get('cd')||{}).phone}); cdLogin(); }
 /* AGP0511TH006 (مالک کا حکم): مسئلہ / مشورہ سیدھا PBT Help Desk میں (وہاں مالک منظور کرے تو کام شروع) — چیٹ صرف ڈویلپر سے بات کے لیے */
 function hdLink(prefix, name, phone){ const q = new URLSearchParams({app:'MCS', text: prefix + '\n', name: name || '', phone: phone || '', type: 'idea'}); return 'https://pbtcodelabs-pbt.github.io/help/?' + q.toString() + '#/new/MCS'; }
 function hdBox(prefix, name, phone){ return `<div class="card" style="border:2px dashed var(--gold);background:#fffbeb"><h2>🛠️ ایپ میں مسئلہ یا نیا مشورہ؟</h2><div style="font-size:14px;color:var(--mut)">ایپ کی کوئی خرابی یا بہتری کا مشورہ یہاں سے بھیجیں — سیدھا ڈویلپر کی منظوری کی فہرست میں جائے گا اور منظوری کے بعد کام شروع ہوگا۔ (عام بات چیت اور رسید نیچے چیٹ میں)</div><div class="btns"><a href="${E(hdLink(prefix, name, phone))}" target="_blank" rel="noopener"><button>🛠️ مسئلہ / مشورہ — Help Desk میں بھیجیں</button></a></div></div>`; }
@@ -201,13 +217,19 @@ function admLogin(msg){
 }
 async function admDoLogin(){
   try{ const r = await (await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=' + FB_KEY, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email: $('#ae').value.trim(), password: $('#ap').value, returnSecureToken: true})})).json();
-    if(!r.idToken) return admLogin('❌ ای میل یا پاس ورڈ غلط'); admTok = r.idToken; admTokExp = Date.now() + 50*60e3; admHome(); }catch(e){ admLogin('📶 انٹرنیٹ نہیں'); }
+    if(!r.idToken) return admLogin('❌ ای میل یا پاس ورڈ غلط'); admTok = r.idToken; admTokExp = Date.now() + 50*60e3; if(r.refreshToken) ls.set('admRt', r.refreshToken); admHome(); }catch(e){ admLogin('📶 انٹرنیٹ نہیں'); }
 }
-async function admCall(path, body){ if(!admTok || Date.now() > admTokExp){ admLogin('دوبارہ لاگ اِن کریں'); throw new Error('login'); } const r = await post(path, Object.assign({admin: path === '/agportal'}, body), admTok); if(r && r.error === 'admin_only'){ admLogin('صرف ایڈمن'); throw new Error('admin'); } return r; }
+/* AGP0911MO013: ڈویلپر کا لاگ اِن یاد — فائربیس refresh token سے خاموش تجدید (ہر گھنٹے پاس ورڈ نہیں) */
+async function admRefresh(){ const rt = ls.get('admRt', ''); if(!rt) return false;
+  try{ const r = await (await fetch('https://securetoken.googleapis.com/v1/token?key=' + FB_KEY, {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(rt)})).json();
+    if(!r.id_token){ if(r.error) ls.del('admRt'); return false; } admTok = r.id_token; admTokExp = Date.now() + 50*60e3; if(r.refresh_token) ls.set('admRt', r.refresh_token); return true; }catch(e){ return false; } }
+function admLogout(){ ls.del('admRt'); admTok = null; admLogin(); }
+async function admCall(path, body){ if((!admTok || Date.now() > admTokExp) && !(await admRefresh())){ admLogin('دوبارہ لاگ اِن کریں'); throw new Error('login'); } const r = await post(path, Object.assign({admin: path === '/agportal'}, body), admTok); if(r && r.error === 'admin_only'){ admLogin('صرف ایڈمن'); throw new Error('admin'); } return r; }
 async function admHome(){
   const r = await admCall('/agadmin', {op:'list'}); admList = (r.list||[]).filter(a => a.status === 'approved'); admRate = r.rate || 0;
   let nw = 0; try{ const ib = await admCall('/agadmin', {op:'inbox'}); nw = (ib.list||[]).reduce((a,x)=>a+(x.nw||0),0); }catch(e){}
-  app.innerHTML = `<div class="card"><h2>💬 سب چیٹس ${nw ? `<span class="tag t-w">${nw} نئے</span>` : ''}</h2><div style="font-size:14px">ایجنٹوں اور کو-ڈویلپر سے بات — ہر ایک کی الگ چیٹ</div><div class="btns"><button onclick="admInbox()">💬 چیٹس کھولیں</button></div></div>
+  app.innerHTML = `<div class="card"><div class="btns" style="margin:0"><span style="align-self:center;font-weight:800">👨‍💻 ڈویلپر</span><button class="sec" onclick="admHome()">🔄 تازہ</button><button class="sec" onclick="admLogout()">🚪 باہر</button></div></div>
+    <div class="card"><h2>💬 سب چیٹس ${nw ? `<span class="tag t-w">${nw} نئے</span>` : ''}</h2><div style="font-size:14px">ایجنٹوں اور کو-ڈویلپر سے بات — ہر ایک کی الگ چیٹ</div><div class="btns"><button onclick="admInbox()">💬 چیٹس کھولیں</button></div></div>
     <div class="card"><h2>💰 کمپنی کا حساب</h2><div style="font-size:14px">ہر مہینے کی فروخت اور پیسوں کی تقسیم — گوگل، مینٹیننس، ایجنٹ، ڈویلپر، کو-ڈویلپر</div><div class="btns"><button onclick="admFin()">📊 ماہانہ رپورٹ کھولیں</button></div></div>
     <div class="card"><h2>⚙️ کمیشن کی شرح</h2><div style="font-size:14px">ہر خریدے سال پر ایجنٹ کا کمیشن</div><div class="btns"><input id="rate" class="num" inputmode="numeric" value="${admRate}" style="max-width:140px"><button onclick="admSetRate()">💾 محفوظ</button></div></div>
     <div class="card"><h2>🤝 ایجنٹ (${admList.length})</h2>${admList.map(a => `<div class="row ag" onclick="admOpen('${E(a.code)}')"><b>${E(a.name)}</b> — <span class="num">${E(a.code)}</span><br><small>${E(a.biz)} · ${E(a.city)} · 🏪 ${N(a.refs)}${a.newProofs ? ` · <span class="tag t-w">📸 ${a.newProofs} نئے ثبوت</span>` : ''}${a.off ? ' · <span class="tag" style="background:#fee2e2;color:var(--red)">⛔ غیر فعال</span>' : ''}</small></div>`).join('') || '<div class="row">ابھی کوئی منظور ایجنٹ نہیں — منظوری سٹی شائنز ایپ کے کنٹرول پینل سے</div>'}</div>`;
@@ -272,7 +294,15 @@ async function admDeact(off){
 async function admPay(){ const amount = parseInt($('#payAmt').value, 10); if(!(amount > 0)) return; if(!confirm('Rs ' + N(amount) + ' ادائیگی درج کریں؟')) return; await admCall('/agadmin', {op:'pay', code: admCode, amount, note: $('#payNote').value}); admOpen(admCode); }
 async function admUnpay(id){ if(!confirm('یہ ادائیگی ہٹا دیں؟')) return; await admCall('/agadmin', {op:'unpay', pid: id}); admOpen(admCode); }
 async function admProofDone(id){ await admCall('/agadmin', {op:'proofdone', pid: id}); admOpen(admCode); }
-if(ADMIN) admLogin(); else if(CODEV) cdLogin(); else agLoad();
+(async () => {
+  const hs = {admin: ['👨‍💻 PBT پورٹل — ڈویلپر', 'سب ایجنٹ، حساب، ادائیگیاں'], codev: ['👥 PBT پورٹل — کو-ڈویلپر', 'کمپنی کا حساب اور چیٹ'], agent: ['🤝 PBT پورٹل — ایجنٹ', 'My City Shines — Agent']}[ROLE];
+  if(hs){ $('#hdT').textContent = hs[0]; $('#hdS').textContent = hs[1]; }
+  if(!ROLE) return rolePick();
+  ls.set('role', ROLE);
+  if(ADMIN){ if(await admRefresh()) return admHome(); return admLogin(); }
+  if(CODEV){ const c = ls.get('cd') || {}; if(c.phone && c.pin){ $('#app').innerHTML = '<div class="card">⏳ …</div>'; CDV = {phone: c.phone, pin: c.pin}; try{ const r = await post('/cdfin', {phone: c.phone, pin: c.pin, mon: monNow()}); if(r && r.ok){ CDV.name = r.name; return admFin(); } }catch(e){} CDV = null; } return cdLogin(); }
+  agLoad();
+})();
 </script>
 </body>
 </html>

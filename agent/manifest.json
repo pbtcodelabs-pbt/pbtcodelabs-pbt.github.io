@@ -1,0 +1,19 @@
+{
+  "id": "/agent/",
+  "name": "PBT Portal",
+  "short_name": "PBT Portal",
+  "description": "PBT پورٹل — ایجنٹ، کو-ڈویلپر اور ڈویلپر (حساب، چیٹ، کاروبار)",
+  "start_url": "/agent/",
+  "scope": "/agent/",
+  "display": "standalone",
+  "orientation": "any",
+  "dir": "rtl",
+  "lang": "ur",
+  "background_color": "#f1f5f9",
+  "theme_color": "#0d3b66",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
