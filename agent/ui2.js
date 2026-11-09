@@ -144,15 +144,17 @@ function monthHtml(m, ro){
     ${sec('bars', 'تقسیم — ' + monName(FMON), table(['مد','رقم'], [['🟦 گوگل', T.google], ['🛠️ مینٹیننس', T.maint], ['🤝 ایجنٹ', T.agent], ['👨‍💻 ڈویلپر', T.dev], ['👥 کو-ڈویلپر', T.codev]].map(([a, b]) => `<tr><td>${a}</td><td class="n">${Rs(b)}</td></tr>`).concat([`<tr class="tot"><td>کل</td><td class="n">${Rs(m.gross)}</td></tr>`])))}
     ${ro ? '' : `<div class="v2card"><h2>➕ وصولی درج کریں (اشتہار یا سیدھی ممبرشپ)</h2><div class="v2mut">Account Access سے دی گئی ممبرشپ خود درج ہو جاتی ہے — یہاں صرف وہ لکھیں جو کہیں اور درج نہیں (جیسے اشتہار کے 800)</div>
       <div class="btns"><select id="xK" style="max-width:170px"><option value="ad">📢 اشتہار</option><option value="mem">⭐ ممبرشپ</option></select><input id="xA" class="num" inputmode="numeric" placeholder="رقم" style="max-width:120px"></div>
-      <label>لانے والا (ایجنٹ کوڈ / PBT-D / PBT-C / خالی = PBT)</label><input id="xR" dir="ltr" placeholder="MS-001">
-      <label>کاروبار کا نام / نوٹ</label><input id="xB"><div class="btns"><button onclick="v2Xadd()">💾 درج کریں — تقسیم خود</button></div></div>`}
+      <label>لانے والا — نام اور کوڈ دیکھ کر چنیں</label>${bringerSel('xR')}
+      <label>کاروبار کا نام / نوٹ</label><input id="xB"><input type="hidden" id="xRk"><div class="btns"><button onclick="v2Xadd()">💾 درج کریں — تقسیم خود</button></div></div>
+      <div class="v2card" id="mcsAds"><h2>📢 My City Shines کے اشتہار</h2><div class="v2mut">⏳ …</div></div>`}
     ${sec('coins', 'فروخت / وصولی (' + m.lines.length + ')', table(['تاریخ','قسم','رقم','لانے والا','ایجنٹ','ڈویلپر','کو-ڈویلپر'], m.lines.slice().reverse().map(l => `<tr><td class="n">${dmy(l.ts)}</td><td>${l.kind === 'ad' ? '📢' : '⭐'} ${l.src === 'play' ? '▶️' : '🏦'}${l.units > 1 ? ' ×' + l.units : ''}${l.manual && !ro ? ` <button class="sm" onclick="v2Xdel('${l.id}')">✖</button>` : ''}</td><td class="n">${N(l.amount)}</td><td>${who(l)}</td><td class="n">${N(l.sh.agent)}</td><td class="n">${N(l.sh.dev)}</td><td class="n">${N(l.sh.codev)}</td></tr>`), 'اس مہینے کچھ نہیں'))}
     ${(m.agents || []).length ? sec('users', 'ایجنٹوں کا کمیشن', table(['ایجنٹ','فروخت','کمیشن'], m.agents.map(a => `<tr><td>${E(a.name || a.code)} <span class="num">${E(a.code)}</span></td><td class="n">${a.n}</td><td class="n">${Rs(a.amt)}</td></tr>`))) : ''}`;
 }
 let FMON = '';
 window.v2Mon = d => { FMON = monStep(FMON, d); FM = null; v2Render(); };
 window.v2Grecv = async clear => { const v = clear ? '' : ($('#grA').value.trim() || $('#grA').placeholder); if(!clear && !confirm(monName(FMON) + ' — گوگل سے ' + Rs(v) + ' بینک میں آ گئے؟')) return; FM = await finCall({op:'grecv', mon: FMON, amount: v}); v2Render(); };
-window.v2Xadd = async () => { const a = parseInt(enD($('#xA').value), 10); if(!(a > 0)) return alert('رقم لکھیں'); const k = $('#xK').value; if(!confirm((k === 'ad' ? 'اشتہار' : 'ممبرشپ') + ' — ' + Rs(a) + ' درج کریں؟')) return; FM = await finCall({op:'xadd', kind: k, amount: a, ref: $('#xR').value.trim(), biz: $('#xB').value.trim(), note: $('#xB').value.trim()}); FMON = FM.mon || FMON; v2Render(); };
+window.v2Xadd = async () => { const a = parseInt(enD($('#xA').value), 10); if(!(a > 0)) return alert('رقم لکھیں'); const k = $('#xK').value; const sel = $('#xR'), who = sel.options[sel.selectedIndex].text; if(!sel.value) return alert('لانے والا چنیں'); if(!confirm((k === 'ad' ? '📢 اشتہار' : '⭐ ممبرشپ') + ' — ' + Rs(a) + '\nلانے والا: ' + who + '\n\nدرج کریں؟')) return;
+  const r = await finCall({op:'xadd', kind: k, amount: a, ref: sel.value, rk: ($('#xRk') || {}).value || '', biz: $('#xB').value.trim(), note: $('#xB').value.trim()}); if(r && r.reason === 'dup') return alert('یہ اشتہار پہلے ہی حساب میں درج ہے'); if(!r || r.ok === false) return alert('درج نہیں ہو سکا'); FM = r; FMON = FM.mon || FMON; v2Render(); };
 window.v2Xdel = async id => { if(!confirm('یہ وصولی ہٹا دیں؟')) return; FM = await finCall({op:'xdel', id, mon: FMON}); v2Render(); };
 function payoutsHtml(P){
   const req = P.reqs || [];
@@ -208,7 +210,7 @@ async function v2Render(){
     }
     FMON = FMON || monNow();
     if((TAB === 'acc' || TAB === 'home') && !FM) FM = await finCall({op:'month', mon: FMON});
-    if((TAB === 'pay' || TAB === 'home') && !PEOPLE) PEOPLE = await finCall({op:'people'});
+    if((TAB === 'pay' || TAB === 'home' || TAB === 'acc') && !PEOPLE) PEOPLE = await finCall({op:'people'});
     if(!FM || FM.ok === false || !PEOPLE || PEOPLE.ok === false){ return admLogin('دوبارہ لاگ اِن کریں'); }
     const reqs = (PEOPLE.reqs || []).length, owe = PEOPLE.list.reduce((a, p) => a + (p.avail || 0), 0);
     const body = TAB === 'acc' ? monthHtml(FM, false)
@@ -218,7 +220,7 @@ async function v2Render(){
       : `<div class="v2card v2prof"><div class="v2ph" onclick="v2Go('prof')"><img src="${photo() || 'img/avatar.png'}"></div><div class="v2pi"><div class="aid">Developer</div><div class="anm">PBT Code Labs</div><div class="aact"><span>${ic('check', 18, '#fff')} Owner</span></div></div></div>
          ${tiles([{c:'tb', i:'coins', t:'اس مہینے<br>کل وصولی', v:'<small>Rs.</small> ' + N(FM.gross)}, {c:'tg', i:'check', t:FM.recv ? '✅ گوگل سے وصول' : '⏳ گوگل سے آنا باقی', v:'<small>Rs.</small> ' + N(FM.recv ? FM.recv.amount : FM.play - FM.gEst)}, {c:'tp', i:'users', t:'تیار — ادا کرنا ہے', v:'<small>Rs.</small> ' + N(owe)}, {c:'to', i:'wallet', t:'🙏 درخواستیں', v: N(reqs)}])}
          <div class="v2card"><div class="v2list"><button onclick="v2Go('acc')">💰 اس مہینے کا حساب / گوگل وصولی / اشتہار</button><button onclick="v2Go('pay')">✅ ادائیگیاں — اکاؤنٹ اور QR</button><button onclick="admInbox()">💬 سب چیٹس</button><button onclick="v2Go('agents')">🤝 ایجنٹ</button></div></div>`;
-    page('dev', body);
+    page('dev', body); if(TAB === 'acc') mcsAdsLoad();
     if(TAB === 'agents'){ const sv = app.innerHTML; await admHome(); const inner = app.innerHTML; app.innerHTML = sv; const el = $('#v2ag'); if(el) el.innerHTML = inner; }
   }catch(e){ app.innerHTML = `<div class="v2wrap">${hero(rk)}<div class="v2body"><div class="v2card">📶 انٹرنیٹ نہیں — <button onclick="v2Render()">🔄 دوبارہ</button></div></div>${navBar(rk)}</div>`; }
 }
@@ -359,4 +361,29 @@ window.v2Log = async () => { const r = await finCall({op:'log'}); const L = (r &
   const b = document.createElement('div'); b.className = 'v2modal'; b.onclick = e => { if(e.target === b) b.remove(); };
   b.innerHTML = `<div class="v2card"><h2>📜 حساب کا آڈٹ لاگ</h2>${table(['وقت','کام','تفصیل'], L.map(x => `<tr><td class="n">${new Date(x.ts).toLocaleString('en-GB')}</td><td>${E(x.op)}</td><td style="text-align:left;font-size:11px">${E(x.data)}</td></tr>`), 'ابھی کچھ نہیں')}<div class="btns"><button class="sec" onclick="this.closest('.v2modal').remove()">✖ بند</button></div></div>`;
   document.body.appendChild(b); };
+/* ===== AGP0911MO021 (مالک کا حکم): «لانے والا» فہرست — نام + کوڈ؛ My City Shines کے اشتہار پورٹل میں پڑھ کر حساب میں (MCS ایپ میں کوئی رقم نہیں) ===== */
+function bringerSel(id){
+  const L = (PEOPLE && PEOPLE.list) || [], ag = L.filter(p => p.kind === 'agent'), cd = L.find(p => p.kind === 'codev');
+  return `<select id="${id}" dir="ltr" style="font-family:MCSDigits,Noori,'Segoe UI',sans-serif"><option value="">— لانے والا چنیں —</option>
+    <optgroup label="🤝 ایجنٹ">${ag.map(a => `<option value="${E(a.code)}">${E(a.code)} — ${E(a.name)}</option>`).join('') || '<option disabled>ابھی کوئی ایجنٹ نہیں</option>'}</optgroup>
+    <optgroup label="🏢 PBT"><option value="PBT-D">PBT-D — ڈویلپر (خود لایا)</option><option value="PBT-C">PBT-C — کو-ڈویلپر${cd ? ' (' + E(cd.name) + ')' : ''} (خود لایا)</option><option value="PBT">PBT — کمپنی (خود آیا، آدھا آدھا)</option></optgroup></select>`;
+}
+const FSV = v => v == null ? null : 'stringValue' in v ? v.stringValue : 'integerValue' in v ? +v.integerValue : 'doubleValue' in v ? +v.doubleValue : 'booleanValue' in v ? v.booleanValue : 'nullValue' in v ? null : v.mapValue ? Object.fromEntries(Object.entries(v.mapValue.fields || {}).map(([k, x]) => [k, FSV(x)])) : v.arrayValue ? (v.arrayValue.values || []).map(FSV) : null;
+let MCSADS = null;
+async function mcsAdsLoad(){
+  const box = document.getElementById('mcsAds'); if(!box) return;
+  try{
+    if(!MCSADS){ const r = await (await fetch('https://firestore.googleapis.com/v1/projects/my-city-shines/databases/(default)/documents/appConfig/ads?key=' + FB_KEY + '&mask.fieldPaths=list')).json(); MCSADS = ((r.fields && FSV(r.fields.list)) || []).filter(Boolean); }
+    const done = await finCall({op:'xads'}); const got = new Set(((done && done.list) || []).map(x => x.rk));
+    const paid = MCSADS.filter(a => a.free === false), todo = paid.filter(a => !got.has('ad:' + a.id)), free = MCSADS.length - paid.length;
+    box.innerHTML = `<h2>📢 My City Shines کے اشتہار</h2><div class="v2mut">یہ فہرست My City Shines سے صرف پڑھی جاتی ہے — رقم صرف یہاں MCS Agent میں درج ہوتی ہے، My City Shines ایپ میں کہیں نہیں۔ ${free ? `(${free} مفت اشتہار شمار نہیں)` : ''}</div>
+      ${todo.length ? todo.map(a => `<div class="v2pc"><div class="pch"><b>📢 ${E(a.title)}</b></div><div class="pcs"><span>👤 ${E(a.owner || '—')}</span><span class="num">📱 ${E(ph0(a.phone) || '—')}</span><span>📅 ${dmy(a.id)} → ${dmy(a.until)}</span></div><div class="btns"><button onclick="v2AdPick(${+a.id})">➕ حساب میں درج کریں</button></div></div>`).join('')
+        : '<div class="v2ok">✅ سب پیڈ اشتہار حساب میں درج ہیں</div>'}
+      ${paid.length - todo.length ? `<div class="v2mut">✔️ ${paid.length - todo.length} اشتہار پہلے سے درج</div>` : ''}`;
+  }catch(e){ box.innerHTML = '<h2>📢 My City Shines کے اشتہار</h2><div class="v2warn">📶 فہرست نہیں آ سکی — دوبارہ کھولیں</div>'; }
+}
+window.v2AdPick = id => { const a = (MCSADS || []).find(x => +x.id === id); if(!a) return;
+  $('#xK').value = 'ad'; $('#xA').value = a.price > 0 ? a.price : ''; $('#xB').value = a.title + (a.owner ? ' — ' + a.owner : ''); $('#xRk').value = 'ad:' + a.id; $('#xR').value = '';
+  const f = $('#xA').closest('.v2card'); f.scrollIntoView({behavior: 'smooth', block: 'center'}); f.classList.add('hl'); setTimeout(() => f.classList.remove('hl'), 1800);
+  toast(a.price > 0 ? 'رقم دیکھ کر «لانے والا» چنیں' : 'رقم لکھیں اور «لانے والا» چنیں'); };
 })();

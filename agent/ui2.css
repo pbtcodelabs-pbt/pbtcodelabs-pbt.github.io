@@ -133,3 +133,5 @@ button.sm{padding:1px 8px!important;font-size:12px!important;border-radius:8px!i
 @font-face{font-family:MCSDigits;src:local('Arial'),local('ArialMT'),local('Arimo'),local('Liberation Sans'),local('Helvetica'),local('Roboto'),local('Noto Sans');unicode-range:U+0030-0039;font-display:swap}
 body.v2,.v2card,.v2note,.v2ok,.v2warn,.v2mut,.v2list button,.lu,.lrem,.lfg,.v2role,.v2login .err,.v2empty{font-family:MCSDigits,Noori,'Segoe UI',Tahoma,Arial,sans-serif}
 .v2card h2,.v2sh b:lang(ur),.lu{font-family:MCSDigits,'Jameel Noori Nastaleeq Kasheeda',Noori,serif}
+.v2card.hl{box-shadow:0 0 0 3px #e8b13a,0 3px 12px rgba(16,42,104,.2);transition:box-shadow .3s}
+#xR{width:100%}
