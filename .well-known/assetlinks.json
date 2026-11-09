@@ -138,5 +138,17 @@
         "17:1B:B5:BC:DD:1F:96:7B:18:A4:4B:5D:AA:ED:20:03:94:F6:16:C0:5B:4B:8A:F0:48:77:28:80:8F:AD:86:60"
       ]
     }
+  },
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.pbtcodelabs.pbtportal",
+      "sha256_cert_fingerprints": [
+        "03:68:CA:0A:AD:82:41:9C:1F:3E:B2:3C:AD:27:43:E0:EA:B2:15:86:27:75:97:8F:F3:7C:D9:92:E2:83:93:D8"
+      ]
+    }
   }
 ]
