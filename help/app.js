@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0911MO065';
-const UPDATE_NOTE = '🔄 چھوٹا، کونے میں؛ صرف دبانے پر گھومتا اور چمکتا ہے';
+const APP_VERSION = 'HD0911MO066';
+const UPDATE_NOTE = '👥 پارٹی کے صفحے پر حالت کے بٹن — دبائیں تو صرف وہی مسائل (حل / کام جاری / زیر التوا / تفصیل / روکا)';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -457,6 +457,7 @@ function partyContact(g) {
   const E = LANG === 'en'; if (!g.phone) return '';
   return `<a class="pC call" href="tel:${esc(g.phone)}" onclick="event.stopPropagation()">📞 ${E ? 'Call' : 'کال'}</a><a class="pC wa" href="https://wa.me/${waNum(digits(g.phone).replace(/\D/g, ''))}" target="_blank" rel="noopener" onclick="event.stopPropagation()">💬 WhatsApp</a>`;
 }
+let PF = 'all';
 function partyHomeBtn() {
   const n = partyList().length, E = LANG === 'en';
   return `<button class="partyBtn" data-act="parties"><span class="i">👥</span><span class="t"><b>${E ? 'Parties — every customer’s issues in one place' : 'پارٹیاں — ہر گاہک کے سب مسائل ایک جگہ'}</b><small>${E ? 'Name, mobile, call / WhatsApp, solved / pending' : 'نام، موبائل، کال / واٹس ایپ — حل شدہ اور باقی'}</small></span><span class="num c">${n}</span></button>`;
@@ -468,13 +469,18 @@ function vParty() {
   if (R.a) {
     const g = all.find(x => x.k === R.a);
     if (!g) return `<div class="card empty"><span class="e">🔎</span>${T('notFound')}</div>` + foot();
-    const c = partyCnt(g.L), L = g.L.slice().sort((a, b) => b.created - a.created);
+    const c = partyCnt(g.L), AL = g.L.slice().sort((a, b) => b.created - a.created);
+    /* HD0911MO066 (مالک کا حکم): حالت کے بٹن دبائیں تو نیچے صرف اسی حالت کے مسائل */
+    const SC = [['all', '📋', E ? 'All' : 'سب'], ['done', '✅', E ? 'Solved' : 'حل'], ['work', '🔧', E ? 'In progress' : 'کام جاری'], ['pend', '⏳', E ? 'Pending' : 'زیر التوا'], ['info', '❓', E ? 'Need details' : 'تفصیل کا انتظار'], ['stop', '⏸️', E ? 'Stopped' : 'روکا گیا'], ['dup', '🔗', E ? 'Duplicate' : 'پہلے سے درج']];
+    const cnt = k => k === 'all' ? AL.length : AL.filter(i => partyState(i)[0] === k).length;
+    const pf = SC.some(x => x[0] === PF) && cnt(PF) ? PF : 'all';
+    const L = pf === 'all' ? AL : AL.filter(i => partyState(i)[0] === pf);
     const apps = [...new Set(L.map(i => i.app))].map(a => appIcon(appOf(a), 'appMini')).join('');
     return `<div class="card pHead"><div class="pN">👤 <b dir="auto">${esc(g.name || (E ? 'No name' : 'بغیر نام'))}</b></div>
       ${g.phone ? `<div class="pPh num">📱 ${esc(g.phone)}</div>` : ''}
       <div class="pApps">${apps}</div>
-      <div class="pCnt"><span>📋 ${E ? 'Total' : 'کل'} <b class="num">${c.n}</b></span><span class="g">✅ ${E ? 'Solved' : 'حل'} <b class="num">${c.d}</b></span><span class="o">🔧 ${E ? 'Remaining' : 'باقی'} <b class="num">${c.o}</b></span></div>
-      <div class="pCs">${partyContact(g)}</div></div>` + L.map(partyCard).join('') + foot();
+      <div class="pCnt">${SC.filter(x => x[0] === 'all' || cnt(x[0])).map(x => `<button type="button" class="pF ps-${x[0]}${pf === x[0] ? ' on' : ''}" data-act="pfilt" data-id="${x[0]}">${x[1]} ${x[2]} <b class="num">${cnt(x[0])}</b></button>`).join('')}</div>
+      <div class="pCs">${partyContact(g)}</div></div>` + (pf !== 'all' ? `<div class="pFilt">${SC.find(x => x[0] === pf)[1]} ${SC.find(x => x[0] === pf)[2]} — <b class="num">${L.length}</b> <button type="button" class="tb" data-act="pfilt" data-id="all">✖ ${E ? 'Show all' : 'سب دکھائیں'}</button></div>` : '') + L.map(partyCard).join('') + foot();
   }
   return `<div class="secT top">👥 ${E ? 'Parties' : 'پارٹیاں'} <span class="num">(${all.length})</span> <small>— ${E ? 'tap a name to see all their issues' : 'نام دبائیں — اس کے آج تک کے سب مسائل'}</small></div>
     <label class="search">🔍<input id="partyQ" placeholder="${E ? 'Name or mobile…' : 'نام یا موبائل…'}" oninput="var q=this.value.trim().toLowerCase();document.querySelectorAll('.pRow').forEach(function(r){r.style.display=r.dataset.s.indexOf(q)>-1?'':'none'})"></label>
@@ -1443,7 +1449,8 @@ document.addEventListener('click', async e => {
     case 'mine': go('#/mine'); break;
     case 'ownMine': go('#/mine/' + id); break;
     case 'parties': go('#/party'); break;
-    case 'party': go('#/party/' + encodeURIComponent(id)); break;
+    case 'party': PF = 'all'; go('#/party/' + encodeURIComponent(id)); break;
+    case 'pfilt': PF = id || 'all'; render(); window.scrollTo(0, 0); break;
     case 'new': go('#/new/' + encodeURIComponent(id)); break;
     case 'atab': appTab = id; render(); break;
     case 'expand': t.classList.toggle('clamp'); break;
