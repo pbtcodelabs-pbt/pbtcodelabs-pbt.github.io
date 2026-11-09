@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0911MO066';
-const UPDATE_NOTE = '👥 پارٹی کے صفحے پر حالت کے بٹن — دبائیں تو صرف وہی مسائل (حل / کام جاری / زیر التوا / تفصیل / روکا)';
+const APP_VERSION = 'HD0911MO067';
+const UPDATE_NOTE = '📱 PBT پورٹل ایپ بھی ہیلپ ڈیسک میں — پورٹل کے مشورے / مسائل یہیں';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -22,6 +22,7 @@ const APPS = [
   { id: 'Stylish-listing-', ur: 'سامان لسٹ', en: 'Shopping List', img: '../img/list.webp', repo: 'pbtcodelabs-pbt/Stylish-listing-' },
   { id: 'MT', lang: 'en', ur: 'میٹر ٹریکر', en: 'Meter Tracker', img: '../img/mt.webp', repo: 'pbtcodelabs-pbt/MT' },
   { id: 'MCS', ur: 'سٹی شائنز', en: 'My City Shines', img: '../img/mcs.webp', repo: 'pbtcodelabs-pbt/MCS' },
+  { id: 'PBT-Portal', ur: 'PBT پورٹل', en: 'PBT Portal', img: '../agent/icon-192.png', repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io', hide: true },   /* HD0911MO067: ایجنٹ / کو-ڈویلپر / ڈویلپر کی پورٹل ایپ — عام گاہک کی فہرست میں نہیں (پلے اسٹور ایپس کے اندر بھی ہیلپ ڈیسک کھلتا ہے)، صرف مالک کو اور پورٹل سے آئے تو */
   { id: 'urdu-fonts-studio', ur: 'اردو فونٹس', en: 'Urdu Fonts', img: '../img/fonts.webp', repo: 'pbtcodelabs-pbt/urdu-fonts-studio' },
   { id: 'other', ur: 'کوئی اور', en: 'Other', emoji: '🧩', repo: '' }
 ];
@@ -298,7 +299,7 @@ function vHome() {
   const open = own ? ISSUES.filter(i => isOpen(i) || isHeld(i)) : pub.filter(isOpen);
   const un = unseenMine(), mine = myList().length;
   const hrs = (LANG === 'en' ? CFG.hoursEn : CFG.hoursUr) || T('hoursDef');
-  const tiles = APPS.map(a => {
+  const tiles = APPS.filter(a => own || !a.hide).map(a => {
     const nn = own ? ISSUES.filter(i => i.app === a.id && i.status === 'new').length : 0;
     const n = open.filter(i => i.app === a.id).length - nn; // نیلا = جن پر کام چل رہا ہے (نئے الگ سرخ میں)
     return `<button class="ap" data-act="${own ? 'oapp' : 'app'}" data-id="${esc(a.id)}">${nn ? `<span class="bd2">${nn} ${LANG === 'en' ? 'new' : (nn === 1 ? 'نیا' : 'نئے')}</span>` : ''}${appIcon(a)}<span class="n ${/[a-z]/i.test(AN(a)) && LANG !== 'en' ? 'en' : ''}">${esc(AN(a))}</span>${n ? `<span class="bd">${n}</span>` : ''}</button>`;
@@ -545,7 +546,7 @@ function vForm() {
   if (F.acct) return vAcct();
   const a = appOf(F.app);
   const sr = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
-  const opts = APPS.map(x => `<option value="${esc(x.id)}" ${x.id === F.app ? 'selected' : ''}>${esc(AN(x))}</option>`).join('');
+  const opts = APPS.filter(x => !x.hide || x.id === F.app || Store.isOwner()).map(x => `<option value="${esc(x.id)}" ${x.id === F.app ? 'selected' : ''}>${esc(AN(x))}</option>`).join('');
   return `<div class="formWrap">
   <div class="card" style="display:flex;align-items:center;gap:12px;padding:10px 14px">${appIcon(a, 'appMini')}
     <b style="flex:1">${T('newTitle')}</b>
