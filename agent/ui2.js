@@ -41,7 +41,7 @@ document.body.classList.add('v2');
 function hero(rk){
   return `<div class="v2hero"><img src="img/head-portal.jpg" alt="My City Shines" draggable="false">
     <button class="hz hzMenu" onclick="v2Menu()" aria-label="Menu"></button>
-    <button class="hz hzBell" onclick="v2Bell()" aria-label="Messages"></button>
+    <button class="hz hzBell" onclick="v2Bell()" aria-label="Notifications"></button><span class="hbadge" id="v2bd" hidden></span>
     <button class="hz hzOut" onclick="v2Logout()" aria-label="Log out"></button>
     ${rk !== 'agent' ? `<div class="hpill"><span class="hpI">🤝</span>${PILL[rk]}</div>` : ''}</div>`;
 }
@@ -185,12 +185,12 @@ async function v2Render(){
     if(rk === 'agent'){
       if(!S){ const me = ls.get('me'); if(!me || !me.pin) return agLogin(); const r = await post('/agportal', {phone: me.phone, pin: me.pin}); if(!r.ok){ ls.set('me', {phone: me.phone}); return agLogin('❌ PIN درست نہیں'); } S = r; }
       const f = S.fin || {due: S.due, paid: S.paidOut, balance: S.balance, pays: S.pays, months: []};
-      const body = TAB === 'subs' ? sec('cal', 'Subscription History', subsTable(S.refs))
-        : TAB === 'tx' ? sec('coins', 'Transaction History', txTable(f))
-        : TAB === 'earn' ? earnHtml(f)
-        : TAB === 'prof' ? profHtml(S.agent.name, `<div class="v2mut">📱 <span class="num">${E(ph0(S.agent.phone))}</span> · 🎖️ <span class="num">${E(S.agent.code)}</span><br>🏪 ${E(S.agent.biz || '')} · 📍 ${E(S.agent.city || '')}</div>`, f.acct)
+      const body = TAB === 'subs' ? subsFull(S.refs)
+        : TAB === 'tx' ? txFull(f)
+        : TAB === 'earn' ? earnHtml(f) + stmtBtn()
+        : TAB === 'prof' ? agProf(S) + profHtml(S.agent.name, '', f.acct)
         : agHome(S);
-      page('agent', body); if(TAB === 'home') v2Qr(S.agent.code); return;
+      page('agent', body); badge(S.unread); if(TAB === 'home' || TAB === 'prof') v2Qr(S.agent.code); return;
     }
     if(rk === 'codev'){
       if(!CDME && !(await cdLoad())) return cdLogin('دوبارہ لاگ اِن کریں');
@@ -198,13 +198,13 @@ async function v2Render(){
       if(TAB === 'acc' && !FM) FM = await post('/fin2', {as:'cd', phone: c.phone, pin: c.pin, op:'month', mon: FMON});
       const f = CDME;
       const body = TAB === 'acc' ? monthHtml(FM, true)
-        : TAB === 'tx' ? sec('coins', 'Transaction History', txTable(f))
-        : TAB === 'earn' ? earnHtml(f)
+        : TAB === 'tx' ? txFull(f)
+        : TAB === 'earn' ? earnHtml(f) + stmtBtn()
         : TAB === 'prof' ? profHtml((CDV && CDV.name) || 'کو-ڈویلپر', `<div class="v2mut">📱 <span class="num">${E(ph0(c.phone))}</span></div>`, f.acct)
         : `<div class="v2card v2prof"><div class="v2ph" onclick="v2Go('prof')"><img src="${photo() || 'img/avatar.png'}"></div><div class="v2pi"><div class="aid">Co-Developer</div><div class="anm">${E((CDV && CDV.name) || '')}</div><div class="aact"><span>${ic('check', 18, '#fff')} Active</span></div></div></div>
            ${tiles([{c:'tb', i:'coins', t:'Total Earnings', v:'<small>Rs.</small> ' + N(f.due)}, {c:'tg', i:'check', t:'✅ Ready', v:'<small>Rs.</small> ' + N(f.ready)}, {c:'tp', i:'cal', t:'⏳ Google Pending', v:'<small>Rs.</small> ' + N(f.pending)}, {c:'to', i:'wallet', t:'Received Amount', v:'<small>Rs.</small> ' + N(f.paid), sub:`Balance: <em>${Rs(f.balance)}</em>`}])}
            ${sec('coins', 'Transaction History', txTable(f, 3), 'tx')}`;
-      page('codev', body); return;
+      page('codev', body); badge(f.unread); return;
     }
     FMON = FMON || monNow();
     if((TAB === 'acc' || TAB === 'home') && !FM) FM = await finCall({op:'month', mon: FMON});
@@ -214,7 +214,7 @@ async function v2Render(){
     const body = TAB === 'acc' ? monthHtml(FM, false)
       : TAB === 'pay' ? payoutsHtml(PEOPLE)
       : TAB === 'agents' ? '<div id="v2ag"><div class="v2card">⏳ …</div></div>'
-      : TAB === 'prof' ? profHtml('ڈویلپر — PBT Code Labs', '<div class="v2mut">👨‍💻 سب ایجنٹ، حساب، ادائیگیاں</div>', false)
+      : TAB === 'prof' ? profHtml('ڈویلپر — PBT Code Labs', '<div class="v2mut">👨‍💻 سب ایجنٹ، حساب، ادائیگیاں</div><button class="sec" style="margin-top:6px" onclick="v2Log()">📜 حساب کا آڈٹ لاگ</button>', false)
       : `<div class="v2card v2prof"><div class="v2ph" onclick="v2Go('prof')"><img src="${photo() || 'img/avatar.png'}"></div><div class="v2pi"><div class="aid">Developer</div><div class="anm">PBT Code Labs</div><div class="aact"><span>${ic('check', 18, '#fff')} Owner</span></div></div></div>
          ${tiles([{c:'tb', i:'coins', t:'اس مہینے<br>کل وصولی', v:'<small>Rs.</small> ' + N(FM.gross)}, {c:'tg', i:'check', t:FM.recv ? '✅ گوگل سے وصول' : '⏳ گوگل سے آنا باقی', v:'<small>Rs.</small> ' + N(FM.recv ? FM.recv.amount : FM.play - FM.gEst)}, {c:'tp', i:'users', t:'تیار — ادا کرنا ہے', v:'<small>Rs.</small> ' + N(owe)}, {c:'to', i:'wallet', t:'🙏 درخواستیں', v: N(reqs)}])}
          <div class="v2card"><div class="v2list"><button onclick="v2Go('acc')">💰 اس مہینے کا حساب / گوگل وصولی / اشتہار</button><button onclick="v2Go('pay')">✅ ادائیگیاں — اکاؤنٹ اور QR</button><button onclick="admInbox()">💬 سب چیٹس</button><button onclick="v2Go('agents')">🤝 ایجنٹ</button></div></div>`;
@@ -226,13 +226,18 @@ window.v2Render = v2Render;
 window.v2Go = t => { TAB = t; if(t === 'home'){ FM = FM && FM.mon === FMON ? FM : null; } v2Render(); };
 window.v2Refresh = async () => { S = null; CDME = null; FM = null; PEOPLE = null; v2Render(); };
 window.v2Logout = () => { if(!confirm('لاگ آؤٹ کریں؟')) return; if(ROLE === 'admin'){ ls.del('admPps'); ls.del('admRt'); admTok = null; } else if(ROLE === 'codev'){ const c = ls.get('cd') || {}; ls.set('cd', {phone: c.phone}); CDV = null; } else { const m = ls.get('me') || {}; ls.set('me', {phone: m.phone}); } S = null; CDME = null; FM = null; PEOPLE = null; TAB = 'home'; ppScreen(ROLEK()); };
-window.v2Bell = () => v2Chat();
+window.v2Bell = async () => { const rk = ROLEK(); if(rk === 'dev') return admInbox();
+  const r = await finCall({op:'notes'}); const L = (r && r.list) || [];
+  const b = document.createElement('div'); b.className = 'v2modal'; b.onclick = e => { if(e.target === b) b.remove(); };
+  b.innerHTML = `<div class="v2card"><h2>🔔 Notifications — اطلاعات</h2>${L.map(n => `<div class="v2nt ${n.rd ? '' : 'nw'}"><div>${E(n.text)}</div><small class="num">${new Date(n.ts).toLocaleString('en-GB')}</small></div>`).join('') || '<div class="v2mut">ابھی کوئی اطلاع نہیں</div>'}
+    <div class="btns"><button onclick="this.closest('.v2modal').remove();v2Chat()">💬 ڈویلپر سے چیٹ</button><button class="sec" onclick="this.closest('.v2modal').remove()">✖ بند</button></div></div>`;
+  document.body.appendChild(b); badge(0); if(S) S.unread = 0; if(CDME) CDME.unread = 0; };
 window.v2Chat = () => { const rk = ROLEK(); if(rk === 'dev') return admInbox(); if(rk === 'codev'){ const c = ls.get('cd') || {}; CDV = CDV || {phone: c.phone, pin: c.pin}; return cdChatView(); } agRender(); setTimeout(() => { const c = $('#chat'); if(c) c.scrollIntoView({block:'center'}); }, 60); };
 window.v2Proof = () => { agRender(); setTimeout(() => { const el = $('#pfRk'); if(el) el.scrollIntoView({block:'center'}); }, 60); };
 window.v2Menu = () => { const rk = ROLEK(); const b = document.createElement('div'); b.className = 'v2modal'; b.onclick = e => { if(e.target === b) b.remove(); };
   b.innerHTML = `<div class="v2card v2menu">${NAV[rk].map(([k, t, i]) => `<button onclick="this.closest('.v2modal').remove();v2Go('${k}')">${ic(i, 22)} ${t}</button>`).join('')}<button onclick="this.closest('.v2modal').remove();v2Chat()">💬 Chat</button><button onclick="this.closest('.v2modal').remove();openHelpDesk()">🛠️ Help Desk</button><button onclick="this.closest('.v2modal').remove();v2Refresh()">🔄 Refresh</button><button onclick="roleSwitch()">🔄 لاگ اِن بدلیں</button></div>`;
   document.body.appendChild(b); };
-function v2Qr(code){ const el = $('#v2qr'); if(!el) return; const draw = () => { try{ el.innerHTML = ''; new QRCode(el, {text: String(code), width: 256, height: 256, correctLevel: QRCode.CorrectLevel.M}); }catch(e){} };
+function v2Qr(code){ const el = $('#v2qr'); if(!el) return; const draw = () => { try{ el.innerHTML = ''; new QRCode(el, {text: refLink(code), width: 256, height: 256, correctLevel: QRCode.CorrectLevel.M}); }catch(e){} };
   if(window.QRCode) return draw(); const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'; s.onload = draw; document.head.appendChild(s); }
 window.v2QrBig = () => { const c = $('#v2qr canvas') || $('#v2qr img'); if(c) v2Img(c.toDataURL ? c.toDataURL() : c.src); };
 
@@ -268,7 +273,6 @@ window.rolePick = function(){
       ${b('agent','🤝','MCS ایجنٹ')}${b('codev','👥','کو-ڈویلپر')}${b('admin','👨‍💻','ڈویلپر (مالک)')}
       <div class="lauth"><i></i>${ic('users', 26)} <span>Authorized Members Only</span><i></i></div></div><img class="v2wave" src="img/wave.jpg" alt=""></div>`;
 };
-})();
 /* پرانی اسکرینیں (چیٹ، ایجنٹ کی تفصیل، سال، PIN بنانا…) کے اوپر «‹ Home» */
 (function(){
   const app = document.getElementById('app');
@@ -276,4 +280,83 @@ window.rolePick = function(){
     if(app.querySelector('.v2wrap, .v2back, #ppPin, #ppY, #dpP, #ae')) return;
     app.insertAdjacentHTML('afterbegin', '<div class="v2back"><button onclick="v2Go(\'home\')">‹ Home</button></div>');
   }).observe(app, {childList: true});
+})();
+/* ===== AGP0911MO019 (کو-ڈویلپر کے «MCS Agent» پرامپٹ کی اچھی چیزیں — پلے اسٹور پالیسی کے اندر) ===== */
+const PLAY_ID = 'com.pbtcodelabs.mycityshines';
+function refLink(code){ return 'https://play.google.com/store/apps/details?id=' + PLAY_ID + '&referrer=' + encodeURIComponent('ref=' + code); }
+function badge(n){ const el = document.getElementById('v2bd'); if(!el) return; el.hidden = !(n > 0); el.textContent = n > 9 ? '9+' : String(n || ''); }
+/* Subscriptions — تلاش، حالت، مہینہ، تفصیل */
+const SF = {q: '', st: 'all', mon: ''};
+const stOf = r => { const live = r.until > Date.now(); return r.paid > 0 ? (live ? 'active' : 'expired') : (live ? 'trial' : 'pending'); };
+const monKey = t => { const d = new Date(t || 0); return d.getFullYear() + '_' + String(d.getMonth() + 1).padStart(2, '0'); };
+function subsRows(refs){
+  const q = SF.q.trim().toLowerCase();
+  return refs.filter(r => (SF.st === 'all' || stOf(r) === SF.st) && (!SF.mon || monKey(r.at) === SF.mon) && (!q || [r.name, r.phone, ph0(r.phone), r.rk, r.city, r.cat].join(' ').toLowerCase().includes(q)));
+}
+function subsFull(refs){
+  const mons = [...new Set(refs.map(r => monKey(r.at)))].sort().reverse();
+  const cnt = k => refs.filter(r => k === 'all' || stOf(r) === k).length;
+  const chip = (k, t) => `<button class="v2chip ${SF.st === k ? 'on' : ''}" onclick="SFset('st','${k}')">${t} <b>${cnt(k)}</b></button>`;
+  return `<div class="v2card"><div class="v2srch">🔍<input id="sfQ" value="${E(SF.q)}" placeholder="Account ID / Name / Mobile" oninput="SFset('q',this.value,1)"></div>
+      <div class="v2chips">${chip('all','All')}${chip('active','Active')}${chip('trial','Trial')}${chip('expired','Expired')}${chip('pending','Pending')}</div>
+      <select id="sfM" onchange="SFset('mon',this.value)"><option value="">📅 All months (registered)</option>${mons.map(m => `<option value="${m}" ${SF.mon === m ? 'selected' : ''}>${monName(m)}</option>`).join('')}</select></div>
+    <div id="sfT">${sec('cal', 'Subscription History', subsTableX(subsRows(refs)))}</div>`;
+}
+function subsTableX(L){
+  return table(['S.No','Account ID','Name','Subscription ID','Expiry Date','Status'], L.map((r, i) => `<tr class="tap" onclick="v2SubDet('${E(r.rk)}')"><td>${i+1}</td><td class="n">${E(ph0(r.phone) || '—')}</td><td>${E(r.name)}</td><td class="n">${E(String(r.rk||'').split('_').pop().toUpperCase())}</td><td class="n">${dmy(r.until)}</td><td>${({active:'<span class="v2st ok">Active</span>',trial:'<span class="v2st tr">Trial</span>',expired:'<span class="v2st ex">Expired</span>',pending:'<span class="v2st no">Pending</span>'})[stOf(r)]}</td></tr>`), 'کچھ نہیں ملا');
+}
+window.SFset = (k, v, keep) => { SF[k] = v; if(keep){ const t = $('#sfT'); if(t) t.innerHTML = sec('cal', 'Subscription History', subsTableX(subsRows(S.refs))); return; } v2Render(); };
+window.v2SubDet = rk => { const r = (S.refs || []).find(x => x.rk === rk); if(!r) return;
+  const row = (a, b) => `<tr><td>${a}</td><td class="n">${b}</td></tr>`;
+  const b = document.createElement('div'); b.className = 'v2modal'; b.onclick = e => { if(e.target === b) b.remove(); };
+  b.innerHTML = `<div class="v2card"><h2>⭐ ${E(r.name)}</h2>${table(['',''], [row('Account ID', E(ph0(r.phone) || '—')), row('Subscription ID', E(r.rk)), row('Category', E(r.cat || '—')), row('City', E(r.city || '—')), row('Registered', dmy(r.at)), row('Expiry', dmy(r.until)), row('Paid years', N(r.paid)), row('Status', stOf(r))])}<div class="btns"><button class="sec" onclick="this.closest('.v2modal').remove()">✖ بند</button></div></div>`;
+  document.body.appendChild(b); };
+/* Transactions — طریقہ، تاریخ، ماہانہ خلاصہ */
+const TF = {m: '', from: '', to: ''};
+function txFull(f){
+  const pays = (f.pays || []);
+  const methods = [...new Set(pays.map(p => p.method || '—'))];
+  const L = pays.filter(p => (!TF.m || (p.method || '—') === TF.m) && (!TF.from || p.ts >= new Date(TF.from).getTime()) && (!TF.to || p.ts <= new Date(TF.to).getTime() + 864e5));
+  const byM = {}; pays.forEach(p => { const k = monKey(p.ts); byM[k] = byM[k] || {n: 0, a: 0}; byM[k].n++; byM[k].a += p.amount || 0; });
+  return `<div class="v2card"><div class="v2chips"><select onchange="TF.m=this.value;v2Render()"><option value="">💳 All methods</option>${methods.map(m => `<option ${TF.m === m ? 'selected' : ''}>${E(m)}</option>`).join('')}</select></div>
+      <div class="v2dates"><label>From<input type="date" value="${TF.from}" onchange="TF.from=this.value;v2Render()"></label><label>To<input type="date" value="${TF.to}" onchange="TF.to=this.value;v2Render()"></label>${TF.from || TF.to || TF.m ? `<button class="sec" onclick="TF.m='';TF.from='';TF.to='';v2Render()">✖</button>` : ''}</div></div>
+    ${sec('coins', 'Transaction History', txTable(Object.assign({}, f, {pays: L})))}
+    ${sec('bars', 'Monthly Summary', table(['Month','Payments','Amount'], Object.keys(byM).sort().reverse().map(k => `<tr><td>${monName(k)}</td><td class="n">${byM[k].n}</td><td class="n">${Rs(byM[k].a)}</td></tr>`), 'ابھی کوئی ادائیگی نہیں'))}`;
+}
+window.TF = TF;
+/* My Earnings — پرنٹ / PDF اسٹیٹمنٹ */
+function stmtBtn(){ return `<div class="btns"><button onclick="v2Stmt()">🖨️ Commission Statement — Print / PDF</button></div>`; }
+window.v2Stmt = () => { const rk = ROLEK(), f = rk === 'agent' ? (S.fin || {}) : CDME, nm = rk === 'agent' ? S.agent.name + ' (' + S.agent.code + ')' : (CDV && CDV.name) || 'Co-Developer';
+  const w = window.open('', '_blank'); if(!w) return alert('پاپ اپ کی اجازت دیں');
+  const tr = (a, b) => `<tr><td>${a}</td><td style="text-align:right">${b}</td></tr>`;
+  w.document.write(`<!doctype html><meta charset="utf-8"><title>Commission Statement</title><style>body{font-family:Segoe UI,Arial;padding:24px;color:#0b1f4d}h1{margin:0;font-size:22px}table{width:100%;border-collapse:collapse;margin:12px 0}td,th{border-bottom:1px solid #ccd;padding:6px}th{background:#dbe7fb;text-align:left}</style>
+    <h1>My City Shines — Commission Statement</h1><div>${E(nm)} · ${new Date().toLocaleDateString('en-GB')}</div>
+    <table>${tr('Total Commission Earned', Rs(f.due))}${tr('Approved / Ready (Google received)', Rs(f.ready))}${tr('Pending (Google)', Rs(f.pending))}${tr('Total Paid', Rs(f.paid))}${tr('<b>Outstanding Balance</b>', '<b>' + Rs(f.balance) + '</b>')}</table>
+    <h3>Monthly</h3><table><tr><th>Month</th><th>Sales</th><th>Earned</th><th>Ready</th></tr>${(f.months || []).map(m => `<tr><td>${monName(m.mon)}</td><td>${m.n}</td><td>${Rs(m.amt)}</td><td>${Rs(m.ready)}</td></tr>`).join('')}</table>
+    <h3>Payments</h3><table><tr><th>Date</th><th>Method</th><th>Account</th><th>Amount</th></tr>${(f.pays || []).map(p => `<tr><td>${dmy(p.ts)}</td><td>${E(p.method || '')}</td><td>${E(p.acct || '')}</td><td>${Rs(p.amount)}</td></tr>`).join('')}</table>
+    <small>PBT Code Labs</small><script>setTimeout(()=>print(),300)<\/script>`); w.document.close(); };
+/* Profile — پوری تفصیل، ریفرل لنک + QR، PIN بدلیں */
+function agProf(s){
+  const a = s.agent, row = (k, v) => `<tr><td>${k}</td><td class="n">${v}</td></tr>`;
+  return `${sec('user', 'Agent Profile', table(['',''], [row('Agent ID', E(ph0(a.phone))), row('Account Type', 'Agent'), row('Status', a.off ? '<span class="v2st ex">Inactive</span>' : '<span class="v2st ok">Active</span>'), row('Referral Code', `<b>${E(a.code)}</b> ${CP(a.code)}`), row('Year of Birth', E(a.yob || '—')), row('Mobile', E(ph0(a.phone))), row('WhatsApp', E(ph0(a.wa) || '—')), row('Email', E(a.email || '—')), row('Registration Date', dmy(a.okAt)), row('Business', E(a.biz || '—')), row('City', E(a.city || '—'))]))}
+    <div class="v2card v2refbox"><div class="v2qr big" id="v2qr" data-code="${E(a.code)}"></div><div><b>Referral QR</b><div class="v2mut">دکاندار یہ QR اسکین کرے تو پلے اسٹور پر My City Shines کھلے گی — فارم میں ریفرل کوڈ <b class="num">${E(a.code)}</b> لکھے</div>
+      <div class="btns"><button onclick="cpy(refLink('${E(a.code)}'))">🔗 Copy referral link</button><button class="sec" onclick="v2ShareRef('${E(a.code)}')">📤 Share</button></div></div></div>`;
+}
+window.v2ShareRef = code => { const t = 'My City Shines — اپنا کاروبار درج کریں\n' + refLink(code) + '\nریفرل کوڈ: ' + code; if(navigator.share) navigator.share({text: t}).catch(() => {}); else cpy(t); };
+window.refLink = refLink;
+const oldProf = profHtml;
+profHtml = function(name, lines, acct){ return oldProf(name, lines, acct).replace('<div class="v2card"><div class="v2list">', pinForm() + '<div class="v2card"><div class="v2list">'); };
+function pinForm(){ return `<div class="v2card"><h2>🔐 Account Security — PIN بدلیں</h2>
+  <label>پرانا PIN</label><input id="cpO" type="password" inputmode="numeric" dir="ltr" maxlength="6" oninput="this.value=enD(this.value).slice(0,6)">
+  <label>نیا PIN (6 ہندسے)</label><input id="cpN" type="password" inputmode="numeric" dir="ltr" maxlength="6" oninput="this.value=enD(this.value).slice(0,6)">
+  <div class="err" id="cpE"></div><div class="btns"><button onclick="v2ChPin()">🔐 PIN بدلیں</button></div></div>`; }
+window.v2ChPin = async () => { const o = $('#cpO').value, n = $('#cpN').value, rk = ROLEK(); if(o.length !== 6 || n.length !== 6) return ($('#cpE').textContent = '⚠️ دونوں PIN پورے 6 ہندسے');
+  const c = rk === 'agent' ? (ls.get('me') || {}) : rk === 'codev' ? (ls.get('cd') || {}) : {};
+  const r = await ppPost({op: 'chpin', role: rk, pin: o, newpin: n, phone: c.phone || ''}); if(!r || !r.ok) return ($('#cpE').textContent = PP_ERR[r && r.reason] || '❌ نہیں ہو سکا');
+  if(rk === 'agent') ls.set('me', {phone: c.phone, pin: n}); if(rk === 'codev'){ ls.set('cd', {phone: c.phone, pin: n}); if(CDV) CDV.pin = n; }
+  toast('✅ PIN بدل گیا' + (rk === 'agent' ? ' — My City Shines ایپ میں بھی اب نیا PIN' : '')); $('#cpO').value = $('#cpN').value = ''; };
+window.v2Log = async () => { const r = await finCall({op:'log'}); const L = (r && r.list) || [];
+  const b = document.createElement('div'); b.className = 'v2modal'; b.onclick = e => { if(e.target === b) b.remove(); };
+  b.innerHTML = `<div class="v2card"><h2>📜 حساب کا آڈٹ لاگ</h2>${table(['وقت','کام','تفصیل'], L.map(x => `<tr><td class="n">${new Date(x.ts).toLocaleString('en-GB')}</td><td>${E(x.op)}</td><td style="text-align:left;font-size:11px">${E(x.data)}</td></tr>`), 'ابھی کچھ نہیں')}<div class="btns"><button class="sec" onclick="this.closest('.v2modal').remove()">✖ بند</button></div></div>`;
+  document.body.appendChild(b); };
 })();

@@ -119,3 +119,12 @@ button.sm{padding:1px 8px!important;font-size:12px!important;border-radius:8px!i
 .v2login{background:linear-gradient(#e9f2fc 0%,#f4f8fe 50%,#e3edf9 100%)}
 .v2qr:empty::after{content:attr(data-code);display:flex;height:100%;align-items:center;justify-content:center;font:800 11px Arial;color:#0b1f4d;text-align:center}
 @media (max-width:440px){.v2t{font-size:9.8px}.v2t th{font-size:9.5px}.v2st{padding:1px 6px;font-size:10px}}
+/* AGP0911MO019 */
+.hbadge{position:absolute;left:90.5%;top:6%;min-width:18px;height:18px;border-radius:9px;background:#e11d48;color:#fff;font:800 11px/18px Arial;text-align:center;padding:0 4px;border:2px solid #fff;pointer-events:none}
+.v2nt{border-bottom:1px solid #e3e9f3;padding:8px 4px;font-size:14.5px}.v2nt.nw{background:#fff8e1;border-radius:10px}.v2nt small{color:#6b7a99;font-size:11px}
+.v2srch{display:flex;align-items:center;gap:6px;border:1.5px solid #c3cfe2;border-radius:12px;padding:2px 10px;background:#f7f9fc;direction:ltr}.v2srch input{border:0!important;background:none!important;flex:1}
+.v2chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;direction:ltr}
+.v2chip{background:#eef4ff!important;color:#0b2a6b!important;border:1.5px solid #c9d8f1!important;border-radius:999px!important;padding:4px 11px!important;font-size:13px!important}.v2chip.on{background:linear-gradient(#173f95,#0a2463)!important;color:#fff!important;border-color:#e8b13a!important}
+.v2dates{display:flex;gap:8px;align-items:end;direction:ltr}.v2dates label{flex:1;margin:0;font-family:'Segoe UI',Arial}
+.v2t tr.tap{cursor:pointer}.v2t tr.tap:hover td{background:#f4f8fe}
+.v2refbox{display:flex;gap:12px;align-items:center}.v2qr.big{width:120px;height:120px;flex:none}
