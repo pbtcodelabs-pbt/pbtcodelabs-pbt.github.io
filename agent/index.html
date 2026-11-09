@@ -56,7 +56,7 @@ button.sec{background:var(--line);color:var(--ink)}button.red{background:#fee2e2
 <body>
 <header><h1 id="hdT">🤝 PBT پورٹل</h1><small id="hdS">ایجنٹ · کو-ڈویلپر · ڈویلپر — PBT Code Labs</small></header>
 <main id="app"></main>
-<div class="foot"><a href="guide.html" style="color:var(--pri);font-weight:800">📄 MCS ایجنٹ کیسے بنیں — طریقہ (پرنٹ / PDF)</a><br><a href="#" onclick="roleSwitch();return false" style="color:var(--pri);font-weight:800">🔄 لاگ اِن بدلیں (ایجنٹ / کو-ڈویلپر / ڈویلپر)</a><br>پی بی ٹی کوڈ لیبز · <span class="num" id="agpVer">AGP0911MO014</span></div>
+<div class="foot"><a href="guide.html" style="color:var(--pri);font-weight:800">📄 MCS ایجنٹ کیسے بنیں — طریقہ (پرنٹ / PDF)</a><br><a href="#" onclick="roleSwitch();return false" style="color:var(--pri);font-weight:800">🔄 لاگ اِن بدلیں (ایجنٹ / کو-ڈویلپر / ڈویلپر)</a><br>پی بی ٹی کوڈ لیبز · <span class="num" id="agpVer">AGP0911MO015</span></div>
 <script>
 const API = 'https://aio-pos-verify.pbtcodelabs.workers.dev';
 const FB_KEY = 'AIzaSyAvu8ymIZAGEPaYwd_LBJzKS2lZ3Q4_Mog'; // My City Shines (ایڈمن لاگ اِن)
@@ -69,8 +69,8 @@ function cpy(v){ const done = () => toast('📋 ' + v + ' کاپی ہو گیا')
 function toast(t){ let el = document.getElementById('tst'); if(!el){ el = document.createElement('div'); el.id = 'tst'; document.body.appendChild(el); } el.textContent = t; el.className = 'on'; clearTimeout(el._t); el._t = setTimeout(() => el.className = '', 2200); }
 const D = t => t ? new Date(t).toLocaleDateString('en-GB') : '—';
 const ls = { get(k, d){ try{ const v = localStorage.getItem('agp_' + k); return v ? JSON.parse(v) : d; }catch(e){ return d; } }, set(k, v){ try{ localStorage.setItem('agp_' + k, JSON.stringify(v)); }catch(e){} }, del(k){ try{ localStorage.removeItem('agp_' + k); }catch(e){} } };
-/* AGP0911MO014 (مالک کا حکم، ہیلپ ڈیسک #174): ایک ہی «PBT Portal» ایپ (APK) — پہلے صفحے پر تین لاگ اِن؛ پچھلا چنا ہوا کردار یاد (agp_role) */
-const AGP_VER = 'AGP0911MO014';
+/* AGP0911MO015 (مالک کا حکم، ہیلپ ڈیسک #174): ایک ہی «PBT Portal» ایپ (APK) — پہلے صفحے پر تین لاگ اِن؛ پچھلا چنا ہوا کردار یاد (agp_role) */
+const AGP_VER = 'AGP0911MO015';
 const ROLE = location.hash.startsWith('#admin') ? 'admin' : location.hash.startsWith('#codev') ? 'codev' : location.hash.startsWith('#agent') ? 'agent' : (ls.get('role', '') || '');
 const ADMIN = ROLE === 'admin', CODEV = ROLE === 'codev';
 function roleGo(r){ ls.set('role', r); location.hash = '#' + r; location.reload(); }
@@ -212,18 +212,18 @@ async function admPin(fresh){
   const msg = 'السلام علیکم ' + r.name + '! آپ کا MCS ایجنٹ پورٹل:\nhttps://pbtcodelabs-pbt.github.io/agent/\nموبائل: 0' + String(r.phone).slice(2) + '\nPIN: ' + r.pin;
   $('#pinBox').innerHTML = `<div class="row">🔑 PIN: <b class="num" style="font-size:20px">${E(r.pin)}</b> ${CP(r.pin)} <a href="https://wa.me/${E(r.phone)}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener"><button>💬 واٹس ایپ پر بھیجیں</button></a></div>`;
 }
-function admLogin(msg){
-  app.innerHTML = `<div class="card"><h2>🛡️ ایڈمن لاگ اِن</h2><label>Email</label><input id="ae" type="email" dir="ltr" value="pbtcodelabs@gmail.com"><label>Password</label><input id="ap" type="password" dir="ltr" onkeydown="if(event.key==='Enter')admDoLogin()"><div class="err">${E(msg||'')}</div><div class="btns"><button onclick="admDoLogin()">✅ داخل ہوں</button><button class="sec" onclick="admForgot()">🔑 پاس ورڈ بھول گئے؟</button></div></div>`;
+function admLoginEmail(msg){
+  app.innerHTML = `<div class="card"><h2>🛡️ ڈویلپر — ای میل / پاس ورڈ</h2><div style="color:var(--mut);font-size:14px">صرف ایک بار (یا PIN اور سال دونوں بھول جائیں تو) — اس کے بعد ہمیشہ صرف PIN۔</div><label>Email</label><input id="ae" type="email" dir="ltr" value="pbtcodelabs@gmail.com"><label>Password</label><input id="ap" type="password" dir="ltr" onkeydown="if(event.key==='Enter')admDoLogin()"><div class="err">${E(msg||'')}</div><div class="btns"><button onclick="admDoLogin()">✅ داخل ہوں</button><button class="sec" onclick="admForgot()">🔑 پاس ورڈ بھول گئے؟</button></div></div>`;
 }
 async function admDoLogin(){
   try{ const r = await (await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=' + FB_KEY, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email: $('#ae').value.trim(), password: $('#ap').value, returnSecureToken: true})})).json();
-    if(!r.idToken) return admLogin('❌ ای میل یا پاس ورڈ غلط'); admTok = r.idToken; admTokExp = Date.now() + 50*60e3; if(r.refreshToken) ls.set('admRt', r.refreshToken); admHome(); }catch(e){ admLogin('📶 انٹرنیٹ نہیں'); }
+    if(!r.idToken) return admLoginEmail('❌ ای میل یا پاس ورڈ غلط'); admTok = r.idToken; admTokExp = Date.now() + 50*60e3; if(r.refreshToken) ls.set('admRt', r.refreshToken); ppDevSetup(); }catch(e){ admLoginEmail('📶 انٹرنیٹ نہیں'); }
 }
-/* AGP0911MO014: ڈویلپر کا لاگ اِن یاد — فائربیس refresh token سے خاموش تجدید (ہر گھنٹے پاس ورڈ نہیں) */
-async function admRefresh(){ const rt = ls.get('admRt', ''); if(!rt) return false;
+/* AGP0911MO015: ڈویلپر کا لاگ اِن یاد — فائربیس refresh token سے خاموش تجدید (ہر گھنٹے پاس ورڈ نہیں) */
+async function admRefresh(){ const pp = ls.get('admPps', ''); if(pp){ admTok = pp; admTokExp = Date.now() + 59*86400e3; return true; } const rt = ls.get('admRt', ''); if(!rt) return false;
   try{ const r = await (await fetch('https://securetoken.googleapis.com/v1/token?key=' + FB_KEY, {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(rt)})).json();
     if(!r.id_token){ if(r.error) ls.del('admRt'); return false; } admTok = r.id_token; admTokExp = Date.now() + 50*60e3; if(r.refresh_token) ls.set('admRt', r.refresh_token); return true; }catch(e){ return false; } }
-function admLogout(){ ls.del('admRt'); admTok = null; admLogin(); }
+function admLogout(){ ls.del('admRt'); ls.del('admPps'); admTok = null; admLogin(); }
 async function admCall(path, body){ if((!admTok || Date.now() > admTokExp) && !(await admRefresh())){ admLogin('دوبارہ لاگ اِن کریں'); throw new Error('login'); } const r = await post(path, Object.assign({admin: path === '/agportal'}, body), admTok); if(r && r.error === 'admin_only'){ admLogin('صرف ایڈمن'); throw new Error('admin'); } return r; }
 async function admHome(){
   const r = await admCall('/agadmin', {op:'list'}); admList = (r.list||[]).filter(a => a.status === 'approved'); admRate = r.rate || 0;
@@ -294,6 +294,78 @@ async function admDeact(off){
 async function admPay(){ const amount = parseInt($('#payAmt').value, 10); if(!(amount > 0)) return; if(!confirm('Rs ' + N(amount) + ' ادائیگی درج کریں؟')) return; await admCall('/agadmin', {op:'pay', code: admCode, amount, note: $('#payNote').value}); admOpen(admCode); }
 async function admUnpay(id){ if(!confirm('یہ ادائیگی ہٹا دیں؟')) return; await admCall('/agadmin', {op:'unpay', pid: id}); admOpen(admCode); }
 async function admProofDone(id){ await admCall('/agadmin', {op:'proofdone', pid: id}); admOpen(admCode); }
+/* ===== AGP0911MO015 (مالک کا حکم): لاگ اِن صرف 6 ہندسوں کا PIN؛ PIN بھولنے پر پیدائش کا سال (ایک بار محفوظ) ===== */
+const PPDEV = (() => { let d = ls.get('did', ''); if(!d){ d = 'p' + Math.random().toString(36).slice(2, 12) + Date.now().toString(36); ls.set('did', d); } return d; })();
+const enD = v => String(v || '').replace(/[۰-۹]/g, c => '۰۱۲۳۴۵۶۷۸۹'.indexOf(c)).replace(/[٠-٩]/g, c => '٠١٢٣٤٥٦٧٨٩'.indexOf(c)).replace(/\D/g, '');
+const ppPost = (body, tok) => post('/pplogin', Object.assign({dev: PPDEV}, body), tok);
+const PP_ROLE = {agent: ['🤝', 'MCS ایجنٹ'], codev: ['👥', 'کو-ڈویلپر'], dev: ['👨‍💻', 'ڈویلپر (مالک)']};
+const PP_ERR = {pin: '❌ PIN درست نہیں', wait: '⏳ بہت زیادہ غلط کوششیں — 15 منٹ بعد دوبارہ', nodev: '', dup: '📱 اپنا موبائل نمبر بھی لکھیں', yob: '❌ پیدائش کا سال درست نہیں', noyob: '⚠️ پیدائش کا سال محفوظ نہیں تھا — ڈویلپر سے نیا PIN لیں', newpin: '⚠️ نیا PIN 6 ہندسوں کا ہو (111111 / 123456 جیسا نہیں)', taken: '⚠️ یہ PIN کوئی اور استعمال کر رہا ہے — کوئی اور چنیں'};
+const pinIn = (id, ph) => `<input id="${id}" inputmode="numeric" autocomplete="one-time-code" dir="ltr" maxlength="6" placeholder="${ph || '••••••'}" oninput="this.value=enD(this.value).slice(0,6)" style="font-size:30px;letter-spacing:12px;text-align:center;font-weight:900;max-width:260px;display:block;margin:6px auto">`;
+function ppScreen(role, msg, needPhone){
+  const [ic, nm] = PP_ROLE[role];
+  app.innerHTML = `<div class="card" style="text-align:center"><div style="font-size:44px">${ic}</div><h2>${nm}</h2><div style="color:var(--mut);font-size:14px">اپنا 6 ہندسوں کا PIN لکھیں</div>
+    ${pinIn('ppPin')}${needPhone ? `<input id="ppPh" inputmode="tel" dir="ltr" placeholder="📱 03xx xxxxxxx" style="max-width:260px;display:block;margin:6px auto;text-align:center">` : ''}
+    <div class="err">${E(msg || '')}</div><div class="btns" style="justify-content:center"><button onclick="ppGo('${role}')" style="min-width:160px">✅ داخل ہوں</button></div>
+    <div class="btns" style="justify-content:center"><button class="sec" onclick="ppForgot('${role}')">🔑 PIN بھول گئے؟</button></div><div id="fpBox"></div></div>`;
+  const el = $('#ppPin'); if(el){ el.focus(); el.addEventListener('input', () => { if(el.value.length === 6 && !$('#ppPh')) ppGo(role); }); el.addEventListener('keydown', e => { if(e.key === 'Enter') ppGo(role); }); }
+}
+let ppBusy = false;
+async function ppGo(role){
+  if(ppBusy) return; const pin = enD($('#ppPin').value); if(pin.length !== 6) return ppScreen(role, '⚠️ پورے 6 ہندسے', !!$('#ppPh'));
+  const phone = $('#ppPh') ? $('#ppPh').value.trim() : '';
+  ppBusy = true; let r; try{ r = await ppPost({op: 'login', role, pin, phone}); }catch(e){ ppBusy = false; return ppScreen(role, '📶 انٹرنیٹ نہیں', !!phone); } ppBusy = false;
+  if(!r || !r.ok){ if(r && r.reason === 'nodev') return admLoginEmail('پہلی بار: ای میل / پاس ورڈ سے داخل ہوں — پھر اپنا PIN بنائیں'); return ppScreen(role, PP_ERR[r && r.reason] || '❌ نہیں ہو سکا', (r && r.reason === 'dup') || !!phone); }
+  if(role === 'dev'){ ls.set('admPps', r.tok); admTok = r.tok; admTokExp = Date.now() + 59*86400e3; return r.yob ? admHome() : ppYobAsk('dev', {tok: r.tok}, admHome); }
+  if(role === 'codev'){ ls.set('cd', {phone: r.phone, pin}); const go = () => { CDV = {phone: r.phone, pin, name: r.name}; admFin(); }; return r.yob ? go() : ppYobAsk('codev', {pin, phone: r.phone}, go); }
+  ls.set('me', {phone: r.phone, pin}); return r.yob ? agLoad() : ppYobAsk('agent', {pin, phone: r.phone}, () => agLoad());
+}
+function ppYobAsk(role, cred, done, tokHdr){
+  window._ppDone = done; window._ppCred = {role, cred, tokHdr};
+  app.innerHTML = `<div class="card" style="text-align:center"><div style="font-size:40px">🎂</div><h2>اپنی پیدائش کا سال لکھیں</h2><div style="color:var(--mut);font-size:14px">صرف ایک بار — PIN بھول جائیں تو اسی سے نیا PIN بنے گا</div>
+    <input id="ppY" inputmode="numeric" dir="ltr" maxlength="4" placeholder="1985" oninput="this.value=enD(this.value).slice(0,4)" style="font-size:28px;text-align:center;font-weight:900;max-width:200px;display:block;margin:8px auto">
+    <div class="err" id="ppYe"></div><div class="btns" style="justify-content:center"><button onclick="ppYobSave()" style="min-width:160px">💾 محفوظ کریں</button><button class="sec" onclick="window._ppDone()">بعد میں</button></div></div>`;
+  $('#ppY').focus();
+}
+async function ppYobSave(){
+  const y = enD($('#ppY').value), c = window._ppCred; if(!/^(19[2-9]\d|20[01]\d)$/.test(y)) return ($('#ppYe').textContent = '⚠️ چار ہندسوں میں سال، مثلاً 1985');
+  try{ const r = await ppPost(Object.assign({op: 'yob', role: c.role, yob: y}, c.cred), c.tokHdr); if(!r || !r.ok) return ($('#ppYe').textContent = '❌ محفوظ نہیں ہو سکا'); }catch(e){ return ($('#ppYe').textContent = '📶 انٹرنیٹ نہیں'); }
+  toast('✅ پیدائش کا سال محفوظ'); window._ppDone();
+}
+function ppForgot(role){
+  $('#fpBox').innerHTML = `<div class="row" style="background:#fffbeb;border-radius:12px;padding:10px;margin-top:10px;text-align:right">
+    ${role !== 'dev' ? `<label>📱 موبائل نمبر</label><input id="fpPh" inputmode="tel" dir="ltr" value="${E(((role === 'codev' ? ls.get('cd') : ls.get('me')) || {}).phone || '')}">` : ''}
+    <label>🎂 پیدائش کا سال</label><input id="fpY" inputmode="numeric" dir="ltr" maxlength="4" placeholder="1985" oninput="this.value=enD(this.value).slice(0,4)">
+    <label>🔑 نیا 6 ہندسوں کا PIN</label><input id="fpN" inputmode="numeric" dir="ltr" maxlength="6" oninput="this.value=enD(this.value).slice(0,6)" style="letter-spacing:6px">
+    <div class="err" id="fpE"></div><div class="btns"><button onclick="ppForgotGo('${role}')">✅ نیا PIN محفوظ کریں</button>${role === 'dev' ? `<button class="sec" onclick="admLoginEmail()">📧 ای میل / پاس ورڈ سے</button>` : ''}</div>
+    ${role !== 'dev' ? `<div style="font-size:12.5px;color:var(--mut)">سال محفوظ نہیں کیا تھا؟ <a href="${E('https://pbtcodelabs-pbt.github.io/help/?' + new URLSearchParams({app:'MCS', text: (role === 'codev' ? '👥 کو-ڈویلپر' : '🤝 ایجنٹ') + ': پورٹل کا PIN بھول گیا — نیا PIN چاہیے', type:'ask'}) + '#/new/MCS')}" target="_blank" rel="noopener">🛠️ Help Desk</a></div>` : ''}</div>`;
+}
+async function ppForgotGo(role){
+  const y = enD($('#fpY').value), np = enD($('#fpN').value), phone = $('#fpPh') ? $('#fpPh').value.trim() : '';
+  if(role !== 'dev' && !phone) return ($('#fpE').textContent = '⚠️ موبائل نمبر لکھیں');
+  if(np.length !== 6) return ($('#fpE').textContent = '⚠️ نیا PIN پورے 6 ہندسے');
+  let r; try{ r = await ppPost({op: 'forgot', role, phone, yob: y, newpin: np}); }catch(e){ return ($('#fpE').textContent = '📶 انٹرنیٹ نہیں'); }
+  if(!r || !r.ok) return ($('#fpE').textContent = PP_ERR[r && r.reason] || '❌ نہیں ہو سکا');
+  toast('✅ نیا PIN محفوظ — اب اسی سے داخل ہوں'); ppScreen(role);
+}
+/* ڈویلپر: ای میل / پاس ورڈ کے بعد ایک بار اپنا PIN + سال */
+function ppDevSetup(){
+  app.innerHTML = `<div class="card" style="text-align:center"><div style="font-size:40px">👨‍💻</div><h2>اپنا 6 ہندسوں کا PIN بنائیں</h2><div style="color:var(--mut);font-size:14px">آئندہ صرف یہی PIN — ای میل / پاس ورڈ نہیں</div>
+    ${pinIn('dpP')}<input id="dpY" inputmode="numeric" dir="ltr" maxlength="4" placeholder="🎂 پیدائش کا سال" oninput="this.value=enD(this.value).slice(0,4)" style="text-align:center;max-width:260px;display:block;margin:6px auto">
+    <div class="err" id="dpE"></div><div class="btns" style="justify-content:center"><button onclick="ppDevSave()">💾 محفوظ کریں</button><button class="sec" onclick="admHome()">بعد میں</button></div></div>`;
+}
+async function ppDevSave(){
+  const pin = enD($('#dpP').value), y = enD($('#dpY').value);
+  if(pin.length !== 6 || /^(\d)\1{5}$/.test(pin) || pin === '123456') return ($('#dpE').textContent = PP_ERR.newpin);
+  if(!/^(19[2-9]\d|20[01]\d)$/.test(y)) return ($('#dpE').textContent = '⚠️ پیدائش کا سال، مثلاً 1985');
+  try{ const a = await ppPost({op: 'devpin', role: 'dev', pin}, admTok); if(!a || !a.ok) return ($('#dpE').textContent = '❌ محفوظ نہیں ہو سکا');
+    await ppPost({op: 'yob', role: 'dev', yob: y}, admTok);
+    const r = await ppPost({op: 'login', role: 'dev', pin}); if(r && r.ok){ ls.set('admPps', r.tok); admTok = r.tok; admTokExp = Date.now() + 59*86400e3; }
+  }catch(e){ return ($('#dpE').textContent = '📶 انٹرنیٹ نہیں'); }
+  toast('✅ PIN محفوظ — آئندہ صرف PIN'); admHome();
+}
+function agLogin(msg){ ppScreen('agent', msg); }
+function cdLogin(msg){ ppScreen('codev', msg); }
+function admLogin(msg){ if(msg) ls.del('admPps'); ppScreen('dev', msg); }
 (async () => {
   const hs = {admin: ['👨‍💻 PBT پورٹل — ڈویلپر', 'سب ایجنٹ، حساب، ادائیگیاں'], codev: ['👥 PBT پورٹل — کو-ڈویلپر', 'کمپنی کا حساب اور چیٹ'], agent: ['🤝 PBT پورٹل — ایجنٹ', 'My City Shines — Agent']}[ROLE];
   if(hs){ $('#hdT').textContent = hs[0]; $('#hdS').textContent = hs[1]; }
