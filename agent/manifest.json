@@ -1,8 +1,8 @@
 {
   "id": "/agent/",
-  "name": "PBT Portal",
-  "short_name": "PBT Portal",
-  "description": "PBT پورٹل — ایجنٹ، کو-ڈویلپر اور ڈویلپر (حساب، چیٹ، کاروبار)",
+  "name": "MCS Agent",
+  "short_name": "MCS Agent",
+  "description": "MCS Agent — My City Shines ایجنٹ ایپ — ایجنٹ، کو-ڈویلپر اور ڈویلپر (حساب، چیٹ، کاروبار)",
   "start_url": "/agent/",
   "scope": "/agent/",
   "display": "standalone",
