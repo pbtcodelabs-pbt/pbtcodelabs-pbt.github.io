@@ -4,7 +4,7 @@
 (function(){
 const NAV = {
   agent: [['home','Home','home'],['subs','Subscriptions','users'],['wd','Withdrawals','wallet'],['prof','Profile','user']], /* AGP1011TU022: ڈیزائن ماسٹر پرامپٹ جیسا — 4 بٹن */
-  codev: [['home','Home','home'],['acc','Accounts','bars'],['tx','Transactions','coins'],['earn','My Earnings','wallet'],['prof','Profile','user']],
+  codev: [['home','Home','home'],['acc','Accounts','bars'],['wd','Withdrawals','wallet'],['prof','Profile','user']], /* AGP1011TU024: ایجنٹ جیسا — 4 بٹن */
   dev:   [['home','Home','home'],['acc','Accounts','bars'],['pay','Payouts','wallet'],['agents','Agents','users'],['prof','Profile','user']]
 };
 const ICON = {
@@ -50,7 +50,7 @@ function navBar(rk){
   return `<nav class="v2nav">${NAV[rk].map(([k, t, i]) => `<button class="${TAB === k ? 'on' : ''}" onclick="v2Go('${k}')">${ic(i, 30)}<span>${t}</span></button>`).join('')}</nav>`;
 }
 function page(rk, body){
-  app.innerHTML = `<div class="v2wrap">${hero(rk)}<div class="v2body">${body}</div>${navBar(rk)}</div>`;
+  app.innerHTML = `<div class="v2wrap">${hero(rk)}<div class="v2body en">${body}</div>${navBar(rk)}</div>`;
   window.scrollTo(0, 0);
 }
 function sec(icon, title, body, all){ return `<div class="v2sec"><div class="v2sh">${ic(icon, 28)}<b>${title}</b>${all ? `<button onclick="v2Go('${all}')">View All →</button>` : ''}</div><div class="v2sb">${body}</div></div>`; }
@@ -94,7 +94,7 @@ function wdTable(f, lim){
 function wdFull(f){
   return `${earnHtml(f)}${sec('wallet', 'Withdrawal History', table(['S.No','Date','Request ID','Amount','Payment Method','Status'], wdRows(f).map((p, i) => `<tr><td>${i+1}</td><td class="n">${dmy(p.ts)}</td><td class="n">${p.id}</td><td class="n">${N(p.amount)}</td><td>${E(p.method)}</td><td><span class="v2st ${p.st === 'Paid' ? 'ok' : 'tr'}">${p.st}</span></td></tr>`), 'No withdrawals yet'))}${stmtBtn()}`;
 }
-window.v2WdReq = () => { const f = (S && S.fin) || {};
+window.v2WdReq = () => { const f = (ROLEK() === 'agent' ? (S && S.fin) : CDME) || {};
   if(f.req) return alert('Your withdrawal request of ' + Rs(f.req.amount) + ' is already pending. The developer will pay it soon.');
   if(!f.acct) { alert('Please add your payment account (Easypaisa / JazzCash / Bank) in Profile first.'); return v2Go('prof'); }
   if(!f.canReq) return alert('Withdrawal opens when your ready balance is ' + Rs(f.min || 1000) + ' or more. Ready now: ' + Rs(f.avail));
@@ -163,52 +163,94 @@ async function cdLoad(){ const c = ls.get('cd') || {}; const r = await post('/fi
 /* ---------- ڈویلپر ---------- */
 function monthHtml(m, ro){
   const T = m.totals || {}, rv = m.recv;
-  const g = m.play ? (rv ? `<div class="v2ok">✅ گوگل سے وصول: <b class="num">${Rs(rv.amount)}</b> (${dmy(rv.at)}) — اصل کٹوتی <b class="num">${Rs(m.gAct)}</b>${ro ? '' : ` <button class="sm" onclick="v2Grecv(true)">✖ واپس «آنا باقی»</button>`}</div>`
-      : `<div class="v2warn">⏳ گوگل سے آنا باقی — پلے کی فروخت <b class="num">${Rs(m.play)}</b>، اندازاً ملے گا <b class="num">${Rs(m.play - m.gEst)}</b>${ro ? '' : `<div class="btns"><input id="grA" class="num" inputmode="numeric" placeholder="${m.play - m.gEst}" style="max-width:150px"><button onclick="v2Grecv()">✅ وصول — بینک میں آ گیا</button></div>`}</div>`)
+  const g = m.play ? (rv ? `<div class="v2ok">✅ Received from Google: <b class="num">${Rs(rv.amount)}</b> (${dmy(rv.at)}) — actual Google cut <b class="num">${Rs(m.gAct)}</b>${ro ? '' : ` <button class="sm" onclick="v2Grecv(true)">✖ Back to «Pending»</button>`}</div>`
+      : `<div class="v2warn">⏳ Pending from Google — Play sales <b class="num">${Rs(m.play)}</b>, expected <b class="num">${Rs(m.play - m.gEst)}</b>${ro ? '' : `<div class="btns"><input id="grA" class="num" inputmode="numeric" placeholder="${m.play - m.gEst}" style="max-width:150px"><button onclick="v2Grecv()">✅ Received — in bank</button></div>`}</div>`)
     : '';
   const who = l => l.by === 'agent' ? '🤝 ' + E(l.agent || l.code) : l.by === 'dev' ? '👨‍💻 PBT-D' : l.by === 'codev' ? '👥 PBT-C' : '🏢 PBT';
   return `<div class="v2card"><div class="v2mon"><button onclick="v2Mon(-1)">‹</button><b>${monName(FMON)}</b><button onclick="v2Mon(1)">›</button></div>
-      ${tiles([{c:'tb', i:'coins', t:'کل وصولی<br>(Gross)', v:'<small>Rs.</small> ' + N(m.gross)}, {c:'tg', i:'check', t:'▶️ Google Play', v:'<small>Rs.</small> ' + N(m.play)}, {c:'tp', i:'wallet', t:'🏦 Direct<br>(سیدھی / اشتہار)', v:'<small>Rs.</small> ' + N(m.direct)}, {c:'to', i:'cal', t:'🛠️ Maintenance', v:'<small>Rs.</small> ' + N(T.maint)}])}${g}</div>
-    ${sec('bars', 'تقسیم — ' + monName(FMON), table(['مد','رقم'], [['🟦 گوگل', T.google], ['🛠️ مینٹیننس', T.maint], ['🤝 ایجنٹ', T.agent], ['👨‍💻 ڈویلپر', T.dev], ['👥 کو-ڈویلپر', T.codev]].map(([a, b]) => `<tr><td>${a}</td><td class="n">${Rs(b)}</td></tr>`).concat([`<tr class="tot"><td>کل</td><td class="n">${Rs(m.gross)}</td></tr>`])))}
-    ${ro ? '' : `<div class="v2card"><h2>➕ وصولی درج کریں (اشتہار یا سیدھی ممبرشپ)</h2><div class="v2mut">Account Access سے دی گئی ممبرشپ خود درج ہو جاتی ہے — یہاں صرف وہ لکھیں جو کہیں اور درج نہیں (جیسے اشتہار کے 800)</div>
-      <div class="btns"><select id="xK" style="max-width:170px"><option value="ad">📢 اشتہار</option><option value="mem">⭐ ممبرشپ</option></select><input id="xA" class="num" inputmode="numeric" placeholder="رقم" style="max-width:120px"></div>
-      <label>لانے والا — نام اور کوڈ دیکھ کر چنیں</label>${bringerSel('xR')}
-      <label>کاروبار کا نام / نوٹ</label><input id="xB"><input type="hidden" id="xRk"><div class="btns"><button onclick="v2Xadd()">💾 درج کریں — تقسیم خود</button></div></div>
-      <div class="v2card" id="mcsAds"><h2>📢 My City Shines کے اشتہار</h2><div class="v2mut">⏳ …</div></div>`}
-    ${sec('coins', 'فروخت / وصولی (' + m.lines.length + ')', table(['تاریخ','قسم','رقم','لانے والا','ایجنٹ','ڈویلپر','کو-ڈویلپر'], m.lines.slice().reverse().map(l => `<tr><td class="n">${dmy(l.ts)}</td><td>${l.kind === 'ad' ? '📢' : '⭐'} ${l.src === 'play' ? '▶️' : '🏦'}${l.units > 1 ? ' ×' + l.units : ''}${l.manual && !ro ? ` <button class="sm" onclick="v2Xdel('${l.id}')">✖</button>` : ''}</td><td class="n">${N(l.amount)}</td><td>${who(l)}</td><td class="n">${N(l.sh.agent)}</td><td class="n">${N(l.sh.dev)}</td><td class="n">${N(l.sh.codev)}</td></tr>`), 'اس مہینے کچھ نہیں'))}
-    ${(m.agents || []).length ? sec('users', 'ایجنٹوں کا کمیشن', table(['ایجنٹ','فروخت','کمیشن'], m.agents.map(a => `<tr><td>${E(a.name || a.code)} <span class="num">${E(a.code)}</span></td><td class="n">${a.n}</td><td class="n">${Rs(a.amt)}</td></tr>`))) : ''}`;
+      ${tiles([{c:'tb', i:'coins', t:'Total Sales<br>(Gross)', v:'<small>Rs.</small> ' + N(m.gross)}, {c:'tg', i:'check', t:'▶️ Google Play', v:'<small>Rs.</small> ' + N(m.play)}, {c:'tp', i:'wallet', t:'🏦 Direct<br>(Manual / Ads)', v:'<small>Rs.</small> ' + N(m.direct)}, {c:'to', i:'cal', t:'🛠️ Maintenance', v:'<small>Rs.</small> ' + N(T.maint)}])}${g}</div>
+    ${sec('bars', 'Revenue Split — ' + monName(FMON), table(['Head','Amount'], [['🟦 Google', T.google], ['🛠️ Maintenance', T.maint], ['🤝 Agents', T.agent], ['👨‍💻 Developer', T.dev], ['👥 Co-Developer', T.codev]].map(([a, b]) => `<tr><td>${a}</td><td class="n">${Rs(b)}</td></tr>`).concat([`<tr class="tot"><td>Total</td><td class="n">${Rs(m.gross)}</td></tr>`])))}
+    ${ro ? '' : `<div class="v2card"><h2>➕ Add Receipt (Ad or Manual Membership)</h2><div class="v2mut">Memberships given via Account Access are recorded automatically — add only what is not recorded elsewhere (e.g. Rs 800 for an ad)</div>
+      <div class="btns"><select id="xK" style="max-width:170px"><option value="ad">📢 Ad</option><option value="mem">⭐ Membership</option></select><input id="xA" class="num" inputmode="numeric" placeholder="Amount" style="max-width:120px"></div>
+      <label>Brought by — choose by name and code</label>${bringerSel('xR')}
+      <label>Business Name / Note</label><input id="xB"><input type="hidden" id="xRk"><div class="btns"><button onclick="v2Xadd()">💾 Save — split automatically</button></div></div>
+      <div class="v2card" id="mcsAds"><h2>📢 My City Shines Ads</h2><div class="v2mut">⏳ …</div></div>`}
+    ${sec('coins', 'Sales / Receipts (' + m.lines.length + ')', table(['Date','Type','Amount','Brought by','Agent','Developer','Co-Developer'], m.lines.slice().reverse().map(l => `<tr><td class="n">${dmy(l.ts)}</td><td>${l.kind === 'ad' ? '📢' : '⭐'} ${l.src === 'play' ? '▶️' : '🏦'}${l.units > 1 ? ' ×' + l.units : ''}${l.manual && !ro ? ` <button class="sm" onclick="v2Xdel('${l.id}')">✖</button>` : ''}</td><td class="n">${N(l.amount)}</td><td>${who(l)}</td><td class="n">${N(l.sh.agent)}</td><td class="n">${N(l.sh.dev)}</td><td class="n">${N(l.sh.codev)}</td></tr>`), 'Nothing this month'))}
+    ${(m.agents || []).length ? sec('users', 'Agents Commission', table(['Agent','Sales','Commission'], m.agents.map(a => `<tr><td>${E(a.name || a.code)} <span class="num">${E(a.code)}</span></td><td class="n">${a.n}</td><td class="n">${Rs(a.amt)}</td></tr>`))) : ''}`;
 }
 let FMON = '';
 window.v2Mon = d => { FMON = monStep(FMON, d); FM = null; v2Render(); };
-window.v2Grecv = async clear => { const v = clear ? '' : ($('#grA').value.trim() || $('#grA').placeholder); if(!clear && !confirm(monName(FMON) + ' — گوگل سے ' + Rs(v) + ' بینک میں آ گئے؟')) return; FM = await finCall({op:'grecv', mon: FMON, amount: v}); v2Render(); };
-window.v2Xadd = async () => { const a = parseInt(enD($('#xA').value), 10); if(!(a > 0)) return alert('رقم لکھیں'); const k = $('#xK').value; const sel = $('#xR'), who = sel.options[sel.selectedIndex].text; if(!sel.value) return alert('لانے والا چنیں'); if(!confirm((k === 'ad' ? '📢 اشتہار' : '⭐ ممبرشپ') + ' — ' + Rs(a) + '\nلانے والا: ' + who + '\n\nدرج کریں؟')) return;
-  const r = await finCall({op:'xadd', kind: k, amount: a, ref: sel.value, rk: ($('#xRk') || {}).value || '', biz: $('#xB').value.trim(), note: $('#xB').value.trim()}); if(r && r.reason === 'dup') return alert('یہ اشتہار پہلے ہی حساب میں درج ہے'); if(!r || r.ok === false) return alert('درج نہیں ہو سکا'); FM = r; FMON = FM.mon || FMON; v2Render(); };
-window.v2Xdel = async id => { if(!confirm('یہ وصولی ہٹا دیں؟')) return; FM = await finCall({op:'xdel', id, mon: FMON}); v2Render(); };
+window.v2Grecv = async clear => { const v = clear ? '' : ($('#grA').value.trim() || $('#grA').placeholder); if(!clear && !confirm(monName(FMON) + ' — from Google ' + Rs(v) + ' received in bank?')) return; FM = await finCall({op:'grecv', mon: FMON, amount: v}); v2Render(); };
+window.v2Xadd = async () => { const a = parseInt(enD($('#xA').value), 10); if(!(a > 0)) return alert('Enter amount'); const k = $('#xK').value; const sel = $('#xR'), who = sel.options[sel.selectedIndex].text; if(!sel.value) return alert('Choose Brought by'); if(!confirm((k === 'ad' ? '📢 Ad' : '⭐ Membership') + ' — ' + Rs(a) + '\nBrought by: ' + who + '\n\nSave?')) return;
+  const r = await finCall({op:'xadd', kind: k, amount: a, ref: sel.value, rk: ($('#xRk') || {}).value || '', biz: $('#xB').value.trim(), note: $('#xB').value.trim()}); if(r && r.reason === 'dup') return alert('This ad is already recorded'); if(!r || r.ok === false) return alert('Could not save'); FM = r; FMON = FM.mon || FMON; v2Render(); };
+window.v2Xdel = async id => { if(!confirm('Remove this receipt?')) return; FM = await finCall({op:'xdel', id, mon: FMON}); v2Render(); };
 function payoutsHtml(P){
   const req = P.reqs || [];
-  return `${req.length ? `<div class="v2warn">🙏 ${req.length} ادائیگی کی درخواستیں — نیچے پیلے نشان والے</div>` : ''}<div class="v2note">📅 ادائیگی ہر مہینے 20 سے 25 تاریخ، کم از کم Rs. 1,000 (تیار رقم)</div>
+  return `${req.length ? `<div class="v2warn">🙏 ${req.length} withdrawal requests — marked yellow below</div>` : ''}<div class="v2note">📅 Payouts between the 20th and 25th of each month, minimum Rs. 1,000 (ready balance)</div>
     ${P.list.map((p, i) => { const a = p.acct || {}; return `<div class="v2card v2pc ${p.req ? 'rq' : ''}"><div class="pch"><b>${p.kind === 'agent' ? '🤝' : '👥'} ${E(p.name)}</b> <span class="num">${E(p.code || ph0(p.phone))}</span>${p.req ? ` <span class="v2st tr">🙏 ${Rs(p.req.amount)}</span>` : ''}</div>
-      <div class="pcs"><span>کل <b class="num">${N(p.due)}</b></span><span>⏳ گوگل <b class="num">${N(p.pending)}</b></span><span>ادا <b class="num">${N(p.paid)}</b></span><span class="av">✅ تیار <b class="num">${N(p.avail)}</b></span></div>
-      ${p.acct ? `<div class="pca">${a.qr ? `<img src="${a.qr}" onclick="v2Img(this.src)">` : ''}<div>🏦 <b>${E(a.method||'')}</b> — ${E(a.title||'')}<br><span class="num">${E(a.number||'')}</span> ${a.number ? CP(a.number) : ''}${a.iban ? `<br><span class="num">${E(a.iban)}</span> ${CP(a.iban)}` : ''}${a.bank ? '<br>' + E(a.bank) : ''}</div></div>` : '<div class="v2mut">🏦 اکاؤنٹ ابھی نہیں لکھا</div>'}
-      <div class="btns"><button onclick="v2Pay(${i})" ${p.avail > 0 ? '' : 'class="sec"'}>✅ ادا کر دیا…</button>${p.kind === 'agent' ? `<button class="sec" onclick="admOpen('${E(p.code)}')">📋 تفصیل</button>` : ''}</div></div>`; }).join('') || '<div class="v2card">ابھی کوئی ایجنٹ / کو-ڈویلپر نہیں</div>'}`;
+      <div class="pcs"><span>Total <b class="num">${N(p.due)}</b></span><span>⏳ Google <b class="num">${N(p.pending)}</b></span><span>Paid <b class="num">${N(p.paid)}</b></span><span class="av">✅ Ready <b class="num">${N(p.avail)}</b></span></div>
+      ${p.acct ? `<div class="pca">${a.qr ? `<img src="${a.qr}" onclick="v2Img(this.src)">` : ''}<div>🏦 <b>${E(a.method||'')}</b> — ${E(a.title||'')}<br><span class="num">${E(a.number||'')}</span> ${a.number ? CP(a.number) : ''}${a.iban ? `<br><span class="num">${E(a.iban)}</span> ${CP(a.iban)}` : ''}${a.bank ? '<br>' + E(a.bank) : ''}</div></div>` : '<div class="v2mut">🏦 No payment account yet</div>'}
+      <div class="btns"><button onclick="v2Pay(${i})" ${p.avail > 0 ? '' : 'class="sec"'}>✅ Mark as Paid…</button>${p.kind === 'agent' ? `<button class="sec" onclick="admOpen('${E(p.code)}')">📋 Details</button>` : ''}</div></div>`; }).join('') || '<div class="v2card">No agents / co-developers yet</div>'}`;
 }
 let payImg = '';
 window.v2Pay = i => { const p = PEOPLE.list[i], a = p.acct || {}; payImg = '';
-  const box = document.createElement('div'); box.className = 'v2modal'; box.innerHTML = `<div class="v2card"><h2>✅ ادائیگی — ${E(p.name)}</h2>
-    <label>رقم</label><input id="pyA" class="num" inputmode="numeric" value="${p.avail || ''}">
+  const box = document.createElement('div'); box.className = 'v2modal'; box.innerHTML = `<div class="v2card"><h2>✅ Payout — ${E(p.name)}</h2>
+    <label>Amount</label><input id="pyA" class="num" inputmode="numeric" value="${p.avail || ''}">
     <label>Payment Method</label><input id="pyM" value="${E(a.method || 'Easypaisa')}">
-    <label>اکاؤنٹ</label><input id="pyN" dir="ltr" value="${E(mask(a.number || a.iban))}">
-    <label>نوٹ / TID</label><input id="pyT">
-    <div class="att"><label>🖼️ رسید کا اسکرین شاٹ<input type="file" accept="image/*" onchange="v2PayImg(this)"></label></div><div class="prev" id="pyP"></div>
-    <div class="btns"><button onclick="v2PayGo(${i})">💾 درج کریں</button><button class="sec" onclick="this.closest('.v2modal').remove()">✖ رہنے دیں</button></div></div>`;
+    <label>Account</label><input id="pyN" dir="ltr" value="${E(mask(a.number || a.iban))}">
+    <label>Note / TID</label><input id="pyT">
+    <div class="att"><label>🖼️ Receipt Screenshot<input type="file" accept="image/*" onchange="v2PayImg(this)"></label></div><div class="prev" id="pyP"></div>
+    <div class="btns"><button onclick="v2PayGo(${i})">💾 Save</button><button class="sec" onclick="this.closest('.v2modal').remove()">✖ Cancel</button></div></div>`;
   document.body.appendChild(box); };
 window.v2PayImg = async inp => { const f = inp.files && inp.files[0]; if(!f) return; payImg = await shrink(f, 1100, .72); $('#pyP').innerHTML = `<img src="${payImg}">`; };
-window.v2PayGo = async i => { const p = PEOPLE.list[i], amount = parseInt(enD($('#pyA').value), 10); if(!(amount > 0)) return alert('رقم لکھیں'); if(!confirm(p.name + ' کو ' + Rs(amount) + ' ادا ہو گئے؟')) return;
-  const r = await finCall({op:'payout', who: p.key, amount, method: $('#pyM').value, acctNo: $('#pyN').value, note: $('#pyT').value, img: payImg}); if(!r || !r.ok) return alert('درج نہیں ہو سکا');
-  document.querySelector('.v2modal') && document.querySelector('.v2modal').remove(); toast('✅ ادائیگی درج'); PEOPLE = null; v2Render(); };
+window.v2PayGo = async i => { const p = PEOPLE.list[i], amount = parseInt(enD($('#pyA').value), 10); if(!(amount > 0)) return alert('Enter amount'); if(!confirm('Paid ' + Rs(amount) + ' to ' + p.name + '?')) return;
+  const r = await finCall({op:'payout', who: p.key, amount, method: $('#pyM').value, acctNo: $('#pyN').value, note: $('#pyT').value, img: payImg}); if(!r || !r.ok) return alert('Could not save');
+  document.querySelector('.v2modal') && document.querySelector('.v2modal').remove(); toast('✅ Payout saved'); PEOPLE = null; v2Render(); };
 window.v2Img = src => { const b = document.createElement('div'); b.className = 'v2modal'; b.onclick = () => b.remove(); b.innerHTML = `<img src="${src}" style="max-width:92vw;max-height:86vh;border-radius:12px;background:#fff">`; document.body.appendChild(b); };
 
 /* ---------- رینڈر ---------- */
+/* ===== AGP1011TU024 (مالک کا حکم، ہیلپ ڈیسک #214 — کو-ڈویلپر کی دوسری تصویر): کو-ڈویلپر / ڈویلپر ہوم ایجنٹ جیسے انداز میں، مکمل انگلش —
+   Company Overview (اس مہینے)، Your Personal Share + Request Withdrawal، All Subscriptions History، My Transactions؛ تقسیم سرور (AGP1011TU023) سے */
+const SPLIT_TXT = 'Google 15% · Maintenance 15% · Agent 15% of the rest · Developer / Co-Developer 50 / 50';
+function t2(list){ return `<div class="v2tiles v2t2">${list.map(x => x.btn ? `<button class="v2tile tq" onclick="${x.btn}">${ic(x.i, 36, '#fff')}<div><span class="tl">${x.t}</span>${x.v != null ? `<b>${x.v}</b>` : ''}</div></button>`
+  : `<div class="v2tile ${x.c}" ${x.go ? `onclick="${x.go}" style="cursor:pointer"` : ''}>${ic(x.i, 36, x.c === 'tw' ? '#0b2a6b' : '#fff')}<div><span class="tl">${x.t}</span><b>${x.v}</b>${x.sub ? `<div class="tsub2">${x.sub}</div>` : ''}</div></div>`).join('')}</div>`; }
+const R0 = n => '<small>Rs.</small> ' + N(n);
+function whoTxt(l){ return l.by === 'agent' ? E(l.code) + (l.agent ? ' — ' + E(l.agent) : '') : l.by === 'dev' ? 'PBT-D (Developer)' : l.by === 'codev' ? 'PBT-C (Co-Developer)' : 'PBT (Company)'; }
+function allSubsTable(m, lim, col){
+  const L = ((m && m.lines) || []).slice().reverse();
+  return table(['S.No','Date','Account / Business','Type','Amount (Rs.)','Brought by','Agent','Dev. Share','Co-Dev. Share','Status'], (lim ? L.slice(0, lim) : L).map((l, i) => `<tr><td>${i+1}</td><td class="n">${dmy(l.ts)}</td><td>${E(l.biz || String(l.rk || '').split('_').pop().toUpperCase() || '—')}</td><td>${l.kind === 'ad' ? 'Ad' : (l.src === 'play' ? 'Google Play' : 'Manual')}</td><td class="n">${N(l.amount)}</td><td>${whoTxt(l)}</td><td class="n">${N(l.sh.agent)}</td><td class="n">${N(l.sh.dev)}</td><td class="n">${N(l.sh.codev)}</td><td>${l.ready ? '<span class="v2st ok">Ready</span>' : '<span class="v2st tr">Google</span>'}</td></tr>`), 'No subscriptions this month');
+}
+function overview(m){
+  const T = (m && m.totals) || {}, L = (m && m.lines) || [], mem = L.filter(l => l.kind === 'mem').length;
+  return `<div class="v2sec v2ov"><div class="v2sh">${ic('coins', 28)}<b>Company Overview <small>(${monName(FMON)} — My City Shines)</small></b><button onclick="v2Go('acc')">View All →</button></div>
+    <div class="v2sb"><div class="v2split en">⚖️ ${SPLIT_TXT}</div>
+    <div class="v2tiles v2t4">${[{c:'tb', i:'users', t:'Total<br>Subscriptions', v:N(mem)}, {c:'tg', i:'coins', t:'Total Subscription<br>Amount', v:R0(m ? m.gross : 0)}, {c:'to', i:'wallet', t:'Google +<br>Maintenance', v:R0((T.google || 0) + (T.maint || 0))}, {c:'tp', i:'bars', t:'Agents<br>Commission', v:R0(T.agent || 0)}].map(x => `<div class="v2tile ${x.c}">${ic(x.i, 34, '#fff')}<div><span class="tl">${x.t}</span><b>${x.v}</b></div></div>`).join('')}</div></div></div>`;
+}
+function profCard(name, type, idLbl, id, ref){
+  const pr = photo();
+  return `<div class="v2card v2pc2"><div class="v2ph" onclick="v2Go('prof')"><img src="${pr || 'img/avatar.png'}"></div>
+    <div class="pci"><div class="anm">${E(name)}</div><div class="aty">Account Type: <b>${type}</b></div><div class="aact"><span>${ic('check', 16, '#fff')} ${type}</span></div></div>
+    <div class="pcr"><div class="aid">${idLbl}: <span>${E(id)}</span></div>${ref ? `<div class="v2ref2"><span>Referral Code:</span><button class="rc" onclick="cpy('${E(ref)}')">${E(ref)} ${ic('copy', 18)}</button></div>` : ''}</div></div>`;
+}
+function cdHome(f, m, c){
+  const cur = (f.months || []).find(x => x.mon === FMON) || {amt: 0};
+  return `${profCard((CDV && CDV.name) || 'Co-Developer', 'Co-Developer', 'Co-Developer ID', ph0(c.phone), 'PBT-C')}
+    ${overview(m)}
+    <div class="v2sec"><div class="v2sh">${ic('user', 28)}<b>Your Personal Share <small>(${E((CDV && CDV.name) || '')})</small></b></div><div class="v2sb">
+    ${t2([{c:'tp', i:'coins', t:'Co-Developer Share<br>(This Month)', v:R0(cur.amt)}, {c:'tb', i:'bars', t:'Total<br>Earnings', v:R0(f.due), sub:'Ready: ' + Rs(f.ready)}, {c:'to', i:'wallet', t:'Total<br>Withdrawals', v:R0(f.paid)}, {c:'tw', i:'wallet', t:'Your Balance', v:R0(f.balance)}, {btn:'v2WdReq()', i:'send', t:'Request<br>Withdrawal'}])}
+    ${f.req ? `<div class="v2ok en">⏳ Withdrawal request of <b class="num">${Rs(f.req.amount)}</b> sent on ${dmy(f.req.ts)} — Pending</div>` : ''}</div></div>
+    ${sec('cal', 'All Subscriptions History <small>(Company Record)</small>', allSubsTable(m, 5), 'acc')}
+    ${sec('wallet', 'My Personal Transactions <small>(Withdrawals)</small>', wdTable(f, 3), 'wd')}`;
+}
+function devHome(m, P, reqs, owe){
+  const T = (m && m.totals) || {}, L = (P && P.list) || [], paid = L.reduce((a, p) => a + (p.paid || 0), 0);
+  return `${profCard('PBT Code Labs', 'Developer', 'Developer ID', 'DV-OWNER', 'PBT-D')}
+    ${overview(m)}
+    <div class="v2sec"><div class="v2sh">${ic('user', 28)}<b>Your Personal Share <small>(Developer)</small></b></div><div class="v2sb">
+    ${t2([{c:'tp', i:'coins', t:'Developer Share<br>(This Month)', v:R0(T.dev || 0)}, {c:'tb', i:'bars', t:'Co-Developer Share<br>(This Month)', v:R0(T.codev || 0)}, {c:'tg', i:'check', t:m && m.recv ? '✅ Received<br>from Google' : '⏳ Pending<br>from Google', v:R0(m ? (m.recv ? m.recv.amount : m.play - m.gEst) : 0), go:"v2Go('acc')"}, {c:'to', i:'wallet', t:'Total Paid<br>to Team', v:R0(paid)}, {c:'tw', i:'wallet', t:'Ready — To Pay', v:R0(owe), go:"v2Go('pay')"}, {btn:"v2Go('pay')", i:'send', t:'Withdrawal<br>Requests', v: String(reqs)}])}</div></div>
+    ${sec('cal', 'All Subscriptions History <small>(Company Record)</small>', allSubsTable(m, 5), 'acc')}
+    <div class="v2card"><div class="v2list"><button onclick="v2Go('acc')">💰 This month's accounts / Google receipt / Ads</button><button onclick="v2Go('pay')">✅ Payouts — accounts and QR</button><button onclick="admInbox()">💬 All Chats</button><button onclick="v2Go('agents')">🤝 Agents</button></div></div>`;
+}
 async function v2Render(){
   const rk = ROLEK();
   try{
@@ -226,15 +268,14 @@ async function v2Render(){
     if(rk === 'codev'){
       if(!CDME && !(await cdLoad())) return cdLogin('Please log in again');
       const c = ls.get('cd') || {}; FMON = FMON || monNow();
-      if(TAB === 'acc' && !FM) FM = await post('/fin2', {as:'cd', phone: c.phone, pin: c.pin, op:'month', mon: FMON});
+      if((TAB === 'acc' || TAB === 'home') && !FM) FM = await post('/fin2', {as:'cd', phone: c.phone, pin: c.pin, op:'month', mon: FMON});
       const f = CDME;
       const body = TAB === 'acc' ? monthHtml(FM, true)
+        : TAB === 'wd' ? wdFull(f)
         : TAB === 'tx' ? txFull(f)
         : TAB === 'earn' ? earnHtml(f) + stmtBtn()
-        : TAB === 'prof' ? profHtml((CDV && CDV.name) || 'کو-ڈویلپر', `<div class="v2mut">📱 <span class="num">${E(ph0(c.phone))}</span></div>`, f.acct)
-        : `<div class="v2card v2prof"><div class="v2ph" onclick="v2Go('prof')"><img src="${photo() || 'img/avatar.png'}"></div><div class="v2pi"><div class="aid">Co-Developer</div><div class="anm">${E((CDV && CDV.name) || '')}</div><div class="aact"><span>${ic('check', 18, '#fff')} Active</span></div></div></div>
-           ${tiles([{c:'tb', i:'coins', t:'Total Earnings', v:'<small>Rs.</small> ' + N(f.due)}, {c:'tg', i:'check', t:'✅ Ready', v:'<small>Rs.</small> ' + N(f.ready)}, {c:'tp', i:'cal', t:'⏳ Google Pending', v:'<small>Rs.</small> ' + N(f.pending)}, {c:'to', i:'wallet', t:'Received Amount', v:'<small>Rs.</small> ' + N(f.paid), sub:`Balance: <em>${Rs(f.balance)}</em>`}])}
-           ${sec('coins', 'Transaction History', txTable(f, 3), 'tx')}`;
+        : TAB === 'prof' ? profHtml((CDV && CDV.name) || 'Co-Developer', `<div class="v2mut">📱 <span class="num">${E(ph0(c.phone))}</span></div>`, f.acct)
+        : cdHome(f, FM, c);
       page('codev', body); badge(f.unread); return;
     }
     FMON = FMON || monNow();
@@ -245,10 +286,8 @@ async function v2Render(){
     const body = TAB === 'acc' ? monthHtml(FM, false)
       : TAB === 'pay' ? payoutsHtml(PEOPLE)
       : TAB === 'agents' ? '<div id="v2ag"><div class="v2card">⏳ …</div></div>'
-      : TAB === 'prof' ? profHtml('ڈویلپر — PBT Code Labs', '<div class="v2mut">👨‍💻 سب ایجنٹ، حساب، ادائیگیاں</div><button class="sec" style="margin-top:6px" onclick="v2Log()">📜 حساب کا آڈٹ لاگ</button>', false)
-      : `<div class="v2card v2prof"><div class="v2ph" onclick="v2Go('prof')"><img src="${photo() || 'img/avatar.png'}"></div><div class="v2pi"><div class="aid">Developer</div><div class="anm">PBT Code Labs</div><div class="aact"><span>${ic('check', 18, '#fff')} Owner</span></div></div></div>
-         ${tiles([{c:'tb', i:'coins', t:'اس مہینے<br>کل وصولی', v:'<small>Rs.</small> ' + N(FM.gross)}, {c:'tg', i:'check', t:FM.recv ? '✅ گوگل سے وصول' : '⏳ گوگل سے آنا باقی', v:'<small>Rs.</small> ' + N(FM.recv ? FM.recv.amount : FM.play - FM.gEst)}, {c:'tp', i:'users', t:'تیار — ادا کرنا ہے', v:'<small>Rs.</small> ' + N(owe)}, {c:'to', i:'wallet', t:'🙏 درخواستیں', v: N(reqs)}])}
-         <div class="v2card"><div class="v2list"><button onclick="v2Go('acc')">💰 اس مہینے کا حساب / گوگل وصولی / اشتہار</button><button onclick="v2Go('pay')">✅ ادائیگیاں — اکاؤنٹ اور QR</button><button onclick="admInbox()">💬 سب چیٹس</button><button onclick="v2Go('agents')">🤝 ایجنٹ</button></div></div>`;
+      : TAB === 'prof' ? profHtml('Developer — PBT Code Labs', '<div class="v2mut">👨‍💻 All agents, accounts and payouts</div><button class="sec" style="margin-top:6px" onclick="v2Log()">📜 Accounts Audit Log</button>', false)
+      : devHome(FM, PEOPLE, reqs, owe);
     page('dev', body); if(TAB === 'acc') mcsAdsLoad();
     if(TAB === 'agents'){ const sv = app.innerHTML; await admHome(); const inner = app.innerHTML; app.innerHTML = sv; const el = $('#v2ag'); if(el) el.innerHTML = inner; }
   }catch(e){ app.innerHTML = `<div class="v2wrap">${hero(rk)}<div class="v2body"><div class="v2card">📶 No internet — <button onclick="v2Render()">🔄 Retry</button></div></div>${navBar(rk)}</div>`; }
@@ -388,14 +427,14 @@ window.v2ChPin = async () => { const o = $('#cpO').value, n = $('#cpN').value, r
   toast('✅ PIN changed' + (rk === 'agent' ? ' — use the new PIN in My City Shines too' : '')); $('#cpO').value = $('#cpN').value = ''; };
 window.v2Log = async () => { const r = await finCall({op:'log'}); const L = (r && r.list) || [];
   const b = document.createElement('div'); b.className = 'v2modal'; b.onclick = e => { if(e.target === b) b.remove(); };
-  b.innerHTML = `<div class="v2card"><h2>📜 حساب کا آڈٹ لاگ</h2>${table(['وقت','کام','تفصیل'], L.map(x => `<tr><td class="n">${new Date(x.ts).toLocaleString('en-GB')}</td><td>${E(x.op)}</td><td style="text-align:left;font-size:11px">${E(x.data)}</td></tr>`), 'ابھی کچھ نہیں')}<div class="btns"><button class="sec" onclick="this.closest('.v2modal').remove()">✖ Close</button></div></div>`;
+  b.innerHTML = `<div class="v2card"><h2>📜 Accounts Audit Log</h2>${table(['Time','Action','Details'], L.map(x => `<tr><td class="n">${new Date(x.ts).toLocaleString('en-GB')}</td><td>${E(x.op)}</td><td style="text-align:left;font-size:11px">${E(x.data)}</td></tr>`), 'Nothing yet')}<div class="btns"><button class="sec" onclick="this.closest('.v2modal').remove()">✖ Close</button></div></div>`;
   document.body.appendChild(b); };
 /* ===== AGP0911MO021 (مالک کا حکم): «لانے والا» فہرست — نام + کوڈ؛ My City Shines کے اشتہار پورٹل میں پڑھ کر حساب میں (MCS ایپ میں کوئی رقم نہیں) ===== */
 function bringerSel(id){
   const L = (PEOPLE && PEOPLE.list) || [], ag = L.filter(p => p.kind === 'agent'), cd = L.find(p => p.kind === 'codev');
-  return `<select id="${id}" dir="ltr" style="font-family:MCSDigits,Noori,'Segoe UI',sans-serif"><option value="">— لانے والا چنیں —</option>
-    <optgroup label="🤝 ایجنٹ">${ag.map(a => `<option value="${E(a.code)}">${E(a.code)} — ${E(a.name)}</option>`).join('') || '<option disabled>ابھی کوئی ایجنٹ نہیں</option>'}</optgroup>
-    <optgroup label="🏢 PBT"><option value="PBT-D">PBT-D — ڈویلپر (خود لایا)</option><option value="PBT-C">PBT-C — کو-ڈویلپر${cd ? ' (' + E(cd.name) + ')' : ''} (خود لایا)</option><option value="PBT">PBT — کمپنی (خود آیا، آدھا آدھا)</option></optgroup></select>`;
+  return `<select id="${id}" dir="ltr" style="font-family:MCSDigits,Noori,'Segoe UI',sans-serif"><option value="">— Choose Brought by —</option>
+    <optgroup label="🤝 Agents">${ag.map(a => `<option value="${E(a.code)}">${E(a.code)} — ${E(a.name)}</option>`).join('') || '<option disabled>No agents yet</option>'}</optgroup>
+    <optgroup label="🏢 PBT"><option value="PBT-D">PBT-D — Developer (self)</option><option value="PBT-C">PBT-C — Co-Developer${cd ? ' (' + E(cd.name) + ')' : ''} (self)</option><option value="PBT">PBT — Company (walk-in, 50/50)</option></optgroup></select>`;
 }
 const FSV = v => v == null ? null : 'stringValue' in v ? v.stringValue : 'integerValue' in v ? +v.integerValue : 'doubleValue' in v ? +v.doubleValue : 'booleanValue' in v ? v.booleanValue : 'nullValue' in v ? null : v.mapValue ? Object.fromEntries(Object.entries(v.mapValue.fields || {}).map(([k, x]) => [k, FSV(x)])) : v.arrayValue ? (v.arrayValue.values || []).map(FSV) : null;
 let MCSADS = null;
@@ -405,14 +444,14 @@ async function mcsAdsLoad(){
     if(!MCSADS){ const r = await (await fetch('https://firestore.googleapis.com/v1/projects/my-city-shines/databases/(default)/documents/appConfig/ads?key=' + FB_KEY + '&mask.fieldPaths=list')).json(); MCSADS = ((r.fields && FSV(r.fields.list)) || []).filter(Boolean); }
     const done = await finCall({op:'xads'}); const got = new Set(((done && done.list) || []).map(x => x.rk));
     const paid = MCSADS.filter(a => a.free === false), todo = paid.filter(a => !got.has('ad:' + a.id)), free = MCSADS.length - paid.length;
-    box.innerHTML = `<h2>📢 My City Shines کے اشتہار</h2><div class="v2mut">یہ فہرست My City Shines سے صرف پڑھی جاتی ہے — رقم صرف یہاں MCS Agent میں درج ہوتی ہے، My City Shines ایپ میں کہیں نہیں۔ ${free ? `(${free} مفت اشتہار شمار نہیں)` : ''}</div>
-      ${todo.length ? todo.map(a => `<div class="v2pc"><div class="pch"><b>📢 ${E(a.title)}</b></div><div class="pcs"><span>👤 ${E(a.owner || '—')}</span><span class="num">📱 ${E(ph0(a.phone) || '—')}</span><span>📅 ${dmy(a.id)} → ${dmy(a.until)}</span></div><div class="btns"><button onclick="v2AdPick(${+a.id})">➕ حساب میں درج کریں</button></div></div>`).join('')
-        : '<div class="v2ok">✅ سب پیڈ اشتہار حساب میں درج ہیں</div>'}
-      ${paid.length - todo.length ? `<div class="v2mut">✔️ ${paid.length - todo.length} اشتہار پہلے سے درج</div>` : ''}`;
-  }catch(e){ box.innerHTML = '<h2>📢 My City Shines کے اشتہار</h2><div class="v2warn">📶 فہرست نہیں آ سکی — دوبارہ کھولیں</div>'; }
+    box.innerHTML = `<h2>📢 My City Shines Ads</h2><div class="v2mut">This list is only read from My City Shines — amounts are recorded only here in MCS Agent, never in the My City Shines app. ${free ? `(${free} free ads not counted)` : ''}</div>
+      ${todo.length ? todo.map(a => `<div class="v2pc"><div class="pch"><b>📢 ${E(a.title)}</b></div><div class="pcs"><span>👤 ${E(a.owner || '—')}</span><span class="num">📱 ${E(ph0(a.phone) || '—')}</span><span>📅 ${dmy(a.id)} → ${dmy(a.until)}</span></div><div class="btns"><button onclick="v2AdPick(${+a.id})">➕ Add to accounts</button></div></div>`).join('')
+        : '<div class="v2ok">✅ All paid ads are recorded</div>'}
+      ${paid.length - todo.length ? `<div class="v2mut">✔️ ${paid.length - todo.length} Ad already recorded</div>` : ''}`;
+  }catch(e){ box.innerHTML = '<h2>📢 My City Shines Ads</h2><div class="v2warn">📶 Could not load — open again</div>'; }
 }
 window.v2AdPick = id => { const a = (MCSADS || []).find(x => +x.id === id); if(!a) return;
   $('#xK').value = 'ad'; $('#xA').value = a.price > 0 ? a.price : ''; $('#xB').value = a.title + (a.owner ? ' — ' + a.owner : ''); $('#xRk').value = 'ad:' + a.id; $('#xR').value = '';
   const f = $('#xA').closest('.v2card'); f.scrollIntoView({behavior: 'smooth', block: 'center'}); f.classList.add('hl'); setTimeout(() => f.classList.remove('hl'), 1800);
-  toast(a.price > 0 ? 'رقم دیکھ کر «لانے والا» چنیں' : 'رقم لکھیں اور «لانے والا» چنیں'); };
+  toast(a.price > 0 ? 'Check amount and choose «Brought by»' : 'Enter amount and choose «Brought by»'); };
 })();

@@ -150,3 +150,20 @@ body.v2,.v2card,.v2note,.v2ok,.v2warn,.v2mut,.v2list button,.lu,.lrem,.lfg,.v2ro
 @media (max-width:380px){.v2t2 .v2tile{padding:8px;gap:7px;min-height:72px}.v2t2 .v2tile svg{width:28px;height:28px}.v2t2 .v2tile .tl{font-size:12px}.v2t2 .v2tile b{font-size:20px}.v2t2 .v2tile.tq .tl{font-size:13px}}
 
 .en{direction:ltr;text-align:left;font-family:Arial,'Segoe UI',Roboto,sans-serif}.v2btn.en{text-align:center}
+/* AGP1011TU024: کو-ڈویلپر / ڈویلپر ہوم + پورا پورٹل انگلش (بائیں سے دائیں) */
+.v2body.en,.v2body.en .v2sh b,.v2body.en h2,.v2body.en .anm,.v2body.en .aid,.v2body.en .tl{font-family:Arial,'Segoe UI',Roboto,sans-serif}
+.v2body.en .v2sh b small{font-weight:600;opacity:.85;font-size:.72em}
+.v2tiles.v2t4{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:8px 0 2px}
+.v2t4 .v2tile{flex-direction:row;align-items:center;justify-content:flex-start;gap:9px;text-align:left;padding:10px;min-height:76px}
+.v2t4 .v2tile>div{display:flex;flex-direction:column}.v2t4 .v2tile .tl{min-height:0;margin:0 0 3px;font-size:12.5px;display:block}.v2t4 .v2tile b{font-size:21px}
+.v2t2 .v2tile .tsub2{font-size:11.5px;font-weight:800;opacity:.9;margin-top:2px}
+.v2split{background:#fff7e8;border:1.5px solid #e6d6b2;border-radius:12px;padding:7px 10px;font-size:12.5px;font-weight:800;color:#0b2a6b;text-align:center}
+.v2prof .aty{font-size:13px;color:#0b2a6b;margin:2px 0}
+@media (min-width:700px){.v2tiles.v2t4{grid-template-columns:repeat(4,1fr)}}
+@media (max-width:380px){.v2t4 .v2tile{padding:8px;gap:6px}.v2t4 .v2tile svg{width:26px;height:26px}.v2t4 .v2tile b{font-size:17px}.v2t4 .v2tile .tl{font-size:11px}}
+.v2pc2{display:grid;grid-template-columns:auto 1fr;grid-template-areas:'ph pci' 'pcr pcr';gap:6px 12px;align-items:center;direction:ltr;margin-top:-6px}
+.v2pc2 .v2ph{grid-area:ph;width:76px;height:76px}.v2pc2 .pci{grid-area:pci;min-width:0}.v2pc2 .pcr{grid-area:pcr;display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;border-top:1.5px solid #dbe5f5;padding-top:7px}
+.v2pc2 .anm{font-size:21px;font-weight:900;color:#0b1f4d}.v2pc2 .aid{font-size:13.5px;color:#1b2f5e;font-weight:700}.v2pc2 .aid span{background:#e3ecfb;border-radius:8px;padding:1px 7px}
+.v2pc2 .v2ref2{margin:0}
+@media (min-width:700px){.v2pc2{grid-template-columns:auto 1fr auto;grid-template-areas:'ph pci pcr'}.v2pc2 .pcr{border-top:0;border-left:2px solid #1b2f5e55;padding:0 0 0 14px;flex-direction:column;align-items:flex-start}}
+.v2body.en .v2card,.v2body.en .v2card *:not(svg):not(path):not(circle):not(rect):not(ellipse){font-family:Arial,'Segoe UI',Roboto,sans-serif}
