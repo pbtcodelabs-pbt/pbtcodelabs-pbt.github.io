@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD0911MO068';
-const UPDATE_NOTE = '📱 پورٹل ایپ کا نیا نام «MCS Agent»';
+const APP_VERSION = 'HD1011TU069';
+const UPDATE_NOTE = '⏰ جائزے کا نیا وقت — روزانہ صبح 7 بجے اور شام 7 بجے';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -41,9 +41,9 @@ const DICT = {
   mine: ['میرے مسائل', 'My requests'],
   mineSub: ['جو آپ نے بھیجے — حالت اور جواب', 'what you sent — status & reply'],
   hours: ['جواب کا وقت', 'Reply hours'],
-  hoursDef: ['روزانہ صبح 11 بجے اور رات ساڑھے 8 بجے — ہر مسئلہ باری سے دیکھا اور حل کیا جاتا ہے', 'Daily at 11 AM and 8:30 PM — every request is reviewed and fixed in turn'],
+  hoursDef: ['روزانہ صبح 7 بجے اور شام 7 بجے — ہر مسئلہ باری سے دیکھا اور حل کیا جاتا ہے', 'Daily at 7 AM and 7 PM — every request is reviewed and fixed in turn'],
   nextRev: ['اگلا جائزہ', 'Next review'],
-  slotToday2pm: ['آج صبح 11 بجے', 'today 11 AM'], slotTonight: ['آج رات ساڑھے 8 بجے', 'tonight 8:30 PM'], slotTomorrow: ['کل صبح 11 بجے', 'tomorrow 11 AM'],
+  slotToday2pm: ['آج صبح 7 بجے', 'today 7 AM'], slotTonight: ['آج شام 7 بجے', 'today 7 PM'], slotTomorrow: ['کل صبح 7 بجے', 'tomorrow 7 AM'],
   camera: ['کیمرہ', 'Camera'],
   close: ['بند کریں', 'Close'],
   whyHere: ['یہاں لکھا ہر مسئلہ محفوظ رہتا ہے، گم نہیں ہوتا، اور حل ہوتے ہی جواب یہیں آ جاتا ہے۔ واٹس ایپ پر بھیجنے کی ضرورت نہیں۔',
@@ -197,7 +197,7 @@ function rememberMine(id, s) { const seen = ls.get('seen', {}); seen[id] = s; ls
 /* HD0511TH042 (مالک کا حکم): اگلا جائزہ صبح 11 بجے اور رات ساڑھے 8 بجے (پاکستانی وقت) — صرف حساب */
 function nextReview() {
   const d = new Date(Date.now() + 5 * 3600e3), m = d.getUTCHours() * 60 + d.getUTCMinutes(); // PKT = UTC+5
-  return m < 11 * 60 ? T('slotToday2pm') : m < 20 * 60 + 30 ? T('slotTonight') : T('slotTomorrow');
+  return m < 7 * 60 ? T('slotToday2pm') : m < 19 * 60 ? T('slotTonight') : T('slotTomorrow');   /* HD1011TU069: سردیوں کا وقت — صبح 7 / شام 7 */
 }
 const revLine = () => `<div class="rev">⏰ ${T('nextRev')}: <b>${nextReview()}</b></div>`;
 
@@ -966,7 +966,7 @@ function urgSwitch(i) {
 function ownChoice(i) {
   const E = LANG === 'en', cur = i.urgent ? 'now' : i.hold === 'draft' ? 'draft' : 'next';
   const B = (k, ic, ur, en) => `<button class="oc ${cur === k ? 'on' : ''}" data-act="ownPick" data-id="${i.id}|${k}">${ic}<b>${E ? en : ur}</b></button>`;
-  const msg = cur === 'now' ? (E ? '⚡ Urgent — Claude is on it now' : '⚡ فوری — Claude ابھی کام کر رہا ہے') : cur === 'draft' ? (E ? '📝 Draft — kept as a note, no work until you choose' : '📝 ڈرافٹ — صرف یادداشت، جب تک آپ نہ کہیں کام نہیں ہوگا') : (E ? '⏭️ Will be done in the next review (11 AM / 8:30 PM)' : '⏭️ اگلے جائزے (صبح 11 / رات ساڑھے 8 بجے) میں ہوگا');
+  const msg = cur === 'now' ? (E ? '⚡ Urgent — Claude is on it now' : '⚡ فوری — Claude ابھی کام کر رہا ہے') : cur === 'draft' ? (E ? '📝 Draft — kept as a note, no work until you choose' : '📝 ڈرافٹ — صرف یادداشت، جب تک آپ نہ کہیں کام نہیں ہوگا') : (E ? '⏭️ Will be done in the next review (7 AM / 7 PM)' : '⏭️ اگلے جائزے (صبح 7 / شام 7 بجے) میں ہوگا');
   return `<div class="ownCh"><div class="ocR">${B('now', '⚡', 'فوری کام کریں', 'Urgent now')}${B('draft', '📝', 'ڈرافٹ رکھیں', 'Keep as draft')}${B('next', '⏭️', 'اگلے جائزے پر', 'Next review')}</div><div class="ocM">${msg}</div></div>`;
 }
 /* HD0511TH051 (مالک کا حکم): ہوم پر پیلی پٹی — «محترم عبدالحفیظ! یہ مسائل آپ کی منظوری کے منتظر ہیں» + گنتی؛ دبائیں تو سب ایک جگہ */
@@ -1005,7 +1005,7 @@ function urgBtn(i) {
   return `<button class="urgSw ${on ? 'on' : ''}" data-act="urgent" data-id="${i.id}" aria-pressed="${on}">
     <span class="uI">⚡</span>
     <span class="uT"><b>${on ? (i.status === 'done' ? (E ? 'URGENT — DONE ✅' : 'فوری کام — مکمل ✅') : (E ? 'URGENT — ON' : 'فوری — آن ہے')) : (E ? 'Make it urgent' : 'فوری کروائیں')}</b>
-      <small>${on ? (E ? 'Claude does this first · tap again to turn off' : 'Claude یہ سب سے پہلے کرے گا · بند کرنے کے لیے دوبارہ دبائیں') : (E ? 'Now: off — will be done in the next round (11 AM / 8:30 PM)' : 'ابھی بند ہے — یہ اگلی باری (صبح 11 / رات ساڑھے 8 بجے) میں ہوگا')}</small></span>
+      <small>${on ? (E ? 'Claude does this first · tap again to turn off' : 'Claude یہ سب سے پہلے کرے گا · بند کرنے کے لیے دوبارہ دبائیں') : (E ? 'Now: off — will be done in the next round (7 AM / 7 PM)' : 'ابھی بند ہے — یہ اگلی باری (صبح 7 / شام 7 بجے) میں ہوگا')}</small></span>
     <span class="uK"><i></i></span></button>`;
 }
 function urgMsg(i) { const a = appOf(i.app); return `⚡ فوری: ہیلپ ڈیسک #${i.no} (${AN(a)}) — ابھی حل کر کے لائیو کریں`; }
@@ -1015,7 +1015,7 @@ function urgSheet(i) {
     <p style="font-size:15px;line-height:2">${E ? 'To start right now, send this one line to Claude:' : 'ابھی اسی وقت کام شروع کروانے کے لیے یہ ایک لائن Claude کو بھیج دیں:'}</p>
     <div class="card" style="box-shadow:none;background:#fff7ed;border:1.5px solid #fb923c;font-weight:700" dir="auto">${esc(urgMsg(i))}</div>
     <button class="bigBtn" style="background:linear-gradient(135deg,#f97316,#ea580c)" data-act="urgTell" data-id="${i.id}">📋 ${E ? 'Copy & open Claude chat' : 'کاپی کر کے Claude کی چیٹ کھولیں'}</button>
-    <p style="font-size:13px;color:var(--mut);margin:8px 0 0">${E ? 'Not sent now? It will still be done first in the next round (11 AM / 8:30 PM).' : 'ابھی نہ بھیجیں تو بھی اگلی باری (صبح 11 / رات ساڑھے 8 بجے) میں سب سے پہلے یہی ہوگا۔'}</p>`);
+    <p style="font-size:13px;color:var(--mut);margin:8px 0 0">${E ? 'Not sent now? It will still be done first in the next round (7 AM / 7 PM).' : 'ابھی نہ بھیجیں تو بھی اگلی باری (صبح 7 / شام 7 بجے) میں سب سے پہلے یہی ہوگا۔'}</p>`);
 }
 const pushOn = () => { try { return window.Notification && Notification.permission === 'granted' && localStorage.getItem('pbthd_push') === '1'; } catch (e) { return false; } };
 const isUrg = i => !!i.urgent && i.status !== 'dup' && i.status !== 'done' && i.stage !== 'done'; // HD0511TH045 (مالک کا حکم): مکمل ہوتے ہی ⚡ فہرست سے غائب — دیکھنا ہو تو «✅ حل» ٹیب
@@ -1422,7 +1422,7 @@ document.addEventListener('click', async e => {
       if (on) document.querySelectorAll(`[data-urgbox="${i.id}"] .urgSw`).forEach(b => { b.classList.add('burst'); setTimeout(() => b.classList.remove('burst'), 1600); });
       const hp = on && i.hold === 'decide' ? { hold: 'go' } : {}; Object.assign(i, hp);   // HD0511TH051: ⚡ = منظوری
       try { await Store.update(i.id, Object.assign({ urgent: on, stage: i.stage, stageAt: i.stageAt }, hp)); } catch (e) { i.urgent = !on; toast('⚠️ ' + (e.message || e), 4000); break; }
-      if (on) setTimeout(() => urgSheet(i), 1100); else toast(LANG === 'en' ? '⏸️ Urgent off — it will be done in the next round (11 AM / 8:30 PM)' : '⏸️ فوری بند — اب یہ اگلی باری (صبح 11 / رات ساڑھے 8 بجے) میں ہوگا', 4000);
+      if (on) setTimeout(() => urgSheet(i), 1100); else toast(LANG === 'en' ? '⏸️ Urgent off — it will be done in the next round (7 AM / 7 PM)' : '⏸️ فوری بند — اب یہ اگلی باری (صبح 7 / شام 7 بجے) میں ہوگا', 4000);
       break; }
     case 'urgRetry': { const i = ISSUES.find(x => x.id === id); if (!i) break;
       document.querySelectorAll(`.rsBtn[data-id="${i.id}"],.rsCorner[data-id="${i.id}"]`).forEach(b => b.classList.add('go'));
