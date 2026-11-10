@@ -52,12 +52,12 @@ button.sec{background:var(--line);color:var(--ink)}button.red{background:#fee2e2
 @media print{header,.foot,.noP,#tst{display:none!important}body{background:#fff}.card{box-shadow:none;break-inside:avoid}main{margin:0;max-width:none}}
 .foot{text-align:center;font-size:12px;color:var(--mut);margin:20px 0}
 </style>
-<link rel="stylesheet" href="ui2.css?v=AGP1011TU022">
+<link rel="stylesheet" href="ui2.css?v=AGP1011TU024">
 </head>
 <body>
 <header style="position:relative"><button onclick="openHelpDesk()" title="Help Desk — مسائل و تجاویز" style="position:absolute;left:12px;top:12px;background:none;padding:0;border:0"><span class="pbthd-sos" style="display:inline-flex;align-items:center;gap:4px;background:linear-gradient(#fde047,#facc15);color:#111;border-radius:999px;padding:2px 9px;font:800 12px/1.35 Arial,sans-serif;box-shadow:0 2px 0 #ca8a04;white-space:nowrap;vertical-align:middle;direction:ltr"><b style="background:#111;color:#facc15;border-radius:50%;width:15px;height:15px;display:inline-flex;align-items:center;justify-content:center;font-size:11px">?</b>Help Desk</span></button><h1 id="hdT">🤝 MCS Agent</h1><small id="hdS">ایجنٹ · کو-ڈویلپر · ڈویلپر — PBT Code Labs</small></header>
 <main id="app"></main>
-<div class="foot"><a href="guide.html" style="color:var(--pri);font-weight:800">📄 How to Become an MCS Agent (Print / PDF)</a><br><a href="#" onclick="roleSwitch();return false" style="color:var(--pri);font-weight:800">🔄 Switch Login (Agent / Co-Developer / Developer)</a><br>PBT Code Labs · <span class="num" id="agpVer">AGP1011TU022</span></div>
+<div class="foot"><a href="guide.html" style="color:var(--pri);font-weight:800">📄 How to Become an MCS Agent (Print / PDF)</a><br><a href="#" onclick="roleSwitch();return false" style="color:var(--pri);font-weight:800">🔄 Switch Login (Agent / Co-Developer / Developer)</a><br>PBT Code Labs · <span class="num" id="agpVer">AGP1011TU024</span></div>
 <script>
 const API = 'https://aio-pos-verify.pbtcodelabs.workers.dev';
 const FB_KEY = 'AIzaSyAvu8ymIZAGEPaYwd_LBJzKS2lZ3Q4_Mog'; // My City Shines (ایڈمن لاگ اِن)
@@ -71,7 +71,7 @@ function toast(t){ let el = document.getElementById('tst'); if(!el){ el = docume
 const D = t => t ? new Date(t).toLocaleDateString('en-GB') : '—';
 const ls = { get(k, d){ try{ const v = localStorage.getItem('agp_' + k); return v ? JSON.parse(v) : d; }catch(e){ return d; } }, set(k, v){ try{ localStorage.setItem('agp_' + k, JSON.stringify(v)); }catch(e){} }, del(k){ try{ localStorage.removeItem('agp_' + k); }catch(e){} } };
 /* AGP0911MO013 (مالک کا حکم، ہیلپ ڈیسک #174): ایک ہی «PBT Portal» ایپ (APK) — پہلے صفحے پر تین لاگ اِن؛ پچھلا چنا ہوا کردار یاد (agp_role) */
-const AGP_VER = 'AGP1011TU022';
+const AGP_VER = 'AGP1011TU024';
 const ROLE = location.hash.startsWith('#admin') ? 'admin' : location.hash.startsWith('#codev') ? 'codev' : location.hash.startsWith('#agent') ? 'agent' : (ls.get('role', '') || '');
 const ADMIN = ROLE === 'admin', CODEV = ROLE === 'codev';
 function roleGo(r){ ls.set('role', r); location.hash = '#' + r; location.reload(); }
@@ -239,7 +239,7 @@ async function admHome(){
    لانے والا: ایجنٹ / PBT-D ڈویلپر / PBT-C کو-ڈویلپر؛ PBT (خود آیا) = 170 آدھا آدھا */
 const SH = {price:1000, g:150, m:150, a:170, d:265, c:265};
 const monNow = () => { const t = new Date(Date.now() + 5*3600e3); return t.getUTCFullYear() + '_' + String(t.getUTCMonth()+1).padStart(2,'0'); };
-const MN = ['جنوری','فروری','مارچ','اپریل','مئی','جون','جولائی','اگست','ستمبر','اکتوبر','نومبر','دسمبر'];
+const MN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const monName = m => { const [y, mm] = m.split('_'); return MN[+mm-1] + ' ' + y; };
 const monStep = (m, k) => { let [y, mm] = m.split('_').map(Number); mm += k; if(mm < 1){ mm = 12; y--; } if(mm > 12){ mm = 1; y++; } return y + '_' + String(mm).padStart(2,'0'); };
 let finMon = '';
@@ -392,7 +392,7 @@ function openHelpDesk(){
   location.href = 'https://pbtcodelabs-pbt.github.io/help/?' + new URLSearchParams({app: 'PBT-Portal', v: AGP_VER, phone: o.phone, name: o.name, text: o.text}) + '#/new/PBT-Portal';
 }
 </script>
-<script src="ui2.js?v=AGP1011TU022"></script>
-<script src="https://pbtcodelabs-pbt.github.io/help/widget.js" data-app="PBT-Portal" data-ver="AGP1011TU022" defer></script>
+<script src="ui2.js?v=AGP1011TU024"></script>
+<script src="https://pbtcodelabs-pbt.github.io/help/widget.js" data-app="PBT-Portal" data-ver="AGP1011TU024" defer></script>
 </body>
 </html>
