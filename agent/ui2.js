@@ -175,7 +175,7 @@ function monthHtml(m, ro){
       <label>Brought by — choose by name and code</label>${bringerSel('xR')}
       <label>Business Name / Note</label><input id="xB"><input type="hidden" id="xRk"><div class="btns"><button onclick="v2Xadd()">💾 Save — split automatically</button></div></div>
       <div class="v2card" id="mcsAds"><h2>📢 My City Shines Ads</h2><div class="v2mut">⏳ …</div></div>`}
-    ${sec('coins', 'Sales / Receipts (' + m.lines.length + ')', table(['Date','Type','Amount','Brought by','Agent','Developer','Co-Developer'], m.lines.slice().reverse().map(l => `<tr><td class="n">${dmy(l.ts)}</td><td>${l.kind === 'ad' ? '📢' : '⭐'} ${l.src === 'play' ? '▶️' : '🏦'}${l.units > 1 ? ' ×' + l.units : ''}${l.manual && !ro ? ` <button class="sm" onclick="v2Xdel('${l.id}')">✖</button>` : ''}</td><td class="n">${N(l.amount)}</td><td>${who(l)}</td><td class="n">${N(l.sh.agent)}</td><td class="n">${N(l.sh.dev)}</td><td class="n">${N(l.sh.codev)}</td></tr>`), 'Nothing this month'))}
+    ${sec('coins', 'Sales / Receipts (' + m.lines.length + ')', table(['Date','Business','Type','Amount','Brought by','Agent','Developer','Co-Developer'].concat(ro ? [] : ['']), m.lines.slice().reverse().map(l => `<tr><td class="n">${dmy(l.ts)}</td><td>${E(l.biz || String(l.rk || '').split('_').pop().toUpperCase() || '—')}</td><td>${l.kind === 'ad' ? '📢' : '⭐'} ${l.src === 'play' ? '▶️' : '🏦'}${l.units > 1 ? ' ×' + l.units : ''}</td><td class="n">${N(l.amount)}</td><td>${who(l)}</td><td class="n">${N(l.sh.agent)}</td><td class="n">${N(l.sh.dev)}</td><td class="n">${N(l.sh.codev)}</td>${ro ? '' : `<td><button class="sm v2del" onclick="v2Void('${l.id}')" title="Remove wrong entry">🗑️</button></td>`}</tr>`), 'Nothing this month'))}${ro ? '' : `<div class="btns"><button class="sec" onclick="v2Voided()">🗃️ Removed entries — restore</button></div>`}
     ${(m.agents || []).length ? sec('users', 'Agents Commission', table(['Agent','Sales','Commission'], m.agents.map(a => `<tr><td>${E(a.name || a.code)} <span class="num">${E(a.code)}</span></td><td class="n">${a.n}</td><td class="n">${Rs(a.amt)}</td></tr>`))) : ''}`;
 }
 let FMON = '';
@@ -183,7 +183,22 @@ window.v2Mon = d => { FMON = monStep(FMON, d); FM = null; v2Render(); };
 window.v2Grecv = async clear => { const v = clear ? '' : ($('#grA').value.trim() || $('#grA').placeholder); if(!clear && !confirm(monName(FMON) + ' — from Google ' + Rs(v) + ' received in bank?')) return; FM = await finCall({op:'grecv', mon: FMON, amount: v}); v2Render(); };
 window.v2Xadd = async () => { const a = parseInt(enD($('#xA').value), 10); if(!(a > 0)) return alert('Enter amount'); const k = $('#xK').value; const sel = $('#xR'), who = sel.options[sel.selectedIndex].text; if(!sel.value) return alert('Choose Brought by'); if(!confirm((k === 'ad' ? '📢 Ad' : '⭐ Membership') + ' — ' + Rs(a) + '\nBrought by: ' + who + '\n\nSave?')) return;
   const r = await finCall({op:'xadd', kind: k, amount: a, ref: sel.value, rk: ($('#xRk') || {}).value || '', biz: $('#xB').value.trim(), note: $('#xB').value.trim()}); if(r && r.reason === 'dup') return alert('This ad is already recorded'); if(!r || r.ok === false) return alert('Could not save'); FM = r; FMON = FM.mon || FMON; v2Render(); };
-window.v2Xdel = async id => { if(!confirm('Remove this receipt?')) return; FM = await finCall({op:'xdel', id, mon: FMON}); v2Render(); };
+window.v2Xdel = id => v2Void(id);
+/* AGP1011TU025 (مالک کا حکم): غلط / جانچ والا اندراج ہٹائیں — سرور پر مٹتا نہیں (void)، «🗃️ Removed entries» سے واپس؛ دو بار پوچھتا ہے */
+window.v2Void = async id => {
+  const l = ((FM && FM.lines) || []).find(x => x.id === id); if(!l) return;
+  const what = (l.kind === 'ad' ? 'Ad' : 'Membership') + ' — ' + (l.biz || l.rk || '') + ' — Rs ' + N(l.amount) + ' — ' + dmy(l.ts) + ' — brought by ' + (l.code || 'PBT');
+  if(!confirm('🗑️ Remove this WRONG entry from the accounts?\n\n' + what + '\n\nIt is not deleted — you can restore it from «Removed entries». Agent / Developer / Co-Developer shares will be recalculated.')) return;
+  const why = prompt('Reason (e.g. test entry):', 'test entry'); if(why === null) return;
+  if(!confirm('Sure? Remove: ' + what)) return;
+  const r = await finCall({op:'void', id, why, mon: FMON}); if(!r || r.ok === false) return alert('Could not remove: ' + ((r && r.reason) || 'network'));
+  FM = r; PEOPLE = null; toast('🗑️ Removed — restore any time from «Removed entries»'); v2Render(); };
+window.v2Voided = async () => {
+  const r = await finCall({op:'voided'}); const L = (r && r.list) || [];
+  const b = document.createElement('div'); b.className = 'v2modal'; b.onclick = e => { if(e.target === b) b.remove(); };
+  b.innerHTML = `<div class="v2card en"><h2>🗃️ Removed entries</h2><div class="v2mut">These are kept safely and are not counted in any account.</div>${table(['Removed','Date','Business','Amount','Reason',''], L.map(x => `<tr><td class="n">${dmy(x.vts)}</td><td class="n">${dmy(x.ts)}</td><td>${E(x.biz || x.rk || '—')}</td><td class="n">${N(x.amount)}</td><td>${E(x.why || '')}</td><td><button class="sm" onclick="v2Unvoid('${x.id}')">↩️ Restore</button></td></tr>`), 'Nothing removed')}<div class="btns"><button class="sec" onclick="this.closest('.v2modal').remove()">✖ Close</button></div></div>`;
+  document.body.appendChild(b); };
+window.v2Unvoid = async id => { if(!confirm('Restore this entry into the accounts?')) return; const r = await finCall({op:'unvoid', id, mon: FMON}); if(!r || r.ok === false) return alert('Could not restore'); document.querySelectorAll('.v2modal').forEach(x => x.remove()); FM = null; PEOPLE = null; toast('↩️ Restored'); v2Render(); };
 function payoutsHtml(P){
   const req = P.reqs || [];
   return `${req.length ? `<div class="v2warn">🙏 ${req.length} withdrawal requests — marked yellow below</div>` : ''}<div class="v2note">📅 Payouts between the 20th and 25th of each month, minimum Rs. 1,000 (ready balance)</div>
