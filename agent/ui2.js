@@ -71,11 +71,11 @@ function agHome(s){
       <div class="v2div"></div>
       <div class="v2qr" id="v2qr" data-code="${E(s.agent.code)}" onclick="v2QrBig()"></div></div>
     <div class="v2tiles v2t2">${[
-      {c:'tb', i:'users', t:'Total<br>Subscriptions', v:N(s.refs.length)},
-      {c:'tg', i:'check', t:'Active<br>Subscriptions', v:N(active)},
-      {c:'tp', i:'coins', t:'Total<br>Earnings', v:'<small>Rs.</small> ' + N(f.due)},
-      {c:'to', i:'wallet', t:'Total<br>Withdrawals', v:'<small>Rs.</small> ' + N(f.paid)}].map(x => `<div class="v2tile ${x.c}">${ic(x.i, 38, '#fff')}<div><span class="tl">${x.t}</span><b>${x.v}</b></div></div>`).join('')}
-      <div class="v2tile tw">${ic('wallet', 36, '#0b2a6b')}<div><span class="tl">Balance</span><b><small>Rs.</small> ${N(f.balance)}</b></div></div>
+      {c:'tb', i:'users', t:'Total<br>Subscriptions', v:N(s.refs.length), g:'subs'},
+      {c:'tg', i:'check', t:'Active<br>Subscriptions', v:N(active), g:'subs'},
+      {c:'tp', i:'coins', t:'Total<br>Earnings', v:'<small>Rs.</small> ' + N(f.due), g:'wd'},
+      {c:'to', i:'wallet', t:'Total<br>Withdrawals', v:'<small>Rs.</small> ' + N(f.paid), g:'wd'}].map(x => `<div class="v2tile ${x.c} v2tap" onclick="v2Go('${x.g}')">${ic(x.i, 38, '#fff')}<div><span class="tl">${x.t}</span><b>${x.v}</b></div></div>`).join('')}
+      <div class="v2tile tw v2tap" onclick="v2Go('wd')">${ic('wallet', 36, '#0b2a6b')}<div><span class="tl">Balance</span><b><small>Rs.</small> ${N(f.balance)}</b></div></div>
       <button class="v2tile tq" onclick="v2WdReq()">${ic('send', 36, '#fff')}<div><span class="tl">Send Request for<br>Withdrawal</span></div></button></div>
     ${f.req ? `<div class="v2ok en">⏳ Withdrawal request of <b class="num">${Rs(f.req.amount)}</b> sent on ${dmy(f.req.ts)} — Pending</div>` : ''}
     ${sec('cal', 'Subscription History', subsTable(s.refs.slice(0, 3)), 'subs')}
@@ -291,7 +291,7 @@ function overview(m){
   const T = (m && m.totals) || {}, L = (m && m.lines) || [], mem = L.filter(l => l.kind === 'mem').length;
   return `<div class="v2sec v2ov"><div class="v2sh">${ic('coins', 28)}<b>Company Overview <small>(${monName(FMON)} — My City Shines)</small></b><button onclick="v2Go('acc')">View All →</button></div>
     <div class="v2sb"><div class="v2split en">⚖️ ${SPLIT_TXT}</div>
-    <div class="v2tiles v2t4">${[{c:'tb', i:'users', t:'Total<br>Subscriptions', v:N(mem)}, {c:'tg', i:'coins', t:'Total Subscription<br>Amount', v:R0(m ? m.gross : 0)}, {c:'to', i:'wallet', t:'Google +<br>Maintenance', v:R0((T.google || 0) + (T.maint || 0))}, {c:'tp', i:'bars', t:'Agents<br>Commission', v:R0(T.agent || 0)}].map(x => `<div class="v2tile ${x.c}">${ic(x.i, 34, '#fff')}<div><span class="tl">${x.t}</span><b>${x.v}</b></div></div>`).join('')}</div></div></div>`;
+    <div class="v2tiles v2t4">${[{c:'tb', i:'users', t:'Total<br>Subscriptions', v:N(mem), d:'subs'}, {c:'tg', i:'coins', t:'Total Subscription<br>Amount', v:R0(m ? m.gross : 0), d:'gross'}, {c:'to', i:'wallet', t:'Google +<br>Maintenance', v:R0((T.google || 0) + (T.maint || 0)), d:'gm'}, {c:'tp', i:'bars', t:'Agents<br>Commission', v:R0(T.agent || 0), d:'agent'}].map(x => `<div class="v2tile ${x.c} v2tap" onclick="v2Det('${x.d}')">${ic(x.i, 34, '#fff')}<div><span class="tl">${x.t}</span><b>${x.v}</b></div></div>`).join('')}</div></div></div>`;
 }
 function profCard(name, type, idLbl, id, ref){
   const pr = photo();
@@ -304,7 +304,7 @@ function cdHome(f, m, c){
   return `${profCard((CDV && CDV.name) || 'Co-Developer', 'Co-Developer', 'Co-Developer ID', ph0(c.phone), 'CODEV')}
     ${overview(m)}
     <div class="v2sec"><div class="v2sh">${ic('user', 28)}<b>Your Personal Share <small>(${E((CDV && CDV.name) || '')})</small></b></div><div class="v2sb">
-    ${t2([{c:'tp', i:'coins', t:'Co-Developer Share<br>(This Month)', v:R0(cur.amt)}, {c:'tb', i:'bars', t:'Total<br>Earnings', v:R0(f.due), sub:'Ready: ' + Rs(f.ready)}, {c:'to', i:'wallet', t:'Total<br>Withdrawals', v:R0(f.paid)}, {c:'tw', i:'wallet', t:'Your Balance', v:R0(f.balance)}, {btn:'v2WdReq()', i:'send', t:'Request<br>Withdrawal'}])}
+    ${t2([{c:'tp', i:'coins', t:'Co-Developer Share<br>(This Month)', v:R0(cur.amt), go:"v2Det('codev')"}, {c:'tb', i:'bars', t:'Total<br>Earnings', v:R0(f.due), sub:'Ready: ' + Rs(f.ready), go:"v2Det('cdearn')"}, {c:'to', i:'wallet', t:'Total<br>Withdrawals', v:R0(f.paid), go:"v2Det('cdpaid')"}, {c:'tw', i:'wallet', t:'Your Balance', v:R0(f.balance), go:"v2Det('cdbal')"}, {btn:'v2WdReq()', i:'send', t:'Request<br>Withdrawal'}])}
     ${f.req ? `<div class="v2ok en">⏳ Withdrawal request of <b class="num">${Rs(f.req.amount)}</b> sent on ${dmy(f.req.ts)} — Pending</div>` : ''}</div></div>
     ${sec('cal', 'All Subscriptions History <small>(Company Record)</small>', allSubsTable(m, 5), 'acc')}
     ${sec('wallet', 'My Personal Transactions <small>(Withdrawals)</small>', wdTable(f, 3), 'wd')}`;
@@ -314,7 +314,7 @@ function devHome(m, P, reqs, owe){
   return `${profCard('PBT Code Labs', 'Developer', 'Developer ID', 'DEV', 'DEV')}
     ${overview(m)}
     <div class="v2sec"><div class="v2sh">${ic('user', 28)}<b>Your Personal Share <small>(Developer)</small></b></div><div class="v2sb">
-    ${t2([{c:'tp', i:'coins', t:'Developer Share<br>(This Month)', v:R0(T.dev || 0)}, {c:'tb', i:'bars', t:'Co-Developer Share<br>(This Month)', v:R0(T.codev || 0)}, {c:'tg', i:'check', t:m && m.recv ? '✅ Received<br>from Google' : '⏳ Pending<br>from Google', v:R0(m ? (m.recv ? m.recv.amount : m.play - m.gEst) : 0), go:"v2Go('acc')"}, {c:'to', i:'wallet', t:'Total Paid<br>to Team', v:R0(paid)}, {c:'tw', i:'wallet', t:'Ready — To Pay', v:R0(owe), go:"v2Go('pay')"}, {btn:"v2Go('pay')", i:'send', t:'Withdrawal<br>Requests', v: String(reqs)}])}</div></div>
+    ${t2([{c:'tp', i:'coins', t:'Developer Share<br>(This Month)', v:R0(T.dev || 0), go:"v2Det('dev')"}, {c:'tb', i:'bars', t:'Co-Developer Share<br>(This Month)', v:R0(T.codev || 0), go:"v2Det('codev')"}, {c:'tg', i:'check', t:m && m.recv ? '✅ Received<br>from Google' : '⏳ Pending<br>from Google', v:R0(m ? (m.recv ? m.recv.amount : m.play - m.gEst) : 0), go:"v2Det('google')"}, {c:'to', i:'wallet', t:'Total Paid<br>to Team', v:R0(paid), go:"v2Det('paid')"}, {c:'tw', i:'wallet', t:'Ready — To Pay', v:R0(owe), go:"v2Det('ready')"}, {btn:"v2Go('pay')", i:'send', t:'Withdrawal<br>Requests', v: String(reqs)}])}</div></div>
     ${sec('cal', 'All Subscriptions History <small>(Company Record)</small>', allSubsTable(m, 5), 'acc')}
     <div class="v2card"><div class="v2list"><button onclick="v2Go('acc')">💰 This month's accounts / Google receipt / Ads</button><button onclick="v2Go('pay')">✅ Payouts — accounts and QR</button><button onclick="admInbox()">💬 All Chats</button><button onclick="v2Go('agents')">🤝 Agents</button></div></div>`;
 }
@@ -417,6 +417,56 @@ window.rolePick = function(){
     if(app.querySelector('.v2wrap, .v2back, #ppPin, #ppY, #dpP, #ae')) return;
     app.insertAdjacentHTML('afterbegin', '<div class="v2back"><button onclick="v2Go(\'home\')">‹ Home</button></div>');
   }).observe(app, {childList: true});
+/* ===== AGP1111WE030 (مالک کا حکم): ہر ڈبہ دبائیں تو اس رقم کی پوری تفصیل — کس کاروبار سے، کیسے بنی، کس کو کتنی ادا ہوئی (نیا حساب نہیں — سرور کی لائنیں / ادائیگیاں) ===== */
+function _detLines(){ return ((FM && FM.lines) || []).slice().sort((a, b) => a.ts - b.ts); }
+function _detBiz(l){ return E(l.biz || String(l.rk || '').split('_').pop().toUpperCase() || '—') + (l.subid ? `<br><small class="num">${E(l.subid)}</small>` : ''); }
+function _detType(l){ return l.kind === 'ad' ? '📢 Ad' : (l.src === 'play' ? '▶️ Google Play' : '💵 Direct'); }
+function _detHow(l){ const sh = l.sh || {}, base = (l.amount || 0) - (sh.google || 0) - (sh.maint || 0);
+  return `<small class="dhow">${N(l.amount)}${sh.google ? ' − Google ' + N(sh.google) : ''} − Maint. ${N(sh.maint || 0)} = ${N(base)} → brought by ${whoTxt(l)}: ${N((sh.agent || 0) + (l.by === 'pbt' ? 0 : (l.by === 'dev' || l.by === 'codev') ? Math.round(base * 0.15) : 0))} → rest 50/50</small>`; }
+function _detSum(rows, col){ return rows.reduce((a, l) => a + (typeof col === 'function' ? col(l) : ((l.sh || {})[col] || 0)), 0); }
+function _detOpen(title, sub, html){
+  const box = document.createElement('div'); box.className = 'v2modal'; box.onclick = e => { if(e.target === box) box.remove(); };
+  box.innerHTML = `<div class="v2card en v2det"><div class="v2dh"><b>${title}</b><button onclick="this.closest('.v2modal').remove()">✖</button></div>${sub ? `<div class="v2ds">${sub}</div>` : ''}${html}</div>`;
+  document.body.appendChild(box);
+}
+function _detTable(rows, cols, totalLbl){
+  const tot = cols.map(c => c.sum ? _detSum(rows, c.sum) : null);
+  return table(['#'].concat(cols.map(c => c.h)), rows.map((l, i) => `<tr onclick="${l.id ? `this.closest('.v2modal').remove();v2SaleDet('${l.id}')` : ''}" style="cursor:pointer"><td>${i + 1}</td>${cols.map(c => `<td class="${c.n ? 'n' : ''}">${c.f(l)}</td>`).join('')}</tr>`)
+    .concat(rows.length ? [`<tr class="tot"><td></td>${cols.map((c, j) => `<td class="${c.n ? 'n' : ''}">${j === 0 ? '<b>' + (totalLbl || 'Total') + '</b>' : tot[j] != null ? '<b>' + N(tot[j]) + '</b>' : ''}</td>`).join('')}</tr>`] : []), 'Nothing in this month');
+}
+async function v2Det(k){
+  const L = _detLines(), mon = monName(FMON), T = (FM && FM.totals) || {};
+  const cDate = {h:'Date', f:l => dmy(l.ts)}, cBiz = {h:'Business', f:_detBiz}, cType = {h:'Type', f:_detType}, cAmt = {h:'Amount', f:l => N(l.amount), n:1, sum:l => l.amount || 0}, cWho = {h:'Brought by', f:whoTxt};
+  if(k === 'subs'){ const R = L.filter(l => l.kind === 'mem'); return _detOpen('👥 Total Subscriptions — ' + mon, R.length + ' memberships sold this month. Tap a row for full details.', _detTable(R, [cDate, cBiz, cType, cAmt, cWho])); }
+  if(k === 'gross'){ const mem = L.filter(l => l.kind === 'mem'), ad = L.filter(l => l.kind === 'ad');
+    return _detOpen('💰 Total Amount — ' + mon, `⭐ Memberships ${mem.length} = <b>${Rs(_detSum(mem, l => l.amount))}</b> • 📢 Ads ${ad.length} = <b>${Rs(_detSum(ad, l => l.amount))}</b> • ▶️ Google Play ${Rs(_detSum(L.filter(l => l.src === 'play'), l => l.amount))} • 💵 Direct / cash ${Rs(_detSum(L.filter(l => l.src !== 'play'), l => l.amount))}`, _detTable(L, [cDate, cBiz, cType, cAmt, cWho])); }
+  if(k === 'gm'){ return _detOpen('🏦 Google + Maintenance — ' + mon, `Google 15% only on Google Play sales${FM && FM.recv ? ` (Google actually paid ${Rs(FM.recv.amount)} on ${dmy(FM.recv.ts)})` : ' (Google has not paid yet — estimate)'}. Maintenance 15% on every sale (on direct sales the Google 15% also goes to Maintenance).`,
+      _detTable(L, [cDate, cBiz, cType, cAmt, {h:'Google', f:l => N((l.sh || {}).google || 0), n:1, sum:'google'}, {h:'Maintenance', f:l => N((l.sh || {}).maint || 0), n:1, sum:'maint'}])); }
+  if(k === 'agent'){ const R = L.filter(l => (l.sh || {}).agent > 0), by = {}; R.forEach(l => { const kk = l.code || '?'; by[kk] = by[kk] || {n: l.agent || '', a: 0, c: 0}; by[kk].a += l.sh.agent; by[kk].c++; });
+    return _detOpen('🤝 Agents Commission — ' + mon, Object.keys(by).length ? Object.entries(by).map(([c, x]) => `<b>${E(c)}</b> ${E(x.n)}: ${x.c} sale(s) = <b>${Rs(x.a)}</b>`).join(' • ') : 'No agent brought a business this month (DEV / CODEV / PBT shares are not agent commission).',
+      _detTable(R, [cDate, cBiz, cWho, cAmt, {h:'Commission', f:l => N(l.sh.agent), n:1, sum:'agent'}])); }
+  if(k === 'dev' || k === 'codev'){ const key = k, R = L.filter(l => (l.sh || {})[key] > 0), own = R.filter(l => l.by === key), half = R.filter(l => l.by === 'pbt');
+    return _detOpen((k === 'dev' ? '👨‍💻 Developer' : '👥 Co-Developer') + ' Share — ' + mon,
+      `Total <b>${Rs(_detSum(R, key))}</b> from ${R.length} sale(s). Every sale: the remainder after Google, Maintenance and the bringer's 15% is split 50 / 50. ${own.length ? `Brought by ${k === 'dev' ? 'DEV' : 'CODEV'} himself: ${own.length} (gets the 15% bringer share too). ` : ''}${half.length ? `Brought by PBT: ${half.length} (bringer share half & half). ` : ''}Tap a row for full details.`,
+      _detTable(R, [cDate, cBiz, cType, cAmt, cWho, {h:k === 'dev' ? 'Dev. Share' : 'Co-Dev. Share', f:l => N(l.sh[key]) + '<br>' + _detHow(l), n:1, sum:key}])); }
+  if(k === 'google'){ const R = L.filter(l => l.src === 'play');
+    return _detOpen('▶️ Google Play — ' + mon, FM && FM.recv ? `✅ Google paid <b>${Rs(FM.recv.amount)}</b> into the bank on ${dmy(FM.recv.ts)}. Play sales ${Rs(FM.play || 0)} → Google kept ${Rs((FM.play || 0) - FM.recv.amount)}.` : `⏳ Google pays between the 15th and 20th of next month. Play sales ${Rs(FM ? FM.play : 0)}, expected Google cut ~${Rs(FM ? FM.gEst : 0)}, expected to receive ~${Rs(FM ? FM.play - FM.gEst : 0)}. Mark it received in Accounts when it reaches the bank.`,
+      _detTable(R, [cDate, cBiz, cAmt, {h:'Google cut', f:l => N((l.sh || {}).google || 0), n:1, sum:'google'}, {h:'Status', f:l => l.ready ? '<span class="v2st ok">Received</span>' : '<span class="v2st tr">Waiting</span>'}]) + `<button class="v2btn" onclick="this.closest('.v2modal').remove();v2Go('acc')">💰 Open Accounts — mark Google receipt</button>`); }
+  if(k === 'paid' || k === 'ready'){
+    if(!PEOPLE){ try{ PEOPLE = await finCall({op:'people'}); }catch(e){} }
+    const P = (PEOPLE && PEOPLE.list) || [], nm = p => (p.kind === 'agent' ? '🤝 ' + E(p.code) + ' — ' : p.kind === 'codev' ? '👥 ' : '👨‍💻 ') + E(p.name || '');
+    if(k === 'paid'){ const rows = []; P.forEach(p => (p.pays || []).forEach(x => rows.push(Object.assign({who: nm(p)}, x)))); rows.sort((a, b) => b.ts - a.ts);
+      return _detOpen('💸 Total Paid to Team', `${rows.length} payment(s), total <b>${Rs(rows.reduce((a, x) => a + (x.amount || 0), 0))}</b>.`,
+        table(['#', 'Date', 'Paid to', 'Amount', 'How', 'Account / note'], rows.map((x, i) => `<tr><td>${i + 1}</td><td class="n">${dmy(x.ts)}</td><td>${x.who}</td><td class="n">${N(x.amount)}</td><td>${E(x.method || 'Cash')}</td><td>${E([x.acct, x.note].filter(Boolean).join(' · ') || '—')}</td></tr>`), 'Nothing paid yet')); }
+    return _detOpen('✅ Ready — To Pay', 'Money already received (Google paid / direct) and not yet paid to each person. Tap «Payouts» to pay.',
+      table(['Person', 'Earned', 'Ready', 'Paid', 'To pay now'], P.filter(p => p.due || p.paid).map(p => `<tr><td>${nm(p)}</td><td class="n">${N(p.due || 0)}</td><td class="n">${N(p.ready || 0)}</td><td class="n">${N(p.paid || 0)}</td><td class="n"><b>${N(p.avail || 0)}</b></td></tr>`), 'Nobody is owed anything') + `<button class="v2btn" onclick="this.closest('.v2modal').remove();v2Go('pay')">✅ Open Payouts</button>`); }
+  const f = (typeof CDME !== 'undefined' && CDME) || {};
+  if(k === 'cdearn') return _detOpen('📊 Total Earnings — month by month', `Total <b>${Rs(f.due || 0)}</b> • Ready (money received) ${Rs(f.ready || 0)} • Waiting for Google ${Rs(f.pending || 0)}`,
+      table(['Month', 'Share'], (f.months || []).map(x => `<tr onclick="this.closest('.v2modal').remove();FMON='${x.mon}';FM=null;v2Render()" style="cursor:pointer"><td>${monName(x.mon)}</td><td class="n">${N(x.amt)}</td></tr>`), '—'));
+  if(k === 'cdpaid') return _detOpen('💸 Your Withdrawals', `Total paid to you <b>${Rs(f.paid || 0)}</b>`, table(['#', 'Date', 'Amount', 'How', 'Account / note'], (f.pays || []).map((x, i) => `<tr><td>${i + 1}</td><td class="n">${dmy(x.ts)}</td><td class="n">${N(x.amount)}</td><td>${E(x.method || 'Cash')}</td><td>${E([x.acct, x.note].filter(Boolean).join(' · ') || '—')}</td></tr>`), 'Nothing paid yet'));
+  if(k === 'cdbal') return _detOpen('👛 Your Balance', '', table(['', 'Amount'], [`<tr><td>Total earned</td><td class="n">${N(f.due || 0)}</td></tr>`, `<tr><td>− Already paid to you</td><td class="n">${N(f.paid || 0)}</td></tr>`, `<tr class="tot"><td><b>= Balance</b></td><td class="n"><b>${N(f.balance || 0)}</b></td></tr>`, `<tr><td>of which ready now (money received)</td><td class="n">${N(f.avail != null ? f.avail : Math.max(0, (f.ready || 0) - (f.paid || 0)))}</td></tr>`]));
+}
+window.v2Det = v2Det;
 })();
 /* ===== AGP0911MO019 (کو-ڈویلپر کے «MCS Agent» پرامپٹ کی اچھی چیزیں — پلے اسٹور پالیسی کے اندر) ===== */
 const PLAY_ID = 'com.pbtcodelabs.mycityshines';
@@ -523,3 +573,4 @@ window.v2AdPick = id => { const a = (MCSADS || []).find(x => +x.id === id); if(!
   const f = $('#xA').closest('.v2card'); f.scrollIntoView({behavior: 'smooth', block: 'center'}); f.classList.add('hl'); setTimeout(() => f.classList.remove('hl'), 1800);
   toast(a.price > 0 ? 'Check amount and choose «Brought by»' : 'Enter amount and choose «Brought by»'); };
 })();
+

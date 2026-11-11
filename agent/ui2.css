@@ -171,3 +171,9 @@ body.v2,.v2card,.v2note,.v2ok,.v2warn,.v2mut,.v2list button,.lu,.lrem,.lfg,.v2ro
 .pyCh{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 6px}.pyCh button{padding:6px 10px!important;font-size:13px!important;margin:0!important}
 .v2split small{font-weight:600;color:#475569;display:block;margin:1px 0 4px}
 .bsel,.bsel option,.bsel optgroup{font-family:"Roboto Mono",Consolas,"Courier New",monospace !important}.bsel{width:100%;height:44px;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;padding:0 10px;border:1.5px solid #c7d2fe;border-radius:12px;background:#fff;color:#0b2a6b;text-align:left;direction:ltr}
+.v2tap{cursor:pointer;transition:transform .12s}.v2tap:active{transform:scale(.97)}
+.v2det{max-width:760px;width:100%;max-height:92vh;overflow:auto;direction:ltr;text-align:left}
+.v2dh{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}.v2dh b{font-size:17px;color:#0b2a6b}.v2dh button{border:0;background:#f1f5f9;border-radius:10px;padding:6px 10px;font-size:15px;cursor:pointer}
+.v2ds{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:8px 10px;font-size:13.5px;line-height:1.6;margin-bottom:8px}
+.v2det .dhow{display:block;color:#64748b;font-size:11px;font-weight:600;white-space:normal;max-width:220px}
+.v2det .v2btn{width:100%;margin-top:8px;border:0;border-radius:12px;padding:11px;font-weight:800;background:#0b2a6b;color:#fff;cursor:pointer}
