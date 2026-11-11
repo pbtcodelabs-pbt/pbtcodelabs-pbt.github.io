@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1111WE076';
-const UPDATE_NOTE = '⬆️ تازہ زپ میں «زپ اپلوڈ» — فائل مینیجر سے زپ چنیں، گیٹ ہب کھولے بغیر ریپو میں، خود لائیو';
+const APP_VERSION = 'HD1111WE077';
+const UPDATE_NOTE = '📦 تازہ زپ کا بٹن صاف (گہری لکھائی)؛ غلط چیز پیسٹ ہو تو اجازت نامے کا صاف پیغام';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -462,11 +462,11 @@ function partyContact(g) {
   return `<a class="pC call" href="tel:${esc(g.phone)}" onclick="event.stopPropagation()">📞 ${E ? 'Call' : 'کال'}</a><a class="pC wa" href="https://wa.me/${waNum(digits(g.phone).replace(/\D/g, ''))}" target="_blank" rel="noopener" onclick="event.stopPropagation()">💬 WhatsApp</a>`;
 }
 let PF = 'all';
-/* HD1111WE076 (مالک کا حکم): 📦 تازہ زپ — ہر ایپ کی ابھی لائیو فائلیں (zips.js) */
+/* HD1111WE077 (مالک کا حکم): 📦 تازہ زپ — ہر ایپ کی ابھی لائیو فائلیں (zips.js) */
 const ZIPC = {};
 function zipHomeBtn() {
   const E = LANG === 'en';
-  return `<button class="partyBtn" data-act="zips" style="background:linear-gradient(135deg,#fef3c7,#fde68a);border-color:#f59e0b"><span class="i">📦</span><span class="t"><b>${E ? 'Latest zip — every app, live version' : 'تازہ زپ — ہر ایپ کی ابھی چلتی فائل'}</b><small>${E ? 'Tap an app: index.html + sw.js as <version>.zip' : 'ایپ دبائیں: index.html + sw.js — نام ورژن سے'}</small></span><span class="go">‹</span></button>`;
+  return `<button class="partyBtn zipBtn" data-act="zips"><span class="i">📦</span><span class="t"><b>${E ? 'Latest zip — every app, live version' : 'تازہ زپ — ہر ایپ کی ابھی چلتی فائل'}</b><small>${E ? 'Tap an app: index.html + sw.js as <version>.zip' : 'ایپ دبائیں: index.html + sw.js — نام ورژن سے'}</small></span><span class="go">‹</span></button>`;
 }
 function zipSheet() {
   const E = LANG === 'en';
@@ -474,7 +474,7 @@ function zipSheet() {
   const L = [...APPS.filter(a => HDZips.has(a.id)), { id: 'HD', ur: 'ہیلپ ڈیسک', en: 'Help Desk', img: 'icons/icon-192.png', repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io' }];
   sheet(`<h2>📦 ${E ? 'Latest zip' : 'تازہ زپ'}<button class="x" data-act="close">✕</button></h2>
     <p style="color:var(--mut);font-size:13px;margin:0 0 8px">${E ? 'Each tap reads the app straight from its repo right now — even if another Claude changed it.' : 'ہر بار دبانے پر فائل اسی وقت ریپو سے آتی ہے — کسی اور Claude نے بدلی ہو تب بھی تازہ۔'}</p>
-    <div class="zpTok">${ghTok() ? `🔑 ${E ? 'GitHub permission saved on this phone' : 'گیٹ ہب اجازت نامہ اس فون میں محفوظ'}${ghWho ? ' — <b dir="ltr">' + esc(ghWho) + '</b>' : ''} <button class="tb" data-act="ghTok">✏️</button>` : `<button class="tb" data-act="ghTok">🔑 ${E ? 'Add GitHub permission (once) — for Upload' : 'گیٹ ہب اجازت نامہ لگائیں (ایک بار) — اپلوڈ کے لیے'}</button>`}</div>
+    ${ghTok() ? '' : `<div class="zpTok"><button class="tb" data-act="ghTok">🔑 ${E ? 'Add GitHub permission (once) — for Upload' : 'گیٹ ہب اجازت نامہ لگائیں (ایک بار) — اپلوڈ کے لیے'}</button></div>`}
     <div class="zpL">${L.map(a => { const c = ZIPC[a.id]; return `<div class="zpR" data-zi="${esc(a.id)}">
       <button class="zpA" data-act="zipGo" data-id="${esc(a.id)}">${appIcon(a, 'appMini')}<span><b>${esc(AN(a))}</b><small class="num">${c ? (c.err ? '⚠️ ' + esc(c.err) : c.busy ? '⏳ ' + esc(c.busy) : '✅ ' + esc(c.ver)) : (E ? 'tap — get latest' : 'دبائیں — تازہ لائیں')}</small></span></button>
       ${c && c.blob ? `<button class="tb grn" data-act="zipDl" data-id="${esc(a.id)}">⬇️ ${esc(c.ver)}.zip</button>` : ''}
@@ -493,7 +493,7 @@ function zipDl(id) {
   const u = URL.createObjectURL(c.blob), l = document.createElement('a'); l.href = u; l.download = c.ver + '.zip'; document.body.appendChild(l); l.click(); l.remove();
   setTimeout(() => URL.revokeObjectURL(u), 60000); toast('⬇️ ' + c.ver + '.zip');
 }
-/* HD1111WE076 (مالک کا حکم): «⬆️ زپ اپلوڈ» — گیٹ ہب کا صفحہ کھولے بغیر: فون کا فائل مینیجر کھلتا ہے، زپ چنیں، «ہاں» → گیٹ ہب API سے
+/* HD1111WE077 (مالک کا حکم): «⬆️ زپ اپلوڈ» — گیٹ ہب کا صفحہ کھولے بغیر: فون کا فائل مینیجر کھلتا ہے، زپ چنیں، «ہاں» → گیٹ ہب API سے
    ریپو کی جڑ میں (اجازت نامہ / ٹوکن صرف اسی فون میں `pbthd_ghtok`) → ریپو کا auto-unzip خود کھولتا ہے → یہاں «✅ لائیو» تک پیش رفت۔ */
 const ZUP = {}; let ghWho = '';
 const ghTok = () => { try { return localStorage.getItem('pbthd_ghtok') || ''; } catch (e) { return ''; } };
@@ -512,11 +512,13 @@ function ghTokSheet() {
 }
 async function ghCheck(t) {
   const r = await fetch('https://api.github.com/user', { headers: { Authorization: 'token ' + t } });
-  if (!r.ok) throw new Error(r.status === 401 ? (LANG === 'en' ? 'wrong token' : 'ٹوکن غلط ہے') : 'GitHub ' + r.status);
+  if (r.status === 401) { try { localStorage.removeItem('pbthd_ghtok'); } catch (e) {} ghWho = ''; ZUP[id] = ''; setTimeout(ghTokSheet, 300); }
+    if (!r.ok) throw new Error(r.status === 401 ? (LANG === 'en' ? 'wrong token' : 'ٹوکن غلط ہے') : 'GitHub ' + r.status);
   return (await r.json()).login;
 }
 async function ghTokSave() {
-  const t = (($('#ghTokIn') || {}).value || '').trim(); if (!t) return;
+  const t = (($('#ghTokIn') || {}).value || '').replace(/\s+/g, ''); if (!t) return;
+  if (!/^(ghp_|github_pat_)/.test(t)) { toast(LANG === 'en' ? '⚠️ This is not the permission — the code starts with ghp_ . Copy it again from GitHub.' : '⚠️ یہ اجازت نامہ نہیں — کوڈ ghp_ سے شروع ہوتا ہے۔ گیٹ ہب سے دوبارہ کاپی کر کے پیسٹ کریں۔', 6000); return; }
   try { ghWho = await ghCheck(t); localStorage.setItem('pbthd_ghtok', t); toast('✅ ' + ghWho); zipSheet(); }
   catch (e) { toast('⚠️ ' + e.message, 4000); }
 }
@@ -540,6 +542,7 @@ async function zipUpGo(id, f) {
     const ex = await fetch(`https://api.github.com/repos/${repo}/contents/${encodeURIComponent(name)}?ref=main`, { headers: H, cache: 'no-store' });
     if (ex.ok) body.sha = (await ex.json()).sha;
     const r = await fetch(`https://api.github.com/repos/${repo}/contents/${encodeURIComponent(name)}`, { method: 'PUT', headers: H, body: JSON.stringify(body) });
+    if (r.status === 401) { try { localStorage.removeItem('pbthd_ghtok'); } catch (e) {} ghWho = ''; ZUP[id] = ''; setTimeout(ghTokSheet, 300); }
     if (!r.ok) throw new Error(r.status === 401 ? (E ? 'token expired — add again' : 'اجازت نامہ ختم — دوبارہ لگائیں') : r.status === 404 ? (E ? 'no access to this repo' : 'اس ریپو کی اجازت نہیں') : 'GitHub ' + r.status);
     set('✅ ' + (E ? 'in the repo — opening the zip…' : 'ریپو میں پہنچ گئی — زپ کھل رہی ہے…'));
     if (!okName) return;
