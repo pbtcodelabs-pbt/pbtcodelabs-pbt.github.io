@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1111WE075';
-const UPDATE_NOTE = '📦 تازہ زپ — ہر ایپ کی ابھی چلتی فائل ایک دبانے سے (ورژن کے نام سے)';
+const APP_VERSION = 'HD1111WE076';
+const UPDATE_NOTE = '⬆️ تازہ زپ میں «زپ اپلوڈ» — فائل مینیجر سے زپ چنیں، گیٹ ہب کھولے بغیر ریپو میں، خود لائیو';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -462,7 +462,7 @@ function partyContact(g) {
   return `<a class="pC call" href="tel:${esc(g.phone)}" onclick="event.stopPropagation()">📞 ${E ? 'Call' : 'کال'}</a><a class="pC wa" href="https://wa.me/${waNum(digits(g.phone).replace(/\D/g, ''))}" target="_blank" rel="noopener" onclick="event.stopPropagation()">💬 WhatsApp</a>`;
 }
 let PF = 'all';
-/* HD1111WE075 (مالک کا حکم): 📦 تازہ زپ — ہر ایپ کی ابھی لائیو فائلیں (zips.js) */
+/* HD1111WE076 (مالک کا حکم): 📦 تازہ زپ — ہر ایپ کی ابھی لائیو فائلیں (zips.js) */
 const ZIPC = {};
 function zipHomeBtn() {
   const E = LANG === 'en';
@@ -474,9 +474,12 @@ function zipSheet() {
   const L = [...APPS.filter(a => HDZips.has(a.id)), { id: 'HD', ur: 'ہیلپ ڈیسک', en: 'Help Desk', img: 'icons/icon-192.png', repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io' }];
   sheet(`<h2>📦 ${E ? 'Latest zip' : 'تازہ زپ'}<button class="x" data-act="close">✕</button></h2>
     <p style="color:var(--mut);font-size:13px;margin:0 0 8px">${E ? 'Each tap reads the app straight from its repo right now — even if another Claude changed it.' : 'ہر بار دبانے پر فائل اسی وقت ریپو سے آتی ہے — کسی اور Claude نے بدلی ہو تب بھی تازہ۔'}</p>
+    <div class="zpTok">${ghTok() ? `🔑 ${E ? 'GitHub permission saved on this phone' : 'گیٹ ہب اجازت نامہ اس فون میں محفوظ'}${ghWho ? ' — <b dir="ltr">' + esc(ghWho) + '</b>' : ''} <button class="tb" data-act="ghTok">✏️</button>` : `<button class="tb" data-act="ghTok">🔑 ${E ? 'Add GitHub permission (once) — for Upload' : 'گیٹ ہب اجازت نامہ لگائیں (ایک بار) — اپلوڈ کے لیے'}</button>`}</div>
     <div class="zpL">${L.map(a => { const c = ZIPC[a.id]; return `<div class="zpR" data-zi="${esc(a.id)}">
       <button class="zpA" data-act="zipGo" data-id="${esc(a.id)}">${appIcon(a, 'appMini')}<span><b>${esc(AN(a))}</b><small class="num">${c ? (c.err ? '⚠️ ' + esc(c.err) : c.busy ? '⏳ ' + esc(c.busy) : '✅ ' + esc(c.ver)) : (E ? 'tap — get latest' : 'دبائیں — تازہ لائیں')}</small></span></button>
-      ${c && c.blob ? `<button class="tb grn" data-act="zipDl" data-id="${esc(a.id)}">⬇️ ${esc(c.ver)}.zip</button><a class="tb" href="https://github.com/${esc(c.repo)}/upload/main${c.dir ? '/' + esc(c.dir) : ''}" target="_blank" rel="noopener">⬆️ ${E ? 'Upload' : 'ریپو میں ڈالیں'}</a>` : ''}
+      ${c && c.blob ? `<button class="tb grn" data-act="zipDl" data-id="${esc(a.id)}">⬇️ ${esc(c.ver)}.zip</button>` : ''}
+      <button class="tb" style="background:#1d4ed8;color:#fff;border-color:#1d4ed8" data-act="zipUp" data-id="${esc(a.id)}">⬆️ ${E ? 'Upload zip' : 'زپ اپلوڈ'}</button>
+      ${ZUP[a.id] ? `<div class="zpU" dir="auto">${esc(ZUP[a.id])}</div>` : ''}
     </div>`; }).join('')}</div>`, true);
 }
 async function zipGo(id) {
@@ -489,6 +492,67 @@ function zipDl(id) {
   const c = ZIPC[id]; if (!c || !c.blob) return;
   const u = URL.createObjectURL(c.blob), l = document.createElement('a'); l.href = u; l.download = c.ver + '.zip'; document.body.appendChild(l); l.click(); l.remove();
   setTimeout(() => URL.revokeObjectURL(u), 60000); toast('⬇️ ' + c.ver + '.zip');
+}
+/* HD1111WE076 (مالک کا حکم): «⬆️ زپ اپلوڈ» — گیٹ ہب کا صفحہ کھولے بغیر: فون کا فائل مینیجر کھلتا ہے، زپ چنیں، «ہاں» → گیٹ ہب API سے
+   ریپو کی جڑ میں (اجازت نامہ / ٹوکن صرف اسی فون میں `pbthd_ghtok`) → ریپو کا auto-unzip خود کھولتا ہے → یہاں «✅ لائیو» تک پیش رفت۔ */
+const ZUP = {}; let ghWho = '';
+const ghTok = () => { try { return localStorage.getItem('pbthd_ghtok') || ''; } catch (e) { return ''; } };
+function ghTokSheet() {
+  const E = LANG === 'en', has = ghTok();
+  sheet(`<h2>🔑 ${E ? 'GitHub permission (token)' : 'گیٹ ہب اجازت نامہ (ٹوکن)'}<button class="x" data-act="zips">✕</button></h2>
+    <ol class="ghSteps" dir="auto">
+      <li>${E ? 'Open this link (you must be logged in to GitHub):' : 'یہ لنک کھولیں (گیٹ ہب میں لاگ اِن ہونا ضروری):'}<br><a class="tb" target="_blank" rel="noopener" href="https://github.com/settings/tokens/new?scopes=repo&description=PBT%20Help%20Desk%20upload">🔗 ${E ? 'Make the permission' : 'اجازت نامہ بنائیں'}</a></li>
+      <li>${E ? '«Expiration» → choose <b>No expiration</b> (or 1 year).' : '«Expiration» میں <b>No expiration</b> چنیں (یا ایک سال)۔'}</li>
+      <li>${E ? '«repo» is already ticked — scroll down, press green <b>Generate token</b>.' : '«repo» پہلے سے ✓ ہے — نیچے جا کر سبز <b>Generate token</b> دبائیں۔'}</li>
+      <li>${E ? 'Copy the code that starts with <b dir="ltr">ghp_</b> and paste it here:' : '<b dir="ltr">ghp_</b> سے شروع ہونے والا کوڈ کاپی کر کے یہاں پیسٹ کریں:'}</li>
+    </ol>
+    <input id="ghTokIn" type="password" dir="ltr" autocomplete="off" placeholder="ghp_…" style="width:100%;padding:12px;border-radius:12px;border:1px solid #cbd5e1;font-size:16px">
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button class="tb grn" data-act="ghTokSave">✅ ${E ? 'Save' : 'محفوظ کریں'}</button>${has ? `<button class="tb red" data-act="ghTokDel">🗑️ ${E ? 'Remove from this phone' : 'اس فون سے ہٹائیں'}</button>` : ''}</div>
+    <p style="color:var(--mut);font-size:12.5px;margin-top:10px">${E ? 'Stays only on this phone. If the phone is lost: GitHub → Settings → Developer settings → Tokens → Delete.' : 'یہ صرف اسی فون میں رہتا ہے۔ فون گم ہو جائے تو: گیٹ ہب ← Settings ← Developer settings ← Tokens ← Delete۔'}</p>`);
+}
+async function ghCheck(t) {
+  const r = await fetch('https://api.github.com/user', { headers: { Authorization: 'token ' + t } });
+  if (!r.ok) throw new Error(r.status === 401 ? (LANG === 'en' ? 'wrong token' : 'ٹوکن غلط ہے') : 'GitHub ' + r.status);
+  return (await r.json()).login;
+}
+async function ghTokSave() {
+  const t = (($('#ghTokIn') || {}).value || '').trim(); if (!t) return;
+  try { ghWho = await ghCheck(t); localStorage.setItem('pbthd_ghtok', t); toast('✅ ' + ghWho); zipSheet(); }
+  catch (e) { toast('⚠️ ' + e.message, 4000); }
+}
+function zipUp(id) {
+  if (!ghTok()) { ghTokSheet(); return; }
+  const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.zip,application/zip,application/x-zip-compressed';
+  inp.onchange = () => { const f = inp.files && inp.files[0]; if (f) zipUpGo(id, f); };
+  inp.click();
+}
+const b64 = buf => { const a = new Uint8Array(buf); let s = ''; for (let i = 0; i < a.length; i += 32768) s += String.fromCharCode.apply(null, a.subarray(i, i + 32768)); return btoa(s); };
+async function zipUpGo(id, f) {
+  const E = LANG === 'en', z = HDZips.ZA[id] || {}, a = id === 'HD' ? { repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io', ur: 'ہیلپ ڈیسک', en: 'Help Desk' } : appOf(id);
+  const repo = z.repo || a.repo, ver = f.name.replace(/\.zip$/i, '').replace(/\s*\(\d+\)$/, '');
+  const okName = new RegExp('^(' + z.v + ')$').test(ver);
+  if (!okName && !confirm((E ? `⚠️ «${f.name}» does not look like a ${AN(a)} version name. The repo may reject it. Upload anyway?` : `⚠️ «${f.name}» کا نام ${AN(a)} کے ورژن جیسا نہیں — ریپو اسے رد کر سکتی ہے۔ پھر بھی اپلوڈ کریں؟`))) return;
+  if (okName && !confirm(E ? `⬆️ Upload ${f.name} (${Math.round(f.size / 1024)} KB) to ${AN(a)}? It goes live in ~2 minutes.` : `⬆️ ${f.name} (${Math.round(f.size / 1024)} KB) ${AN(a)} میں ڈال دیں؟ تقریباً 2 منٹ میں لائیو ہو جائے گی۔`)) return;
+  const name = ver + '.zip', set = m => { ZUP[id] = m; zipSheet(); }, H = { Authorization: 'token ' + ghTok(), 'Content-Type': 'application/json' };
+  try {
+    set('⏳ ' + (E ? 'uploading…' : 'اپلوڈ ہو رہی ہے…'));
+    const body = { message: `${ver}: زپ اپلوڈ (ہیلپ ڈیسک)`, content: b64(await f.arrayBuffer()), branch: 'main' };
+    const ex = await fetch(`https://api.github.com/repos/${repo}/contents/${encodeURIComponent(name)}?ref=main`, { headers: H, cache: 'no-store' });
+    if (ex.ok) body.sha = (await ex.json()).sha;
+    const r = await fetch(`https://api.github.com/repos/${repo}/contents/${encodeURIComponent(name)}`, { method: 'PUT', headers: H, body: JSON.stringify(body) });
+    if (!r.ok) throw new Error(r.status === 401 ? (E ? 'token expired — add again' : 'اجازت نامہ ختم — دوبارہ لگائیں') : r.status === 404 ? (E ? 'no access to this repo' : 'اس ریپو کی اجازت نہیں') : 'GitHub ' + r.status);
+    set('✅ ' + (E ? 'in the repo — opening the zip…' : 'ریپو میں پہنچ گئی — زپ کھل رہی ہے…'));
+    if (!okName) return;
+    const vf = (z.dir ? z.dir + '/' : '') + (z.vf || 'sw.js'), t0 = Date.now();
+    const tick = async () => {
+      try { const t = await (await fetch(`https://raw.githubusercontent.com/${repo}/main/${vf}?t=${Date.now()}`, { cache: 'no-store' })).text();
+        if (t.includes(ver)) { set('🌐 ' + (E ? `${ver} is live — refresh the app` : `${ver} لائیو ہو گئی — ایپ تازہ کر لیں`)); delete ZIPC[id]; return; } } catch (e) {}
+      if (Date.now() - t0 > 5 * 60e3) { set('⏳ ' + (E ? 'in the repo — check again in a few minutes' : 'ریپو میں ہے — چند منٹ بعد دیکھیں')); return; }
+      ZUP[id] = '⏳ ' + (E ? 'opening the zip… ' : 'زپ کھل رہی ہے… ') + Math.round((Date.now() - t0) / 1000) + 's'; if ($('#sheet [data-zi]')) zipSheet();
+      setTimeout(tick, 8000);
+    };
+    setTimeout(tick, 15000);
+  } catch (e) { set('⚠️ ' + e.message); }
 }
 function partyHomeBtn() {
   const n = partyList().length, E = LANG === 'en';
@@ -1484,6 +1548,10 @@ document.addEventListener('click', async e => {
     case 'zips': zipSheet(); break;
     case 'zipGo': zipGo(id); break;
     case 'zipDl': zipDl(id); break;
+    case 'zipUp': zipUp(id); break;
+    case 'ghTok': ghTokSheet(); break;
+    case 'ghTokSave': ghTokSave(); break;
+    case 'ghTokDel': try { localStorage.removeItem('pbthd_ghtok'); } catch (e) {} ghWho = ''; toast('🗑️'); zipSheet(); break;
     case 'party': PF = 'all'; go('#/party/' + encodeURIComponent(id)); break;
     case 'pfilt': PF = id || 'all'; render(); window.scrollTo(0, 0); break;
     case 'new': go('#/new/' + encodeURIComponent(id)); break;
