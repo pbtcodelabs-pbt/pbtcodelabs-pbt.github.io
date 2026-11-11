@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1111WE077';
-const UPDATE_NOTE = '📦 تازہ زپ کا بٹن صاف (گہری لکھائی)؛ غلط چیز پیسٹ ہو تو اجازت نامے کا صاف پیغام';
+const APP_VERSION = 'HD1111WE078';
+const UPDATE_NOTE = '📦 تازہ زپ کا بٹن چھوٹا';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -462,11 +462,11 @@ function partyContact(g) {
   return `<a class="pC call" href="tel:${esc(g.phone)}" onclick="event.stopPropagation()">📞 ${E ? 'Call' : 'کال'}</a><a class="pC wa" href="https://wa.me/${waNum(digits(g.phone).replace(/\D/g, ''))}" target="_blank" rel="noopener" onclick="event.stopPropagation()">💬 WhatsApp</a>`;
 }
 let PF = 'all';
-/* HD1111WE077 (مالک کا حکم): 📦 تازہ زپ — ہر ایپ کی ابھی لائیو فائلیں (zips.js) */
+/* HD1111WE078 (مالک کا حکم): 📦 تازہ زپ — ہر ایپ کی ابھی لائیو فائلیں (zips.js) */
 const ZIPC = {};
 function zipHomeBtn() {
   const E = LANG === 'en';
-  return `<button class="partyBtn zipBtn" data-act="zips"><span class="i">📦</span><span class="t"><b>${E ? 'Latest zip — every app, live version' : 'تازہ زپ — ہر ایپ کی ابھی چلتی فائل'}</b><small>${E ? 'Tap an app: index.html + sw.js as <version>.zip' : 'ایپ دبائیں: index.html + sw.js — نام ورژن سے'}</small></span><span class="go">‹</span></button>`;
+  return `<div style="text-align:center;margin:8px 0"><button class="zipMini" data-act="zips">📦 ${E ? 'Latest zip' : 'تازہ زپ'}</button></div>`;
 }
 function zipSheet() {
   const E = LANG === 'en';
@@ -493,7 +493,7 @@ function zipDl(id) {
   const u = URL.createObjectURL(c.blob), l = document.createElement('a'); l.href = u; l.download = c.ver + '.zip'; document.body.appendChild(l); l.click(); l.remove();
   setTimeout(() => URL.revokeObjectURL(u), 60000); toast('⬇️ ' + c.ver + '.zip');
 }
-/* HD1111WE077 (مالک کا حکم): «⬆️ زپ اپلوڈ» — گیٹ ہب کا صفحہ کھولے بغیر: فون کا فائل مینیجر کھلتا ہے، زپ چنیں، «ہاں» → گیٹ ہب API سے
+/* HD1111WE078 (مالک کا حکم): «⬆️ زپ اپلوڈ» — گیٹ ہب کا صفحہ کھولے بغیر: فون کا فائل مینیجر کھلتا ہے، زپ چنیں، «ہاں» → گیٹ ہب API سے
    ریپو کی جڑ میں (اجازت نامہ / ٹوکن صرف اسی فون میں `pbthd_ghtok`) → ریپو کا auto-unzip خود کھولتا ہے → یہاں «✅ لائیو» تک پیش رفت۔ */
 const ZUP = {}; let ghWho = '';
 const ghTok = () => { try { return localStorage.getItem('pbthd_ghtok') || ''; } catch (e) { return ''; } };
