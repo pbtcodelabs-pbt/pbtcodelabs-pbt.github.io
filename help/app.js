@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1111WE074';
-const UPDATE_NOTE = '🎬 میرا مکتبہ کی واٹس ایپ اسٹیٹس والی ویڈیو (56 سیکنڈ)';
+const APP_VERSION = 'HD1111WE075';
+const UPDATE_NOTE = '📦 تازہ زپ — ہر ایپ کی ابھی چلتی فائل ایک دبانے سے (ورژن کے نام سے)';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -317,6 +317,7 @@ function vHome() {
   </div>`}
   ${own ? ownMineCard() : ''}
   ${own ? partyHomeBtn() : ''}
+  ${own ? zipHomeBtn() : ''}
   ${mine && !own ? `<button class="mineBtn" data-act="mine"><span class="i">📋</span><span class="t"><b>${T('mine')} <span class="num">(${mine})</span></b><small>${T('mineSub')}</small></span>${un ? `<span class="dot">${un}</span>` : ''}<span>${LANG === 'en' ? '›' : '‹'}</span></button>` : ''}
   ${own ? urgHome() : ''}
   ${own ? rankBtns() : ''}
@@ -461,6 +462,34 @@ function partyContact(g) {
   return `<a class="pC call" href="tel:${esc(g.phone)}" onclick="event.stopPropagation()">📞 ${E ? 'Call' : 'کال'}</a><a class="pC wa" href="https://wa.me/${waNum(digits(g.phone).replace(/\D/g, ''))}" target="_blank" rel="noopener" onclick="event.stopPropagation()">💬 WhatsApp</a>`;
 }
 let PF = 'all';
+/* HD1111WE075 (مالک کا حکم): 📦 تازہ زپ — ہر ایپ کی ابھی لائیو فائلیں (zips.js) */
+const ZIPC = {};
+function zipHomeBtn() {
+  const E = LANG === 'en';
+  return `<button class="partyBtn" data-act="zips" style="background:linear-gradient(135deg,#fef3c7,#fde68a);border-color:#f59e0b"><span class="i">📦</span><span class="t"><b>${E ? 'Latest zip — every app, live version' : 'تازہ زپ — ہر ایپ کی ابھی چلتی فائل'}</b><small>${E ? 'Tap an app: index.html + sw.js as <version>.zip' : 'ایپ دبائیں: index.html + sw.js — نام ورژن سے'}</small></span><span class="go">‹</span></button>`;
+}
+function zipSheet() {
+  const E = LANG === 'en';
+  if (!window.HDZips) { toast('⚠️'); return; }
+  const L = [...APPS.filter(a => HDZips.has(a.id)), { id: 'HD', ur: 'ہیلپ ڈیسک', en: 'Help Desk', img: 'icons/icon-192.png', repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io' }];
+  sheet(`<h2>📦 ${E ? 'Latest zip' : 'تازہ زپ'}<button class="x" data-act="close">✕</button></h2>
+    <p style="color:var(--mut);font-size:13px;margin:0 0 8px">${E ? 'Each tap reads the app straight from its repo right now — even if another Claude changed it.' : 'ہر بار دبانے پر فائل اسی وقت ریپو سے آتی ہے — کسی اور Claude نے بدلی ہو تب بھی تازہ۔'}</p>
+    <div class="zpL">${L.map(a => { const c = ZIPC[a.id]; return `<div class="zpR" data-zi="${esc(a.id)}">
+      <button class="zpA" data-act="zipGo" data-id="${esc(a.id)}">${appIcon(a, 'appMini')}<span><b>${esc(AN(a))}</b><small class="num">${c ? (c.err ? '⚠️ ' + esc(c.err) : c.busy ? '⏳ ' + esc(c.busy) : '✅ ' + esc(c.ver)) : (E ? 'tap — get latest' : 'دبائیں — تازہ لائیں')}</small></span></button>
+      ${c && c.blob ? `<button class="tb grn" data-act="zipDl" data-id="${esc(a.id)}">⬇️ ${esc(c.ver)}.zip</button><a class="tb" href="https://github.com/${esc(c.repo)}/upload/main${c.dir ? '/' + esc(c.dir) : ''}" target="_blank" rel="noopener">⬆️ ${E ? 'Upload' : 'ریپو میں ڈالیں'}</a>` : ''}
+    </div>`; }).join('')}</div>`, true);
+}
+async function zipGo(id) {
+  const a = id === 'HD' ? { id: 'HD', repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io' } : appOf(id);
+  ZIPC[id] = { busy: '…' }; zipSheet();
+  try { const r = await HDZips.build(id, a.repo, st => { ZIPC[id] = { busy: st }; zipSheet(); }); ZIPC[id] = r; zipSheet(); zipDl(id); }
+  catch (e) { ZIPC[id] = { err: (navigator.onLine ? '' : (LANG === 'en' ? 'offline — ' : 'انٹرنیٹ نہیں — ')) + String(e && e.message || e).slice(0, 60) }; zipSheet(); }
+}
+function zipDl(id) {
+  const c = ZIPC[id]; if (!c || !c.blob) return;
+  const u = URL.createObjectURL(c.blob), l = document.createElement('a'); l.href = u; l.download = c.ver + '.zip'; document.body.appendChild(l); l.click(); l.remove();
+  setTimeout(() => URL.revokeObjectURL(u), 60000); toast('⬇️ ' + c.ver + '.zip');
+}
 function partyHomeBtn() {
   const n = partyList().length, E = LANG === 'en';
   return `<button class="partyBtn" data-act="parties"><span class="i">👥</span><span class="t"><b>${E ? 'Parties — every customer’s issues in one place' : 'پارٹیاں — ہر گاہک کے سب مسائل ایک جگہ'}</b><small>${E ? 'Name, mobile, call / WhatsApp, solved / pending' : 'نام، موبائل، کال / واٹس ایپ — حل شدہ اور باقی'}</small></span><span class="num c">${n}</span></button>`;
@@ -1452,6 +1481,9 @@ document.addEventListener('click', async e => {
     case 'mine': go('#/mine'); break;
     case 'ownMine': go('#/mine/' + id); break;
     case 'parties': go('#/party'); break;
+    case 'zips': zipSheet(); break;
+    case 'zipGo': zipGo(id); break;
+    case 'zipDl': zipDl(id); break;
     case 'party': PF = 'all'; go('#/party/' + encodeURIComponent(id)); break;
     case 'pfilt': PF = id || 'all'; render(); window.scrollTo(0, 0); break;
     case 'new': go('#/new/' + encodeURIComponent(id)); break;
