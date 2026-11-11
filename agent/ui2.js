@@ -243,7 +243,7 @@ window.v2Unvoid = async id => { if(!confirm('Restore this entry into the account
 function payoutsHtml(P){
   const req = P.reqs || [];
   return `${req.length ? `<div class="v2warn">🙏 ${req.length} withdrawal requests — marked yellow below</div>` : ''}<div class="v2note">📅 Payouts between the 20th and 25th of each month, minimum Rs. 1,000 (ready balance)</div>
-    ${P.list.map((p, i) => { const a = p.acct || {}; return `<div class="v2card v2pc ${p.req ? 'rq' : ''}"><div class="pch"><b>${p.kind === 'agent' ? '🤝' : '👥'} ${E(p.name)}</b> <span class="num">${E(p.code || ph0(p.phone))}</span>${p.req ? ` <span class="v2st tr">🙏 ${Rs(p.req.amount)}</span>` : ''}</div>
+    ${P.list.map((p, i) => { const a = p.acct || {}; return `<div class="v2card v2pc ${p.req ? 'rq' : ''}"><div class="pch"><b>${p.kind === 'agent' ? '🤝' : p.kind === 'dev' ? '👨‍💻' : '👥'} ${E(p.name)}</b> <span class="num">${E(p.code || ph0(p.phone))}</span>${p.req ? ` <span class="v2st tr">🙏 ${Rs(p.req.amount)}</span>` : ''}</div>
       <div class="pcs"><span>Total <b class="num">${N(p.due)}</b></span><span>⏳ Google <b class="num">${N(p.pending)}</b></span><span>Paid <b class="num">${N(p.paid)}</b></span><span class="av">✅ Ready <b class="num">${N(p.avail)}</b></span></div>
       ${p.acct ? `<div class="pca">${a.qr ? `<img src="${a.qr}" onclick="v2Img(this.src)">` : ''}<div>🏦 <b>${E(a.method||'')}</b> — ${E(a.title||'')}<br><span class="num">${E(a.number||'')}</span> ${a.number ? CP(a.number) : ''}${a.iban ? `<br><span class="num">${E(a.iban)}</span> ${CP(a.iban)}` : ''}${a.bank ? '<br>' + E(a.bank) : ''}</div></div>` : '<div class="v2mut">🏦 No payment account yet</div>'}
       <div class="btns"><button onclick="v2Pay(${i})" ${p.avail > 0 ? '' : 'class="sec"'}>✅ Mark as Paid…</button>${p.kind === 'agent' ? `<button class="sec" onclick="admOpen('${E(p.code)}')">📋 Details</button>` : ''}</div></div>`; }).join('') || '<div class="v2card">No agents / co-developers yet</div>'}`;
@@ -252,14 +252,15 @@ let payImg = '';
 window.v2Pay = i => { const p = PEOPLE.list[i], a = p.acct || {}; payImg = '';
   const box = document.createElement('div'); box.className = 'v2modal'; box.innerHTML = `<div class="v2card"><h2>✅ Payout — ${E(p.name)}</h2>
     <label>Amount</label><input id="pyA" class="num" inputmode="numeric" value="${p.avail || ''}">
-    <label>Payment Method</label><input id="pyM" value="${E(a.method || 'Easypaisa')}">
-    <label>Account</label><input id="pyN" dir="ltr" value="${E(mask(a.number || a.iban))}">
+    <label>Paid through</label><div class="pyCh">${['Easypaisa','JazzCash','Bank transfer','Cash'].map(m => `<button type="button" class="sec" onclick="document.getElementById('pyM').value='${m}'">${m}</button>`).join('')}</div><input id="pyM" value="${E(a.method || 'Easypaisa')}" placeholder="e.g. Easypaisa / Bank transfer">
+    <label>Account / mobile number <small>(optional — can leave empty)</small></label><input id="pyN" dir="ltr" value="${E(mask(a.number || a.iban))}" placeholder="optional">
     <label>Note / TID</label><input id="pyT">
     <div class="att"><label>🖼️ Receipt Screenshot<input type="file" accept="image/*" onchange="v2PayImg(this)"></label></div><div class="prev" id="pyP"></div>
     <div class="btns"><button onclick="v2PayGo(${i})">💾 Save</button><button class="sec" onclick="this.closest('.v2modal').remove()">✖ Cancel</button></div></div>`;
   document.body.appendChild(box); };
 window.v2PayImg = async inp => { const f = inp.files && inp.files[0]; if(!f) return; payImg = await shrink(f, 1100, .72); $('#pyP').innerHTML = `<img src="${payImg}">`; };
 window.v2PayGo = async i => { const p = PEOPLE.list[i], amount = parseInt(enD($('#pyA').value), 10); if(!(amount > 0)) return alert('Enter amount'); if(!confirm('Paid ' + Rs(amount) + ' to ' + p.name + '?')) return;
+  if(!String($('#pyM').value || '').trim()) $('#pyM').value = 'Cash';
   const r = await finCall({op:'payout', who: p.key, amount, method: $('#pyM').value, acctNo: $('#pyN').value, note: $('#pyT').value, img: payImg}); if(!r || !r.ok) return alert('Could not save');
   document.querySelector('.v2modal') && document.querySelector('.v2modal').remove(); toast('✅ Payout saved'); PEOPLE = null; v2Render(); };
 window.v2Img = src => { const b = document.createElement('div'); b.className = 'v2modal'; b.onclick = () => b.remove(); b.innerHTML = `<img src="${src}" style="max-width:92vw;max-height:86vh;border-radius:12px;background:#fff">`; document.body.appendChild(b); };
