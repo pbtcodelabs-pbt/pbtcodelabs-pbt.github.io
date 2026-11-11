@@ -169,7 +169,7 @@ function monthHtml(m, ro){ SALE_RO = !!ro;
     : '';
   const who = l => l.by === 'agent' ? '🤝 ' + E(l.agent || l.code) : l.by === 'dev' ? '👨‍💻 DEV' : l.by === 'codev' ? '👥 CODEV' : '🏢 PBT';
   return `<div class="v2card"><div class="v2mon"><button onclick="v2Mon(-1)">‹</button><b>${monName(FMON)}</b><button onclick="v2Mon(1)">›</button></div>
-      <div class="v2split en" style="margin:8px 0">⚖️ ${SPLIT_TXT}</div>
+      <details class="v2spd" style="margin:8px 0"><summary>👁️ View split rules — how the money is divided</summary><div class="v2split en">⚖️ ${SPLIT_TXT}</div></details>
       ${tiles([{c:'tb', i:'coins', t:'Total Sales<br>(Gross)', v:'<small>Rs.</small> ' + N(m.gross)}, {c:'tg', i:'check', t:'▶️ Google Play', v:'<small>Rs.</small> ' + N(m.play)}, {c:'tp', i:'wallet', t:'🏦 Direct<br>(Manual / Ads)', v:'<small>Rs.</small> ' + N(m.direct)}, {c:'to', i:'cal', t:'🛠️ Maintenance', v:'<small>Rs.</small> ' + N(T.maint)}])}${g}</div>
     ${sec('bars', 'Revenue Split — ' + monName(FMON), table(['Head','Amount'], [['🟦 Google', T.google], ['🛠️ Maintenance', T.maint], ['🤝 Agents', T.agent], ['👨‍💻 Developer', T.dev], ['👥 Co-Developer', T.codev]].map(([a, b]) => `<tr><td>${a}</td><td class="n">${Rs(b)}</td></tr>`).concat([`<tr class="tot"><td>Total</td><td class="n">${Rs(m.gross)}</td></tr>`])))}
     ${ro ? '' : `<div class="v2card"><h2>➕ Add Receipt (Ad or Manual Membership)</h2><div class="v2mut">Memberships given via Account Access are recorded automatically — add only what is not recorded elsewhere (e.g. Rs 800 for an ad)</div>
@@ -291,7 +291,7 @@ function allSubsTable(m, lim, col){
 function overview(m){
   const T = (m && m.totals) || {}, L = (m && m.lines) || [], mem = L.filter(l => l.kind === 'mem').length;
   return `<div class="v2sec v2ov"><div class="v2sh">${ic('coins', 28)}<b>Company Overview <small>(${monName(FMON)} — My City Shines)</small></b><button onclick="v2Go('acc')">View All →</button></div>
-    <div class="v2sb"><div class="v2split en">⚖️ ${SPLIT_TXT}</div>
+    <div class="v2sb"><details class="v2spd"><summary>👁️ View split rules — how the money is divided</summary><div class="v2split en">⚖️ ${SPLIT_TXT}</div></details>
     <div class="v2tiles v2t4">${[{c:'tb', i:'users', t:'Total<br>Subscriptions', v:N(mem), d:'subs'}, {c:'tg', i:'coins', t:'Total Subscription<br>Amount', v:R0(m ? m.gross : 0), d:'gross'}, {c:'to', i:'wallet', t:'Google +<br>Maintenance', v:R0((T.google || 0) + (T.maint || 0)), d:'gm'}, {c:'tp', i:'bars', t:'Agents<br>Commission', v:R0(T.agent || 0), d:'agent'}].map(x => `<div class="v2tile ${x.c} v2tap" onclick="v2Det('${x.d}')">${ic(x.i, 34, '#fff')}<div><span class="tl">${x.t}</span><b>${x.v}</b></div></div>`).join('')}</div></div></div>`;
 }
 function profCard(name, type, idLbl, id, ref){
