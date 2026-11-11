@@ -167,7 +167,7 @@ function monthHtml(m, ro){ SALE_RO = !!ro;
   const g = m.play ? (rv ? `<div class="v2ok">✅ Received from Google: <b class="num">${Rs(rv.amount)}</b> (${dmy(rv.at)}) — actual Google cut <b class="num">${Rs(m.gAct)}</b>${ro ? '' : ` <button class="sm" onclick="v2Grecv(true)">✖ Back to «Pending»</button>`}</div>`
       : `<div class="v2warn">⏳ Pending from Google — Play sales <b class="num">${Rs(m.play)}</b>, expected <b class="num">${Rs(m.play - m.gEst)}</b>${ro ? '' : `<div class="btns"><input id="grA" class="num" inputmode="numeric" placeholder="${m.play - m.gEst}" style="max-width:150px"><button onclick="v2Grecv()">✅ Received — in bank</button></div>`}</div>`)
     : '';
-  const who = l => l.by === 'agent' ? '🤝 ' + E(l.agent || l.code) : l.by === 'dev' ? '👨‍💻 PBT-D' : l.by === 'codev' ? '👥 PBT-C' : '🏢 PBT';
+  const who = l => l.by === 'agent' ? '🤝 ' + E(l.agent || l.code) : l.by === 'dev' ? '👨‍💻 DEV' : l.by === 'codev' ? '👥 CODEV' : '🏢 PBT';
   return `<div class="v2card"><div class="v2mon"><button onclick="v2Mon(-1)">‹</button><b>${monName(FMON)}</b><button onclick="v2Mon(1)">›</button></div>
       <div class="v2split en" style="margin:8px 0">⚖️ ${SPLIT_TXT}</div>
       ${tiles([{c:'tb', i:'coins', t:'Total Sales<br>(Gross)', v:'<small>Rs.</small> ' + N(m.gross)}, {c:'tg', i:'check', t:'▶️ Google Play', v:'<small>Rs.</small> ' + N(m.play)}, {c:'tp', i:'wallet', t:'🏦 Direct<br>(Manual / Ads)', v:'<small>Rs.</small> ' + N(m.direct)}, {c:'to', i:'cal', t:'🛠️ Maintenance', v:'<small>Rs.</small> ' + N(T.maint)}])}${g}</div>
@@ -205,7 +205,7 @@ async function v2BizLookup(mob){
 window.v2SaleDet = async (id, lx) => {
   const l = lx || ((FM && FM.lines) || []).find(x => x.id === id); if(!l) return;
   const ro = SALE_RO, row = (a, b) => `<tr><td>${a}</td><td class="n">${b}</td></tr>`;
-  const by = l.code === 'PBT-D' ? '👨‍💻 Developer (PBT-D)' : l.code === 'PBT-C' ? '👥 Co-Developer (PBT-C)' : (!l.code || l.code === 'PBT') ? '🏢 Company (PBT — came by self)' : '🤝 Agent ' + E(l.code) + (l.agent ? ' — ' + E(l.agent) : '');
+  const by = l.by === 'dev' ? '👨‍💻 Developer (DEV)' : l.by === 'codev' ? '👥 Co-Developer (CODEV)' : (!l.code || l.code === 'PBT') ? '🏢 Company (PBT — came by self)' : '🤝 Agent ' + E(l.code) + (l.agent ? ' — ' + E(l.agent) : '');
   const pay = l.kind === 'ad' ? '📢 Ad — recorded by hand' : l.src === 'play' ? '▶️ Google Play purchase' : '🏦 Direct / manual (given by developer)';
   const b = document.createElement('div'); b.className = 'v2modal'; b.onclick = e => { if(e.target === b) b.remove(); };
   const body = () => `<div class="v2card"><h2>${l.kind === 'ad' ? '📢' : '⭐'} <span id="sdName">${E(l.biz || 'Loading business…')}</span></h2>
@@ -222,9 +222,15 @@ window.v2SaleDet = async (id, lx) => {
       box.innerHTML = table(['', ''], [row('Business name', E(x.name) + (x.en && x.en !== x.name ? '<br>' + E(x.en) : '')), row('Owner / details', E(x.owner || '—')), row('Type', E(x.type || x.cat || '—')), row('City / area', E([x.city, x.area].filter(Boolean).join(' — ') || '—'))] .concat(L.length > 1 ? [row('Other cards on this mobile', L.filter(y => y !== x).map(y => E(y.name)).join('<br>'))] : []));
     } else { if(nm && !l.biz) nm.textContent = 'Business (card not found)'; box.innerHTML = '<div class="v2mut">Card for this mobile not found in My City Shines</div>'; } }
 };
-window.v2SetWho = async id => {
-  const c = prompt('Who brought this business?\n\nPBT-D = Developer (me)\nPBT-C = Co-Developer\nPBT = came by self\nor an agent code, e.g. AG-001', 'PBT-D'); if(c === null) return;
-  const r = await finCall({op:'setwho', id, code: c.trim(), mon: FMON}); if(!r || r.ok === false) return alert('Could not change: ' + ({no_agent:'agent code not found', not_found:'entry not found'}[r && r.reason] || (r && r.reason) || 'network'));
+window.v2SetWho = async id => {   /* AGP1111WE029: فہرست سے چنیں (DEV / CODEV / PBT / ایجنٹ AG-…) */
+  if(!PEOPLE){ try{ PEOPLE = await finCall({op:'people'}); }catch(e){} }
+  const box = document.createElement('div'); box.className = 'v2modal'; box.onclick = e => { if(e.target === box) box.remove(); };
+  box.innerHTML = `<div class="v2card en"><h2>✏️ Who brought this business?</h2>${bringerSel('swSel')}<div class="btns"><button onclick="v2SetWhoGo('${id}')">💾 Save</button><button class="sec" onclick="this.closest('.v2modal').remove()">✖ Cancel</button></div></div>`;
+  document.body.appendChild(box);
+};
+window.v2SetWhoGo = async id => {
+  const c = (document.getElementById('swSel') || {}).value || ''; if(!c) return alert('Choose who brought it');
+  const r = await finCall({op:'setwho', id, code: c, mon: FMON}); if(!r || r.ok === false) return alert('Could not change: ' + ({no_agent:'agent code not found', not_found:'entry not found'}[r && r.reason] || (r && r.reason) || 'network'));
   FM = r; document.querySelectorAll('.v2modal').forEach(x => x.remove()); v2Render(); setTimeout(() => v2SaleDet(id), 50);
 };
 window.v2Void = async id => {
@@ -269,14 +275,14 @@ window.v2Img = src => { const b = document.createElement('div'); b.className = '
 /* ---------- رینڈر ---------- */
 /* ===== AGP1011TU024 (مالک کا حکم، ہیلپ ڈیسک #214 — کو-ڈویلپر کی دوسری تصویر): کو-ڈویلپر / ڈویلپر ہوم ایجنٹ جیسے انداز میں، مکمل انگلش —
    Company Overview (اس مہینے)، Your Personal Share + Request Withdrawal، All Subscriptions History، My Transactions؛ تقسیم سرور (AGP1011TU023) سے */
-const SPLIT_TXT = '<b>⭐ Membership (Rs 1,000)</b>: Google 15% (only Google Play; direct / cash → this 15% goes to Maintenance) · Maintenance 15% · then <b>15% of the rest to whoever brought it</b> (Agent / PBT-D Developer / PBT-C Co-Developer; PBT = half & half) · the remainder Developer / Co-Developer 50 / 50'
-  + '<br><small>Direct 1,000 brought by PBT-D: Maintenance 300 → 15% of 700 = 105 to Developer → 595 = 298 + 297 → Developer 403, Co-Developer 297</small>'
+const SPLIT_TXT = '<b>⭐ Membership (Rs 1,000)</b>: Google 15% (only Google Play; direct / cash → this 15% goes to Maintenance) · Maintenance 15% · then <b>15% of the rest to whoever brought it</b> (Agent AG-… / DEV Developer / CODEV Co-Developer; PBT = half & half) · the remainder Developer / Co-Developer 50 / 50'
+  + '<br><small>Direct 1,000 brought by DEV: Maintenance 300 → 15% of 700 = 105 to Developer → 595 = 298 + 297 → Developer 403, Co-Developer 297</small>'
   + '<br><b>📢 Ad</b>: Maintenance 15% (no Google) · then 15% of the rest to whoever brought it · the remainder Developer / Co-Developer 50 / 50'
-  + '<br><small>Ad 800 brought by PBT-D: Maintenance 120 → 15% of 680 = 102 to Developer → 578 = 289 + 289 → Developer 391, Co-Developer 289</small>';
+  + '<br><small>Ad 800 brought by DEV: Maintenance 120 → 15% of 680 = 102 to Developer → 578 = 289 + 289 → Developer 391, Co-Developer 289</small>';
 function t2(list){ return `<div class="v2tiles v2t2">${list.map(x => x.btn ? `<button class="v2tile tq" onclick="${x.btn}">${ic(x.i, 36, '#fff')}<div><span class="tl">${x.t}</span>${x.v != null ? `<b>${x.v}</b>` : ''}</div></button>`
   : `<div class="v2tile ${x.c}" ${x.go ? `onclick="${x.go}" style="cursor:pointer"` : ''}>${ic(x.i, 36, x.c === 'tw' ? '#0b2a6b' : '#fff')}<div><span class="tl">${x.t}</span><b>${x.v}</b>${x.sub ? `<div class="tsub2">${x.sub}</div>` : ''}</div></div>`).join('')}</div>`; }
 const R0 = n => '<small>Rs.</small> ' + N(n);
-function whoTxt(l){ return l.by === 'agent' ? E(l.code) + (l.agent ? ' — ' + E(l.agent) : '') : l.by === 'dev' ? 'PBT-D (Developer)' : l.by === 'codev' ? 'PBT-C (Co-Developer)' : 'PBT (Company)'; }
+function whoTxt(l){ return l.by === 'agent' ? E(l.code) + (l.agent ? ' — ' + E(l.agent) : '') : l.by === 'dev' ? 'DEV (Developer)' : l.by === 'codev' ? 'CODEV (Co-Developer)' : 'PBT (Company)'; }
 function allSubsTable(m, lim, col){
   const L = ((m && m.lines) || []).slice().reverse();
   return table(['S.No','Date','Account / Business','Type','Amount (Rs.)','Brought by','Agent','Dev. Share','Co-Dev. Share','Status'], (lim ? L.slice(0, lim) : L).map((l, i) => `<tr><td>${i+1}</td><td class="n">${dmy(l.ts)}</td><td>${E(l.biz || String(l.rk || '').split('_').pop().toUpperCase() || '—')}</td><td>${l.kind === 'ad' ? 'Ad' : (l.src === 'play' ? 'Google Play' : 'Manual')}</td><td class="n">${N(l.amount)}</td><td>${whoTxt(l)}</td><td class="n">${N(l.sh.agent)}</td><td class="n">${N(l.sh.dev)}</td><td class="n">${N(l.sh.codev)}</td><td>${l.ready ? '<span class="v2st ok">Ready</span>' : '<span class="v2st tr">Google</span>'}</td></tr>`), 'No subscriptions this month');
@@ -295,7 +301,7 @@ function profCard(name, type, idLbl, id, ref){
 }
 function cdHome(f, m, c){
   const cur = (f.months || []).find(x => x.mon === FMON) || {amt: 0};
-  return `${profCard((CDV && CDV.name) || 'Co-Developer', 'Co-Developer', 'Co-Developer ID', ph0(c.phone), 'PBT-C')}
+  return `${profCard((CDV && CDV.name) || 'Co-Developer', 'Co-Developer', 'Co-Developer ID', ph0(c.phone), 'CODEV')}
     ${overview(m)}
     <div class="v2sec"><div class="v2sh">${ic('user', 28)}<b>Your Personal Share <small>(${E((CDV && CDV.name) || '')})</small></b></div><div class="v2sb">
     ${t2([{c:'tp', i:'coins', t:'Co-Developer Share<br>(This Month)', v:R0(cur.amt)}, {c:'tb', i:'bars', t:'Total<br>Earnings', v:R0(f.due), sub:'Ready: ' + Rs(f.ready)}, {c:'to', i:'wallet', t:'Total<br>Withdrawals', v:R0(f.paid)}, {c:'tw', i:'wallet', t:'Your Balance', v:R0(f.balance)}, {btn:'v2WdReq()', i:'send', t:'Request<br>Withdrawal'}])}
@@ -305,7 +311,7 @@ function cdHome(f, m, c){
 }
 function devHome(m, P, reqs, owe){
   const T = (m && m.totals) || {}, L = (P && P.list) || [], paid = L.reduce((a, p) => a + (p.paid || 0), 0);
-  return `${profCard('PBT Code Labs', 'Developer', 'Developer ID', 'DV-OWNER', 'PBT-D')}
+  return `${profCard('PBT Code Labs', 'Developer', 'Developer ID', 'DEV', 'DEV')}
     ${overview(m)}
     <div class="v2sec"><div class="v2sh">${ic('user', 28)}<b>Your Personal Share <small>(Developer)</small></b></div><div class="v2sb">
     ${t2([{c:'tp', i:'coins', t:'Developer Share<br>(This Month)', v:R0(T.dev || 0)}, {c:'tb', i:'bars', t:'Co-Developer Share<br>(This Month)', v:R0(T.codev || 0)}, {c:'tg', i:'check', t:m && m.recv ? '✅ Received<br>from Google' : '⏳ Pending<br>from Google', v:R0(m ? (m.recv ? m.recv.amount : m.play - m.gEst) : 0), go:"v2Go('acc')"}, {c:'to', i:'wallet', t:'Total Paid<br>to Team', v:R0(paid)}, {c:'tw', i:'wallet', t:'Ready — To Pay', v:R0(owe), go:"v2Go('pay')"}, {btn:"v2Go('pay')", i:'send', t:'Withdrawal<br>Requests', v: String(reqs)}])}</div></div>
@@ -491,11 +497,12 @@ window.v2Log = async () => { const r = await finCall({op:'log'}); const L = (r &
   b.innerHTML = `<div class="v2card"><h2>📜 Accounts Audit Log</h2>${table(['Time','Action','Details'], L.map(x => `<tr><td class="n">${new Date(x.ts).toLocaleString('en-GB')}</td><td>${E(x.op)}</td><td style="text-align:left;font-size:11px">${E(x.data)}</td></tr>`), 'Nothing yet')}<div class="btns"><button class="sec" onclick="this.closest('.v2modal').remove()">✖ Close</button></div></div>`;
   document.body.appendChild(b); };
 /* ===== AGP0911MO021 (مالک کا حکم): «لانے والا» فہرست — نام + کوڈ؛ My City Shines کے اشتہار پورٹل میں پڑھ کر حساب میں (MCS ایپ میں کوئی رقم نہیں) ===== */
-function bringerSel(id){
-  const L = (PEOPLE && PEOPLE.list) || [], ag = L.filter(p => p.kind === 'agent'), cd = L.find(p => p.kind === 'codev');
-  return `<select id="${id}" dir="ltr" style="font-family:MCSDigits,Noori,'Segoe UI',sans-serif"><option value="">— Choose Brought by —</option>
-    <optgroup label="🤝 Agents">${ag.map(a => `<option value="${E(a.code)}">${E(a.code)} — ${E(a.name)}</option>`).join('') || '<option disabled>No agents yet</option>'}</optgroup>
-    <optgroup label="🏢 PBT"><option value="PBT-D">PBT-D — Developer (self)</option><option value="PBT-C">PBT-C — Co-Developer${cd ? ' (' + E(cd.name) + ')' : ''} (self)</option><option value="PBT">PBT — Company (walk-in, 50/50)</option></optgroup></select>`;
+function bringerSel(id){   /* AGP1111WE029: صاف فہرست — پہلے DEV / CODEV / PBT، پھر ایجنٹ AG-… ترتیب سے؛ کوڈ برابر چوڑائی */
+  const L = (PEOPLE && PEOPLE.list) || [], ag = L.filter(p => p.kind === 'agent').sort((a, b) => String(a.code).localeCompare(String(b.code), 'en', {numeric: true})), cd = L.find(p => p.kind === 'codev');
+  const pad = c => (String(c) + '\u00A0'.repeat(8)).slice(0, 8);
+  return `<select id="${id}" class="bsel" dir="ltr"><option value="">— Choose who brought it —</option>
+    <optgroup label="Developer / Co-Developer / Company"><option value="DEV">${pad('DEV')} · Developer (me)</option><option value="CODEV">${pad('CODEV')} · Co-Developer${cd ? ' — ' + E(cd.name) : ''}</option><option value="PBT">${pad('PBT')} · Company (came by self, 50 / 50)</option></optgroup>
+    <optgroup label="Agents">${ag.map(a => `<option value="${E(a.code)}">${pad(E(a.code))} · ${E(a.name)}</option>`).join('') || '<option disabled>No agents yet</option>'}</optgroup></select>`;
 }
 const FSV = v => v == null ? null : 'stringValue' in v ? v.stringValue : 'integerValue' in v ? +v.integerValue : 'doubleValue' in v ? +v.doubleValue : 'booleanValue' in v ? v.booleanValue : 'nullValue' in v ? null : v.mapValue ? Object.fromEntries(Object.entries(v.mapValue.fields || {}).map(([k, x]) => [k, FSV(x)])) : v.arrayValue ? (v.arrayValue.values || []).map(FSV) : null;
 let MCSADS = null;
