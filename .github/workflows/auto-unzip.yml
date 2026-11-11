@@ -1,0 +1,70 @@
+# pbtcodelabs-pbt.github.io — Auto Unzip
+# فون سے زپ اپلوڈ کریں (ریپو میں کہیں بھی)، یہ خود کھول کر فائلیں صحیح فولڈر میں رکھ دے گا اور zip حذف کر دے گا:
+#   AGP….zip → agent/  (MCS Agent پورٹل)
+#   HD….zip  → help/   (PBT Help Desk)
+#   PBT….zip → ریپو کی جڑ (ویب سائٹ کا ہوم)
+# زپ کے اندر فائلیں سیدھی ہوں (index.html، ui2.js…) یا فولڈر کے ساتھ (agent/index.html) — دونوں چلتے ہیں۔
+# کسی دوسری ایپ کی zip آئی تو رد ہو کر حذف ہو جائے گی۔
+
+name: Auto Unzip (AGP / HD / PBT)
+
+on:
+  push:
+    branches: [main]
+    paths: ['**.zip', '**.ZIP']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: auto-unzip
+  cancel-in-progress: false
+
+jobs:
+  unzip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: zip kholo
+        shell: bash
+        run: |
+          set -e
+          BAD=0
+          while IFS= read -r -d '' z; do
+            name=$(basename "$z")
+            up=$(echo "$name" | tr 'a-z' 'A-Z')
+            case "$up" in
+              AGP*) EXP=AGP; DIR=agent ;;
+              HD*)  EXP=HD;  DIR=help ;;
+              PBT*) EXP=PBT; DIR=. ;;
+              *) echo "::error::REJECTED $name — صرف AGP / HD / PBT سے شروع ہونے والی zip"; BAD=1; rm -f "$z"; continue ;;
+            esac
+            rm -rf /tmp/x && mkdir -p /tmp/x
+            if ! unzip -oq "$z" -d /tmp/x; then
+              echo "::error::REJECTED $name — zip کھل نہیں سکی"; BAD=1; rm -f "$z"; continue
+            fi
+            rm -rf /tmp/x/.git /tmp/x/.github /tmp/x/__MACOSX
+            SRC=/tmp/x
+            # زپ کے اندر agent/ یا help/ فولڈر ہو تو اسی کے اندر سے
+            if [ "$DIR" != "." ] && [ -d "/tmp/x/$DIR" ]; then SRC="/tmp/x/$DIR"; fi
+            # اندر کی فائلوں میں اسی ایپ کا ورژن ہونا ضروری (غلط ایپ کی فائلیں نہ آئیں)
+            if ! grep -rqE "${EXP}[0-9]{4}[A-Za-z]{2}[0-9]{3}" "$SRC" --include='*.html' --include='*.js'; then
+              echo "::error::REJECTED $name — اندر $EXP ورژن نہیں ملا"; BAD=1; rm -f "$z"; continue
+            fi
+            mkdir -p "$DIR"
+            cp -a "$SRC/." "$DIR/"
+            echo "OK $name → $DIR/"
+            rm -f "$z"
+          done < <(find . -path ./.git -prune -o -type f -iname '*.zip' -print0)
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "auto unzip"
+            git pull --rebase
+            git push
+          fi
+          exit $BAD
