@@ -161,7 +161,8 @@ window.v2Photo = async inp => { const f = inp.files && inp.files[0]; if(!f) retu
 async function cdLoad(){ const c = ls.get('cd') || {}; const r = await post('/fin2', {as:'cd', phone: c.phone, pin: c.pin, op:'me'}); if(!r || !r.ok) return null; CDME = r; return r; }
 
 /* ---------- ڈویلپر ---------- */
-function monthHtml(m, ro){
+let SALE_RO = true;
+function monthHtml(m, ro){ SALE_RO = !!ro;
   const T = m.totals || {}, rv = m.recv;
   const g = m.play ? (rv ? `<div class="v2ok">✅ Received from Google: <b class="num">${Rs(rv.amount)}</b> (${dmy(rv.at)}) — actual Google cut <b class="num">${Rs(m.gAct)}</b>${ro ? '' : ` <button class="sm" onclick="v2Grecv(true)">✖ Back to «Pending»</button>`}</div>`
       : `<div class="v2warn">⏳ Pending from Google — Play sales <b class="num">${Rs(m.play)}</b>, expected <b class="num">${Rs(m.play - m.gEst)}</b>${ro ? '' : `<div class="btns"><input id="grA" class="num" inputmode="numeric" placeholder="${m.play - m.gEst}" style="max-width:150px"><button onclick="v2Grecv()">✅ Received — in bank</button></div>`}</div>`)
@@ -175,7 +176,7 @@ function monthHtml(m, ro){
       <label>Brought by — choose by name and code</label>${bringerSel('xR')}
       <label>Business Name / Note</label><input id="xB"><input type="hidden" id="xRk"><div class="btns"><button onclick="v2Xadd()">💾 Save — split automatically</button></div></div>
       <div class="v2card" id="mcsAds"><h2>📢 My City Shines Ads</h2><div class="v2mut">⏳ …</div></div>`}
-    ${sec('coins', 'Sales / Receipts (' + m.lines.length + ')', table(['Date','Business','Type','Amount','Brought by','Agent','Developer','Co-Developer'].concat(ro ? [] : ['']), m.lines.slice().reverse().map(l => `<tr><td class="n">${dmy(l.ts)}</td><td>${E(l.biz || String(l.rk || '').split('_').pop().toUpperCase() || '—')}</td><td>${l.kind === 'ad' ? '📢' : '⭐'} ${l.src === 'play' ? '▶️' : '🏦'}${l.units > 1 ? ' ×' + l.units : ''}</td><td class="n">${N(l.amount)}</td><td>${who(l)}</td><td class="n">${N(l.sh.agent)}</td><td class="n">${N(l.sh.dev)}</td><td class="n">${N(l.sh.codev)}</td>${ro ? '' : `<td><button class="sm v2del" onclick="v2Void('${l.id}')" title="Remove wrong entry">🗑️</button></td>`}</tr>`), 'Nothing this month'))}${ro ? '' : `<div class="btns"><button class="sec" onclick="v2Voided()">🗃️ Removed entries — restore</button></div>`}
+    ${sec('coins', 'Sales / Receipts (' + m.lines.length + ')', table(['Date','Business','Type','Amount','Brought by','Agent','Developer','Co-Developer'].concat(ro ? [] : ['']), m.lines.slice().reverse().map(l => `<tr class="tap" onclick="if(event.target.closest('button'))return;v2SaleDet('${l.id}')" title="Tap for full details"><td class="n">${dmy(l.ts)}</td><td><u>${E(l.biz || l.subid || String(l.rk || '').split('_').pop().toUpperCase() || '—')}</u>${l.subid ? `<br><small class="n">${E(l.subid)}</small>` : ''}</td><td>${l.kind === 'ad' ? '📢' : '⭐'} ${l.src === 'play' ? '▶️' : '🏦'}${l.units > 1 ? ' ×' + l.units : ''}</td><td class="n">${N(l.amount)}</td><td>${who(l)}</td><td class="n">${N(l.sh.agent)}</td><td class="n">${N(l.sh.dev)}</td><td class="n">${N(l.sh.codev)}</td>${ro ? '' : `<td><button class="sm v2del" onclick="v2Void('${l.id}')" title="Remove wrong entry">🗑️</button></td>`}</tr>`), 'Nothing this month'))}${ro ? '' : `<div class="btns"><button class="sec" onclick="v2Voided()">🗃️ Removed entries — restore</button></div>`}
     ${(m.agents || []).length ? sec('users', 'Agents Commission', table(['Agent','Sales','Commission'], m.agents.map(a => `<tr><td>${E(a.name || a.code)} <span class="num">${E(a.code)}</span></td><td class="n">${a.n}</td><td class="n">${Rs(a.amt)}</td></tr>`))) : ''}`;
 }
 let FMON = '';
@@ -185,6 +186,46 @@ window.v2Xadd = async () => { const a = parseInt(enD($('#xA').value), 10); if(!(
   const r = await finCall({op:'xadd', kind: k, amount: a, ref: sel.value, rk: ($('#xRk') || {}).value || '', biz: $('#xB').value.trim(), note: $('#xB').value.trim()}); if(r && r.reason === 'dup') return alert('This ad is already recorded'); if(!r || r.ok === false) return alert('Could not save'); FM = r; FMON = FM.mon || FMON; v2Render(); };
 window.v2Xdel = id => v2Void(id);
 /* AGP1011TU025 (مالک کا حکم): غلط / جانچ والا اندراج ہٹائیں — سرور پر مٹتا نہیں (void)، «🗃️ Removed entries» سے واپس؛ دو بار پوچھتا ہے */
+/* AGP1111WE026 (مالک کا حکم): فروخت / وصولی کی لائن دبائیں تو پوری تفصیل — کاروبار، مالک، موبائل، IDs، کس نے لایا، ادائیگی کا طریقہ، حصے؛ «Brought by» بدلیں / ہٹائیں */
+const FSBIZ = {};
+async function v2BizLookup(mob){
+  const d10 = String(mob || '').replace(/\D/g, '').slice(-10); if(d10.length !== 10) return null; if(d10 in FSBIZ) return FSBIZ[d10];
+  const vals = ['0' + d10, '0' + d10.slice(0, 3) + '-' + d10.slice(3), '92' + d10, '+92' + d10, '+92 ' + d10.slice(0, 3) + ' ' + d10.slice(3), '0' + d10.slice(0, 3) + ' ' + d10.slice(3)];
+  const out = [];
+  for(const col of ['services', 'doctors']){
+    try{
+      const q = { structuredQuery: { from: [{ collectionId: col }], where: { fieldFilter: { field: { fieldPath: 'whatsapp' }, op: 'IN', value: { arrayValue: { values: vals.map(v => ({ stringValue: v })) } } } }, limit: 5 } };
+      const r = await (await fetch('https://firestore.googleapis.com/v1/projects/my-city-shines/databases/(default)/documents:runQuery?key=' + FB_KEY, { method: 'POST', body: JSON.stringify(q) })).json();
+      (r || []).forEach(x => { if(x && x.document){ const f = x.document.fields || {}, g = k => (f[k] && (f[k].stringValue || f[k].integerValue)) || ''; out.push({ col, name: g('nameUr') || g('name') || g('nameEn'), en: g('nameEn'), owner: g('intro'), type: g('type') || g('specialty'), cat: g('category'), city: g('city'), area: g('area') || g('address') }); } });
+    }catch(e){}
+  }
+  const seen = new Set(); return (FSBIZ[d10] = out.filter(x => { const k = x.col + '|' + x.name + '|' + x.cat; if(seen.has(k)) return false; seen.add(k); return true; }));
+}
+window.v2SaleDet = async (id, lx) => {
+  const l = lx || ((FM && FM.lines) || []).find(x => x.id === id); if(!l) return;
+  const ro = SALE_RO, row = (a, b) => `<tr><td>${a}</td><td class="n">${b}</td></tr>`;
+  const by = l.code === 'PBT-D' ? '👨‍💻 Developer (PBT-D)' : l.code === 'PBT-C' ? '👥 Co-Developer (PBT-C)' : (!l.code || l.code === 'PBT') ? '🏢 Company (PBT — came by self)' : '🤝 Agent ' + E(l.code) + (l.agent ? ' — ' + E(l.agent) : '');
+  const pay = l.kind === 'ad' ? '📢 Ad — recorded by hand' : l.src === 'play' ? '▶️ Google Play purchase' : '🏦 Direct / manual (given by developer)';
+  const b = document.createElement('div'); b.className = 'v2modal'; b.onclick = e => { if(e.target === b) b.remove(); };
+  const body = () => `<div class="v2card"><h2>${l.kind === 'ad' ? '📢' : '⭐'} <span id="sdName">${E(l.biz || 'Loading business…')}</span></h2>
+    ${l.kind === 'mem' && !l.exists ? '<div class="v2mut" style="color:#b91c1c;font-weight:700">⚠️ This business is no longer on the server (deleted)</div>' : ''}
+    <div id="sdBiz"></div>
+    ${table(['', ''], [row('Date', dmy(l.ts)), row('Amount', 'Rs ' + N(l.amount) + (l.units > 1 ? ' (' + l.units + ' years)' : '')), row('Payment', pay),
+      row('Account ID', E(l.sid || '—')), row('Subscription ID', E(l.subid || '—')), row('Business ID', E(l.rk || '—')), row('Mobile', E(l.mob ? '0' + String(l.mob).slice(2) : '—')),
+      row('Brought by (referral)', by), row('Membership until', l.until ? dmy(l.until) : '—'), row('Note', E(l.note || '—')),
+      row('Agent share', 'Rs ' + N(l.sh.agent)), row('Developer share', 'Rs ' + N(l.sh.dev)), row('Co-Developer share', 'Rs ' + N(l.sh.codev)), row('Google / Maintenance', 'Rs ' + N(l.sh.google) + ' / ' + N(l.sh.maint))])}
+    <div class="btns">${!ro && l.id[0] === 's' ? `<button onclick="v2SetWho('${l.id}')">✏️ Change «Brought by»</button>` : ''}${!ro ? `<button class="sec" onclick="this.closest('.v2modal').remove();v2Void('${l.id}')">🗑️ Remove this entry</button>` : ''}<button class="sec" onclick="this.closest('.v2modal').remove()">Close</button></div></div>`;
+  b.innerHTML = body(); document.body.appendChild(b);
+  if(l.kind === 'mem' && l.mob){ const L = await v2BizLookup(l.mob); const box = b.querySelector('#sdBiz'), nm = b.querySelector('#sdName'); if(!box) return;
+    if(L && L.length){ const x = L.find(y => (l.rk || '').endsWith('_' + String(y.cat || '').toLowerCase())) || L[0]; if(nm) nm.textContent = x.name || l.biz || 'Business';
+      box.innerHTML = table(['', ''], [row('Business name', E(x.name) + (x.en && x.en !== x.name ? '<br>' + E(x.en) : '')), row('Owner / details', E(x.owner || '—')), row('Type', E(x.type || x.cat || '—')), row('City / area', E([x.city, x.area].filter(Boolean).join(' — ') || '—'))] .concat(L.length > 1 ? [row('Other cards on this mobile', L.filter(y => y !== x).map(y => E(y.name)).join('<br>'))] : []));
+    } else { if(nm && !l.biz) nm.textContent = 'Business (card not found)'; box.innerHTML = '<div class="v2mut">Card for this mobile not found in My City Shines</div>'; } }
+};
+window.v2SetWho = async id => {
+  const c = prompt('Who brought this business?\n\nPBT-D = Developer (me)\nPBT-C = Co-Developer\nPBT = came by self\nor an agent code, e.g. AG-001', 'PBT-D'); if(c === null) return;
+  const r = await finCall({op:'setwho', id, code: c.trim(), mon: FMON}); if(!r || r.ok === false) return alert('Could not change: ' + ({no_agent:'agent code not found', not_found:'entry not found'}[r && r.reason] || (r && r.reason) || 'network'));
+  FM = r; document.querySelectorAll('.v2modal').forEach(x => x.remove()); v2Render(); setTimeout(() => v2SaleDet(id), 50);
+};
 window.v2Void = async id => {
   const l = ((FM && FM.lines) || []).find(x => x.id === id); if(!l) return;
   const what = (l.kind === 'ad' ? 'Ad' : 'Membership') + ' — ' + (l.biz || l.rk || '') + ' — Rs ' + N(l.amount) + ' — ' + dmy(l.ts) + ' — brought by ' + (l.code || 'PBT');
