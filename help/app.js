@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1111WE078';
-const UPDATE_NOTE = '📦 تازہ زپ کا بٹن چھوٹا';
+const APP_VERSION = 'HD1111WE079';
+const UPDATE_NOTE = '📦 زپ پینل انگلش + Segoe UI؛ ڈاؤن لوڈ / اپلوڈ سے پہلے ایک بار تصدیق';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -468,28 +468,34 @@ function zipHomeBtn() {
   const E = LANG === 'en';
   return `<div style="text-align:center;margin:8px 0"><button class="zipMini" data-act="zips">📦 ${E ? 'Latest zip' : 'تازہ زپ'}</button></div>`;
 }
+const ZN = a => a.en || a.ur;   /* HD1111WE079: زپ پینل میں ایپ کا اصل (انگلش) نام ہی */
 function zipSheet() {
-  const E = LANG === 'en';
   if (!window.HDZips) { toast('⚠️'); return; }
-  const L = [...APPS.filter(a => HDZips.has(a.id)), { id: 'HD', ur: 'ہیلپ ڈیسک', en: 'Help Desk', img: 'icons/icon-192.png', repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io' }];
-  sheet(`<h2>📦 ${E ? 'Latest zip' : 'تازہ زپ'}<button class="x" data-act="close">✕</button></h2>
-    <p style="color:var(--mut);font-size:13px;margin:0 0 8px">${E ? 'Each tap reads the app straight from its repo right now — even if another Claude changed it.' : 'ہر بار دبانے پر فائل اسی وقت ریپو سے آتی ہے — کسی اور Claude نے بدلی ہو تب بھی تازہ۔'}</p>
-    ${ghTok() ? '' : `<div class="zpTok"><button class="tb" data-act="ghTok">🔑 ${E ? 'Add GitHub permission (once) — for Upload' : 'گیٹ ہب اجازت نامہ لگائیں (ایک بار) — اپلوڈ کے لیے'}</button></div>`}
+  const L = [...APPS.filter(a => HDZips.has(a.id)), { id: 'HD', ur: 'ہیلپ ڈیسک', en: 'PBT Help Desk', img: 'icons/icon-192.png', repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io' }];
+  sheet(`<div class="zipEn" dir="ltr"><h2>📦 Latest zip<button class="x" data-act="close">✕</button></h2>
+    <p style="color:var(--mut);font-size:13px;margin:0 0 8px">Each tap reads the app straight from its repo right now — even if another Claude changed it. You will be asked to confirm before anything is downloaded or uploaded.</p>
+    ${ghTok() ? '' : `<div class="zpTok"><button class="tb" data-act="ghTok">🔑 Add GitHub permission (once) — for Upload</button></div>`}
     <div class="zpL">${L.map(a => { const c = ZIPC[a.id]; return `<div class="zpR" data-zi="${esc(a.id)}">
-      <button class="zpA" data-act="zipGo" data-id="${esc(a.id)}">${appIcon(a, 'appMini')}<span><b>${esc(AN(a))}</b><small class="num">${c ? (c.err ? '⚠️ ' + esc(c.err) : c.busy ? '⏳ ' + esc(c.busy) : '✅ ' + esc(c.ver)) : (E ? 'tap — get latest' : 'دبائیں — تازہ لائیں')}</small></span></button>
+      <button class="zpA" data-act="zipGo" data-id="${esc(a.id)}">${appIcon(a, 'appMini')}<span><b>${esc(ZN(a))}</b><small class="num">${c ? (c.err ? '⚠️ ' + esc(c.err) : c.busy ? '⏳ ' + esc(c.busy) : '✅ ' + esc(c.ver)) : 'Tap — get latest'}</small></span></button>
       ${c && c.blob ? `<button class="tb grn" data-act="zipDl" data-id="${esc(a.id)}">⬇️ ${esc(c.ver)}.zip</button>` : ''}
-      <button class="tb" style="background:#1d4ed8;color:#fff;border-color:#1d4ed8" data-act="zipUp" data-id="${esc(a.id)}">⬆️ ${E ? 'Upload zip' : 'زپ اپلوڈ'}</button>
+      <button class="tb" style="background:#1d4ed8;color:#fff;border-color:#1d4ed8" data-act="zipUp" data-id="${esc(a.id)}">⬆️ Upload zip</button>
       ${ZUP[a.id] ? `<div class="zpU" dir="auto">${esc(ZUP[a.id])}</div>` : ''}
-    </div>`; }).join('')}</div>`, true);
+    </div>`; }).join('')}</div></div>`, true);
 }
+/* HD1111WE079 (مالک کا حکم): غلطی سے ہاتھ لگنے پر کام شروع نہ ہو — ایک بار «Are you sure?»؛ پن / کوڈ نہیں، صرف OK */
+const zipAsk = (a, what) => confirm(what === 'dl'
+  ? `⬇️ Do you really want to download the latest ${ZN(a)} zip?`
+  : `⬆️ Do you really want to upload a zip to ${ZN(a)}?`);
 async function zipGo(id) {
-  const a = id === 'HD' ? { id: 'HD', repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io' } : appOf(id);
+  const a = id === 'HD' ? { id: 'HD', ur: 'ہیلپ ڈیسک', en: 'PBT Help Desk', repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io' } : appOf(id);
+  if (!zipAsk(a, 'dl')) return;
   ZIPC[id] = { busy: '…' }; zipSheet();
-  try { const r = await HDZips.build(id, a.repo, st => { ZIPC[id] = { busy: st }; zipSheet(); }); ZIPC[id] = r; zipSheet(); zipDl(id); }
+  try { const r = await HDZips.build(id, a.repo, st => { ZIPC[id] = { busy: st }; zipSheet(); }); ZIPC[id] = r; zipSheet(); zipDl(id, true); }
   catch (e) { ZIPC[id] = { err: (navigator.onLine ? '' : (LANG === 'en' ? 'offline — ' : 'انٹرنیٹ نہیں — ')) + String(e && e.message || e).slice(0, 60) }; zipSheet(); }
 }
-function zipDl(id) {
+function zipDl(id, noAsk) {
   const c = ZIPC[id]; if (!c || !c.blob) return;
+  if (!noAsk && !zipAsk(id === 'HD' ? { en: 'PBT Help Desk' } : appOf(id), 'dl')) return;
   const u = URL.createObjectURL(c.blob), l = document.createElement('a'); l.href = u; l.download = c.ver + '.zip'; document.body.appendChild(l); l.click(); l.remove();
   setTimeout(() => URL.revokeObjectURL(u), 60000); toast('⬇️ ' + c.ver + '.zip');
 }
@@ -523,6 +529,7 @@ async function ghTokSave() {
   catch (e) { toast('⚠️ ' + e.message, 4000); }
 }
 function zipUp(id) {
+  if (!zipAsk(id === 'HD' ? { en: 'PBT Help Desk' } : appOf(id), 'up')) return;
   if (!ghTok()) { ghTokSheet(); return; }
   const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.zip,application/zip,application/x-zip-compressed';
   inp.onchange = () => { const f = inp.files && inp.files[0]; if (f) zipUpGo(id, f); };
@@ -530,11 +537,10 @@ function zipUp(id) {
 }
 const b64 = buf => { const a = new Uint8Array(buf); let s = ''; for (let i = 0; i < a.length; i += 32768) s += String.fromCharCode.apply(null, a.subarray(i, i + 32768)); return btoa(s); };
 async function zipUpGo(id, f) {
-  const E = LANG === 'en', z = HDZips.ZA[id] || {}, a = id === 'HD' ? { repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io', ur: 'ہیلپ ڈیسک', en: 'Help Desk' } : appOf(id);
+  const E = true, z = HDZips.ZA[id] || {}, a = id === 'HD' ? { repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io', ur: 'ہیلپ ڈیسک', en: 'PBT Help Desk' } : appOf(id);
   const repo = z.repo || a.repo, ver = f.name.replace(/\.zip$/i, '').replace(/\s*\(\d+\)$/, '');
   const okName = new RegExp('^(' + z.v + ')$').test(ver);
-  if (!okName && !confirm((E ? `⚠️ «${f.name}» does not look like a ${AN(a)} version name. The repo may reject it. Upload anyway?` : `⚠️ «${f.name}» کا نام ${AN(a)} کے ورژن جیسا نہیں — ریپو اسے رد کر سکتی ہے۔ پھر بھی اپلوڈ کریں؟`))) return;
-  if (okName && !confirm(E ? `⬆️ Upload ${f.name} (${Math.round(f.size / 1024)} KB) to ${AN(a)}? It goes live in ~2 minutes.` : `⬆️ ${f.name} (${Math.round(f.size / 1024)} KB) ${AN(a)} میں ڈال دیں؟ تقریباً 2 منٹ میں لائیو ہو جائے گی۔`)) return;
+  if (!okName && !confirm((E ? `⚠️ «${f.name}» does not look like a ${ZN(a)} version name. The repo may reject it. Upload anyway?` : `⚠️ «${f.name}» کا نام ${ZN(a)} کے ورژن جیسا نہیں — ریپو اسے رد کر سکتی ہے۔ پھر بھی اپلوڈ کریں؟`))) return;
   const name = ver + '.zip', set = m => { ZUP[id] = m; zipSheet(); }, H = { Authorization: 'token ' + ghTok(), 'Content-Type': 'application/json' };
   try {
     set('⏳ ' + (E ? 'uploading…' : 'اپلوڈ ہو رہی ہے…'));
