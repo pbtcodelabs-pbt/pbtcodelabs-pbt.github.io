@@ -58,10 +58,11 @@
       const all = t.match(new RegExp(z.v, 'g')) || []; let best = '', bs = -1;
       all.forEach(m => { const n = +((m.match(/(\d{3})(?:AM|PM)?$/) || [0, -1])[1]); if (n > bs) { bs = n; best = m; } }); return best; };
     for (let i = 0; i < names.length; i++) {
-      onStep && onStep(`⬇️ ${i + 1}/${names.length}`);
+      onStep && onStep(`⬇️ ${i + 1}/${names.length}`, Math.round(i / names.length * 100));
       let data; try { data = await getFile(repo, dir + names[i]); } catch (e) { if (names[i] === 'index.html') throw e; continue; }
       out.push({ name: names[i], data });
     }
+    onStep && onStep('📦', 100);
     const vf = out.find(f => f.name === (z.vf || 'sw.js')); if (vf) ver = pick(dec.decode(vf.data));
     if (!ver) { for (const f of out) { ver = pick(dec.decode(f.data)); if (ver) break; } }
     return { ver: ver || (id + '-' + new Date().toISOString().slice(0, 10)), files: out, blob: zip(out), repo, dir: z.dir || '' };

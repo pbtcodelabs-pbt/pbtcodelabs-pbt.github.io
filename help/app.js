@@ -2,7 +2,7 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1111WE079';
+const APP_VERSION = 'HD1111WE080';
 const UPDATE_NOTE = '📦 زپ پینل انگلش + Segoe UI؛ ڈاؤن لوڈ / اپلوڈ سے پہلے ایک بار تصدیق';
 const DEV_PHONE = '03206793793';
 
@@ -463,7 +463,20 @@ function partyContact(g) {
 }
 let PF = 'all';
 /* HD1111WE078 (مالک کا حکم): 📦 تازہ زپ — ہر ایپ کی ابھی لائیو فائلیں (zips.js) */
-const ZIPC = {};
+const ZIPC = {}, ZPG = {};
+/* HD1111WE080 (مالک کا حکم): اپلوڈ / ڈاؤن لوڈ کی پروگریس بار — بائیں سے دائیں 0 سے 100٪، مکمل ہو تو سبز ٹک ✓ */
+function zpgHtml(id) {
+  const g = ZPG[id]; if (!g) return '';
+  return `<div class="zpP${g.pct >= 100 ? ' ok' : ''}" data-zp="${esc(id)}"><div class="bar"><i style="width:${g.pct}%"></i></div><span class="pc">${g.pct}%</span><span class="tk">✓</span></div>`;
+}
+function zpg(id, pct) {
+  pct = Math.max(0, Math.min(100, pct | 0)); ZPG[id] = { pct };
+  const el = document.querySelector(`#sheet [data-zp="${(window.CSS && CSS.escape) ? CSS.escape(id) : id}"]`);
+  if (!el) { zipSheet(); return; }
+  const i = el.querySelector('.bar i'), p = el.querySelector('.pc');
+  if (i) i.style.width = pct + '%'; if (p) p.textContent = pct + '%';
+  el.classList.toggle('ok', pct >= 100);
+}
 function zipHomeBtn() {
   const E = LANG === 'en';
   return `<div style="text-align:center;margin:8px 0"><button class="zipMini" data-act="zips">📦 ${E ? 'Latest zip' : 'تازہ زپ'}</button></div>`;
@@ -479,6 +492,7 @@ function zipSheet() {
       <button class="zpA" data-act="zipGo" data-id="${esc(a.id)}">${appIcon(a, 'appMini')}<span><b>${esc(ZN(a))}</b><small class="num">${c ? (c.err ? '⚠️ ' + esc(c.err) : c.busy ? '⏳ ' + esc(c.busy) : '✅ ' + esc(c.ver)) : 'Tap — get latest'}</small></span></button>
       ${c && c.blob ? `<button class="tb grn" data-act="zipDl" data-id="${esc(a.id)}">⬇️ ${esc(c.ver)}.zip</button>` : ''}
       <button class="tb" style="background:#1d4ed8;color:#fff;border-color:#1d4ed8" data-act="zipUp" data-id="${esc(a.id)}">⬆️ Upload zip</button>
+      ${zpgHtml(a.id)}
       ${ZUP[a.id] ? `<div class="zpU" dir="auto">${esc(ZUP[a.id])}</div>` : ''}
     </div>`; }).join('')}</div></div>`, true);
 }
@@ -489,9 +503,9 @@ const zipAsk = (a, what) => confirm(what === 'dl'
 async function zipGo(id) {
   const a = id === 'HD' ? { id: 'HD', ur: 'ہیلپ ڈیسک', en: 'PBT Help Desk', repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io' } : appOf(id);
   if (!zipAsk(a, 'dl')) return;
-  ZIPC[id] = { busy: '…' }; zipSheet();
-  try { const r = await HDZips.build(id, a.repo, st => { ZIPC[id] = { busy: st }; zipSheet(); }); ZIPC[id] = r; zipSheet(); zipDl(id, true); }
-  catch (e) { ZIPC[id] = { err: (navigator.onLine ? '' : (LANG === 'en' ? 'offline — ' : 'انٹرنیٹ نہیں — ')) + String(e && e.message || e).slice(0, 60) }; zipSheet(); }
+  ZIPC[id] = { busy: '…' }; ZPG[id] = { pct: 0 }; zipSheet();
+  try { const r = await HDZips.build(id, a.repo, (st, p) => { ZIPC[id] = { busy: st }; if (p != null) ZPG[id] = { pct: p }; zipSheet(); }); ZIPC[id] = r; ZPG[id] = { pct: 100 }; zipSheet(); zipDl(id, true); }
+  catch (e) { delete ZPG[id]; ZIPC[id] = { err: (navigator.onLine ? '' : (LANG === 'en' ? 'offline — ' : 'انٹرنیٹ نہیں — ')) + String(e && e.message || e).slice(0, 60) }; zipSheet(); }
 }
 function zipDl(id, noAsk) {
   const c = ZIPC[id]; if (!c || !c.blob) return;
@@ -543,14 +557,21 @@ async function zipUpGo(id, f) {
   if (!okName && !confirm((E ? `⚠️ «${f.name}» does not look like a ${ZN(a)} version name. The repo may reject it. Upload anyway?` : `⚠️ «${f.name}» کا نام ${ZN(a)} کے ورژن جیسا نہیں — ریپو اسے رد کر سکتی ہے۔ پھر بھی اپلوڈ کریں؟`))) return;
   const name = ver + '.zip', set = m => { ZUP[id] = m; zipSheet(); }, H = { Authorization: 'token ' + ghTok(), 'Content-Type': 'application/json' };
   try {
-    set('⏳ ' + (E ? 'uploading…' : 'اپلوڈ ہو رہی ہے…'));
+    ZPG[id] = { pct: 0 }; set('⏳ ' + (E ? 'uploading…' : 'اپلوڈ ہو رہی ہے…'));
     const body = { message: `${ver}: زپ اپلوڈ (ہیلپ ڈیسک)`, content: b64(await f.arrayBuffer()), branch: 'main' };
     const ex = await fetch(`https://api.github.com/repos/${repo}/contents/${encodeURIComponent(name)}?ref=main`, { headers: H, cache: 'no-store' });
     if (ex.ok) body.sha = (await ex.json()).sha;
-    const r = await fetch(`https://api.github.com/repos/${repo}/contents/${encodeURIComponent(name)}`, { method: 'PUT', headers: H, body: JSON.stringify(body) });
+    const r = await new Promise((res, rej) => {
+      const x = new XMLHttpRequest(); x.open('PUT', `https://api.github.com/repos/${repo}/contents/${encodeURIComponent(name)}`);
+      x.setRequestHeader('Authorization', 'token ' + ghTok()); x.setRequestHeader('Content-Type', 'application/json');
+      x.upload.onprogress = e => { if (e.lengthComputable) zpg(id, Math.min(99, Math.floor(e.loaded / e.total * 100))); };
+      x.onload = () => res({ status: x.status, ok: x.status >= 200 && x.status < 300 });
+      x.onerror = () => rej(new Error(E ? 'network error' : 'نیٹ ورک خرابی'));
+      x.send(JSON.stringify(body));
+    });
     if (r.status === 401) { try { localStorage.removeItem('pbthd_ghtok'); } catch (e) {} ghWho = ''; ZUP[id] = ''; setTimeout(ghTokSheet, 300); }
     if (!r.ok) throw new Error(r.status === 401 ? (E ? 'token expired — add again' : 'اجازت نامہ ختم — دوبارہ لگائیں') : r.status === 404 ? (E ? 'no access to this repo' : 'اس ریپو کی اجازت نہیں') : 'GitHub ' + r.status);
-    set('✅ ' + (E ? 'in the repo — opening the zip…' : 'ریپو میں پہنچ گئی — زپ کھل رہی ہے…'));
+    ZPG[id] = { pct: 100 }; set('✅ ' + (E ? 'in the repo — opening the zip…' : 'ریپو میں پہنچ گئی — زپ کھل رہی ہے…'));
     if (!okName) return;
     const vf = (z.dir ? z.dir + '/' : '') + (z.vf || 'sw.js'), t0 = Date.now();
     const tick = async () => {
@@ -561,7 +582,7 @@ async function zipUpGo(id, f) {
       setTimeout(tick, 8000);
     };
     setTimeout(tick, 15000);
-  } catch (e) { set('⚠️ ' + e.message); }
+  } catch (e) { delete ZPG[id]; set('⚠️ ' + e.message); }
 }
 function partyHomeBtn() {
   const n = partyList().length, E = LANG === 'en';
