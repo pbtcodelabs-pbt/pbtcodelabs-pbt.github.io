@@ -275,10 +275,11 @@ window.v2Img = src => { const b = document.createElement('div'); b.className = '
 /* ---------- رینڈر ---------- */
 /* ===== AGP1011TU024 (مالک کا حکم، ہیلپ ڈیسک #214 — کو-ڈویلپر کی دوسری تصویر): کو-ڈویلپر / ڈویلپر ہوم ایجنٹ جیسے انداز میں، مکمل انگلش —
    Company Overview (اس مہینے)، Your Personal Share + Request Withdrawal، All Subscriptions History، My Transactions؛ تقسیم سرور (AGP1011TU023) سے */
-const SPLIT_TXT = '<b>⭐ Membership (Rs 1,000)</b>: Google 15% (only Google Play; direct / cash → this 15% goes to Maintenance) · Maintenance 15% · then <b>15% of the rest to whoever brought it</b> (Agent AG-… / DEV Developer / CODEV Co-Developer; PBT = half & half) · the remainder Developer / Co-Developer 50 / 50'
-  + '<br><small>Direct 1,000 brought by DEV: Maintenance 300 → 15% of 700 = 105 to Developer → 595 = 298 + 297 → Developer 403, Co-Developer 297</small>'
-  + '<br><b>📢 Ad</b>: Maintenance 15% (no Google) · then 15% of the rest to whoever brought it · the remainder Developer / Co-Developer 50 / 50'
-  + '<br><small>Ad 800 brought by DEV: Maintenance 120 → 15% of 680 = 102 to Developer → 578 = 289 + 289 → Developer 391, Co-Developer 289</small>';
+const SPLIT_TXT = '<b>⭐ Membership (Rs 1,000)</b>: Google 15% (only Google Play; direct / cash → this 15% goes to Maintenance) · Maintenance 15% · <b>15% of the full amount to whoever brought it</b> (Agent AG-… / DEV Developer / CODEV Co-Developer; PBT = half & half) · the remainder Developer / Co-Developer 50 / 50'
+  + '<br><small>Google Play 1,000 by an agent: Google 150 + Maintenance 150 + Agent 150 → 550 = Developer 275 + Co-Developer 275</small>'
+  + '<br><small>Direct 1,000 brought by DEV: Maintenance 300 + DEV 150 → 550 = 275 + 275 → Developer 425, Co-Developer 275</small>'
+  + '<br><b>📢 Ad</b>: Maintenance 15% (no Google) · 15% of the full amount to whoever brought it · the remainder Developer / Co-Developer 50 / 50'
+  + '<br><small>Ad 800 brought by DEV: Maintenance 120 + DEV 120 → 560 = 280 + 280 → Developer 400, Co-Developer 280</small>';
 function t2(list){ return `<div class="v2tiles v2t2">${list.map(x => x.btn ? `<button class="v2tile tq" onclick="${x.btn}">${ic(x.i, 36, '#fff')}<div><span class="tl">${x.t}</span>${x.v != null ? `<b>${x.v}</b>` : ''}</div></button>`
   : `<div class="v2tile ${x.c}" ${x.go ? `onclick="${x.go}" style="cursor:pointer"` : ''}>${ic(x.i, 36, x.c === 'tw' ? '#0b2a6b' : '#fff')}<div><span class="tl">${x.t}</span><b>${x.v}</b>${x.sub ? `<div class="tsub2">${x.sub}</div>` : ''}</div></div>`).join('')}</div>`; }
 const R0 = n => '<small>Rs.</small> ' + N(n);
@@ -422,7 +423,8 @@ function _detLines(){ return ((FM && FM.lines) || []).slice().sort((a, b) => a.t
 function _detBiz(l){ return E(l.biz || String(l.rk || '').split('_').pop().toUpperCase() || '—') + (l.subid ? `<br><small class="num">${E(l.subid)}</small>` : ''); }
 function _detType(l){ return l.kind === 'ad' ? '📢 Ad' : (l.src === 'play' ? '▶️ Google Play' : '💵 Direct'); }
 function _detHow(l){ const sh = l.sh || {}, base = (l.amount || 0) - (sh.google || 0) - (sh.maint || 0);
-  return `<small class="dhow">${N(l.amount)}${sh.google ? ' − Google ' + N(sh.google) : ''} − Maint. ${N(sh.maint || 0)} = ${N(base)} → brought by ${whoTxt(l)}: ${N((sh.agent || 0) + (l.by === 'pbt' ? 0 : (l.by === 'dev' || l.by === 'codev') ? Math.round(base * 0.15) : 0))} → rest 50/50</small>`; }
+  const br = Math.min(base, Math.round((l.amount || 0) * 0.15));
+  return `<small class="dhow">${N(l.amount)}${sh.google ? ' − Google ' + N(sh.google) : ''} − Maint. ${N(sh.maint || 0)} − 15% to ${whoTxt(l)} ${N(br)} = ${N(base - br)} → 50/50</small>`; }
 function _detSum(rows, col){ return rows.reduce((a, l) => a + (typeof col === 'function' ? col(l) : ((l.sh || {})[col] || 0)), 0); }
 function _detOpen(title, sub, html){
   const box = document.createElement('div'); box.className = 'v2modal'; box.onclick = e => { if(e.target === box) box.remove(); };
