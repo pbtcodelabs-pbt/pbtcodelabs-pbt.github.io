@@ -169,6 +169,7 @@ function monthHtml(m, ro){ SALE_RO = !!ro;
     : '';
   const who = l => l.by === 'agent' ? '🤝 ' + E(l.agent || l.code) : l.by === 'dev' ? '👨‍💻 PBT-D' : l.by === 'codev' ? '👥 PBT-C' : '🏢 PBT';
   return `<div class="v2card"><div class="v2mon"><button onclick="v2Mon(-1)">‹</button><b>${monName(FMON)}</b><button onclick="v2Mon(1)">›</button></div>
+      <div class="v2split en" style="margin:8px 0">⚖️ ${SPLIT_TXT}</div>
       ${tiles([{c:'tb', i:'coins', t:'Total Sales<br>(Gross)', v:'<small>Rs.</small> ' + N(m.gross)}, {c:'tg', i:'check', t:'▶️ Google Play', v:'<small>Rs.</small> ' + N(m.play)}, {c:'tp', i:'wallet', t:'🏦 Direct<br>(Manual / Ads)', v:'<small>Rs.</small> ' + N(m.direct)}, {c:'to', i:'cal', t:'🛠️ Maintenance', v:'<small>Rs.</small> ' + N(T.maint)}])}${g}</div>
     ${sec('bars', 'Revenue Split — ' + monName(FMON), table(['Head','Amount'], [['🟦 Google', T.google], ['🛠️ Maintenance', T.maint], ['🤝 Agents', T.agent], ['👨‍💻 Developer', T.dev], ['👥 Co-Developer', T.codev]].map(([a, b]) => `<tr><td>${a}</td><td class="n">${Rs(b)}</td></tr>`).concat([`<tr class="tot"><td>Total</td><td class="n">${Rs(m.gross)}</td></tr>`])))}
     ${ro ? '' : `<div class="v2card"><h2>➕ Add Receipt (Ad or Manual Membership)</h2><div class="v2mut">Memberships given via Account Access are recorded automatically — add only what is not recorded elsewhere (e.g. Rs 800 for an ad)</div>
@@ -268,7 +269,10 @@ window.v2Img = src => { const b = document.createElement('div'); b.className = '
 /* ---------- رینڈر ---------- */
 /* ===== AGP1011TU024 (مالک کا حکم، ہیلپ ڈیسک #214 — کو-ڈویلپر کی دوسری تصویر): کو-ڈویلپر / ڈویلپر ہوم ایجنٹ جیسے انداز میں، مکمل انگلش —
    Company Overview (اس مہینے)، Your Personal Share + Request Withdrawal، All Subscriptions History، My Transactions؛ تقسیم سرور (AGP1011TU023) سے */
-const SPLIT_TXT = 'Google 15% · Maintenance 15% · Agent 15% of the rest · Developer / Co-Developer 50 / 50';
+const SPLIT_TXT = '<b>⭐ Membership (Rs 1,000)</b>: Google 15% (only Google Play; direct / cash → this 15% goes to Maintenance) · Maintenance 15% · then <b>15% of the rest to whoever brought it</b> (Agent / PBT-D Developer / PBT-C Co-Developer; PBT = half & half) · the remainder Developer / Co-Developer 50 / 50'
+  + '<br><small>Direct 1,000 brought by PBT-D: Maintenance 300 → 15% of 700 = 105 to Developer → 595 = 298 + 297 → Developer 403, Co-Developer 297</small>'
+  + '<br><b>📢 Ad</b>: Maintenance 15% (no Google) · then 15% of the rest to whoever brought it · the remainder Developer / Co-Developer 50 / 50'
+  + '<br><small>Ad 800 brought by PBT-D: Maintenance 120 → 15% of 680 = 102 to Developer → 578 = 289 + 289 → Developer 391, Co-Developer 289</small>';
 function t2(list){ return `<div class="v2tiles v2t2">${list.map(x => x.btn ? `<button class="v2tile tq" onclick="${x.btn}">${ic(x.i, 36, '#fff')}<div><span class="tl">${x.t}</span>${x.v != null ? `<b>${x.v}</b>` : ''}</div></button>`
   : `<div class="v2tile ${x.c}" ${x.go ? `onclick="${x.go}" style="cursor:pointer"` : ''}>${ic(x.i, 36, x.c === 'tw' ? '#0b2a6b' : '#fff')}<div><span class="tl">${x.t}</span><b>${x.v}</b>${x.sub ? `<div class="tsub2">${x.sub}</div>` : ''}</div></div>`).join('')}</div>`; }
 const R0 = n => '<small>Rs.</small> ' + N(n);
