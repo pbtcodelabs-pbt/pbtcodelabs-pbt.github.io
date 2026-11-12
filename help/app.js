@@ -2,7 +2,7 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1211TH084';
+const APP_VERSION = 'HD1211TH085';
 const UPDATE_NOTE = '↕️ ایپس کی ترتیب: «OK ✔» دبانے پر پکی محفوظ (فون + فائربیس) — بند کر کے کھولیں تو وہی ترتیب رہتی ہے';
 const DEV_PHONE = '03206793793';
 
@@ -595,19 +595,47 @@ function zpUpd(id, pct, msg) {
   if (pct != null) { const i = bar.querySelector('.bar i'), p = bar.querySelector('.pc'); i.style.width = pct + '%'; p.textContent = pct + '%'; bar.classList.toggle('ok', pct >= 100); }
   if (msg != null && u) u.textContent = msg;
 }
+/* HD1211TH085 (مالک کا حکم): زپ فہرست — A→Z / Z→A، تیر ▲▼ سے اپنی مرضی کی ترتیب، 💾 Save دبانے پر یہ ترتیب اسی فون میں پکی (✅) */
+const ZORD_KEY = 'pbthd_zorder';
+let ZDRAFT = null, ZSAVED = false, ZMOVED = '';
+const zordLoad = () => { try { const v = JSON.parse(localStorage.getItem(ZORD_KEY) || 'null'); return Array.isArray(v) ? v : []; } catch (e) { return []; } };
+const zipAll = () => [...APPS.filter(a => HDZips.has(a.id)), { id: 'HD', ur: 'ہیلپ ڈیسک', en: 'PBT Help Desk', img: 'icons/icon-192.png', repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io' }];
+function zipOrdered(L) {
+  const ord = ZDRAFT || zordLoad(); if (!ord.length) return L;
+  const pos = id => { const i = ord.indexOf(id); return i < 0 ? 1e6 : i; };
+  return L.map((a, i) => [a, i]).sort((x, y) => pos(x[0].id) - pos(y[0].id) || x[1] - y[1]).map(x => x[0]);
+}
+function zipSort(dir) {
+  const ids = zipAll().sort((a, b) => dir * String(ZN(a)).localeCompare(String(ZN(b)), 'en', { sensitivity: 'base' })).map(a => a.id);
+  ZDRAFT = ids; ZSAVED = false; zipSheet();
+}
+function zipMove(id, d) {
+  const ids = zipOrdered(zipAll()).map(a => a.id), i = ids.indexOf(id), j = i + d;
+  if (i < 0 || j < 0 || j >= ids.length) return;
+  [ids[i], ids[j]] = [ids[j], ids[i]]; ZDRAFT = ids; ZSAVED = false; ZMOVED = id; zipSheet();
+}
+function zipSaveOrder() {
+  const ids = ZDRAFT || zipOrdered(zipAll()).map(a => a.id);
+  try { localStorage.setItem(ZORD_KEY, JSON.stringify(ids)); ZDRAFT = null; ZSAVED = true; toast('✅ Order saved'); }
+  catch (e) { toast('⚠️ Could not save'); return; }
+  zipSheet();
+}
 function zipSheet() {
   if (!window.HDZips) { toast('⚠️'); return; }
-  const L = [...APPS.filter(a => HDZips.has(a.id)), { id: 'HD', ur: 'ہیلپ ڈیسک', en: 'PBT Help Desk', img: 'icons/icon-192.png', repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io' }];
+  const L = zipOrdered(zipAll());
   sheet(`<div class="zipEn" dir="ltr"><h2>📦 Latest zip<button class="x" data-act="close">✕</button></h2>
     <p style="color:var(--mut);font-size:13px;margin:0 0 8px">Each tap reads the app straight from its repo right now — even if another Claude changed it. You will be asked to confirm before anything is downloaded or uploaded.</p>
     ${ghTok() ? '' : `<div class="zpTok"><button class="tb" data-act="ghTok">🔑 Add GitHub permission (once) — for Upload</button></div>`}
-    <div class="zpL">${L.map(a => { const c = ZIPC[a.id]; return `<div class="zpR" data-zi="${esc(a.id)}">
+    <div class="zpBar"><button class="tb" data-act="zAZ">A → Z</button><button class="tb" data-act="zZA">Z → A</button><button class="tb zSv${ZDRAFT ? ' dirty' : ''}" data-act="zSave">${ZDRAFT ? '💾 Save order' : ZSAVED ? '✅ Saved' : '💾 Save order'}</button></div>
+    <div class="zpL">${L.map((a, ix) => { const c = ZIPC[a.id]; return `<div class="zpR${ZMOVED === a.id ? ' mvd' : ''}" data-zi="${esc(a.id)}">
+      <div class="zpMv"><button type="button" data-act="zUp" data-id="${esc(a.id)}" aria-label="Up"${ix === 0 ? ' disabled' : ''}>▲</button><button type="button" data-act="zDn" data-id="${esc(a.id)}" aria-label="Down"${ix === L.length - 1 ? ' disabled' : ''}>▼</button></div>
       <button class="zpA" data-act="zipGo" data-id="${esc(a.id)}">${appIcon(a, 'appMini')}<span><b>${esc(ZN(a))}</b><small class="num">${c && c.err ? '⚠️ ' + esc(c.err) : c && c.busy ? '⏳ ' + esc(c.busy) : zipLbl(a.id, c)}</small></span></button>
       ${c && c.blob ? `<button class="tb grn" data-act="zipDl" data-id="${esc(a.id)}">⬇️ ${esc(c.ver)}.zip</button>` : ''}
       <button class="tb" style="background:#1d4ed8;color:#fff;border-color:#1d4ed8" data-act="zipUp" data-id="${esc(a.id)}">⬆️ Upload zip</button>
       ${zpgHtml(a.id)}
       ${ZUP[a.id] ? `<div class="zpU" dir="auto">${esc(ZUP[a.id])}</div>` : ''}
     </div>`; }).join('')}</div></div>`, true);
+  if (ZMOVED) { const r = document.querySelector(`#sheet [data-zi="${(window.CSS && CSS.escape) ? CSS.escape(ZMOVED) : ZMOVED}"]`); if (r && r.scrollIntoView) r.scrollIntoView({ block: 'nearest' }); ZMOVED = ''; }
 }
 /* HD1111WE079 (مالک کا حکم): غلطی سے ہاتھ لگنے پر کام شروع نہ ہو — ایک بار «Are you sure?»؛ پن / کوڈ نہیں، صرف OK */
 const zipAsk = (a, what, ver) => confirm(what === 'dl'
@@ -1718,6 +1746,11 @@ document.addEventListener('click', async e => {
     case 'ownMine': go('#/mine/' + id); break;
     case 'parties': go('#/party'); break;
     case 'zips': zipSheet(); zipLatestAll(); zipPoll(); break;
+    case 'zAZ': zipSort(1); break;
+    case 'zZA': zipSort(-1); break;
+    case 'zUp': zipMove(id, -1); break;
+    case 'zDn': zipMove(id, 1); break;
+    case 'zSave': zipSaveOrder(); break;
     case 'zipGo': zipGo(id); break;
     case 'zipDl': zipDl(id); break;
     case 'zipUp': zipUp(id); break;
