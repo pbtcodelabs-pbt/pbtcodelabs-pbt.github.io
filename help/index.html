@@ -70,6 +70,19 @@ html[lang=en] .secT{font-size:16px}
 .st.o{background:var(--workBg)}.st.o .v{color:var(--work)}
 .st.b{background:var(--newBg)}.st.b .v{color:var(--new)}
 
+/* HD1211TH083: ایپس کی ترتیب */
+.ordBar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}
+.ordBar .tb.on{background:#2563eb;color:#fff;border-color:#2563eb}
+.ordRow{display:flex;align-items:center;gap:8px;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:6px 8px;margin-bottom:8px;position:relative;transition:transform .15s,background .3s}
+.ordRow.drag{z-index:5;box-shadow:0 8px 24px rgba(0,0,0,.25);transition:none;border-color:#2563eb;background:#eff6ff}
+.ordRow.flash{background:#dbeafe}
+.ordNo{width:24px;text-align:center;font-family:var(--en);font-weight:700;color:var(--mut);font-size:13px;flex:none}
+.ordRow img,.ordRow .em{width:40px;height:40px;border-radius:10px;object-fit:cover;background:var(--soft);display:flex;align-items:center;justify-content:center;font-size:22px;flex:none}
+.ordRow b{flex:1;min-width:0;font-size:15px;line-height:1.5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ordB{width:40px;height:40px;border:1.5px solid var(--line);background:var(--soft);border-radius:10px;font-size:16px;font-family:var(--en);flex:none;color:#13203f}
+.ordB:active{background:#dbeafe}.ordB:disabled{opacity:.35}
+.bigBtn.okDone{background:#16a34a !important;border-color:#16a34a !important;color:#fff}
+.ordH{width:42px;height:40px;display:flex;align-items:center;justify-content:center;font-size:24px;color:#475569;touch-action:none;cursor:grab;flex:none;user-select:none;-webkit-user-select:none;background:var(--soft);border-radius:10px}
 /* ایپس کی جالی */
 .apps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .ap{background:var(--card);border:0;border-radius:16px;box-shadow:var(--sh);padding:12px 6px 8px;display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;transition:transform .12s}

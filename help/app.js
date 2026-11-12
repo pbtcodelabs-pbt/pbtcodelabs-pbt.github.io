@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1211TH082';
-const UPDATE_NOTE = '📦 زپ پینل انگلش + Segoe UI؛ ڈاؤن لوڈ / اپلوڈ سے پہلے ایک بار تصدیق';
+const APP_VERSION = 'HD1211TH084';
+const UPDATE_NOTE = '↕️ ایپس کی ترتیب: «OK ✔» دبانے پر پکی محفوظ (فون + فائربیس) — بند کر کے کھولیں تو وہی ترتیب رہتی ہے';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -27,6 +27,85 @@ const APPS = [
   { id: 'other', ur: 'کوئی اور', en: 'Other', emoji: '🧩', repo: '' }
 ];
 const appOf = id => APPS.find(a => a.id.toLowerCase() === String(id || '').toLowerCase()) || APPS[APPS.length - 1];
+
+/* HD1211TH083 (مالک کا حکم): ہوم کی ایپس — A→Z / Z→A اور ہاتھ سے اوپر نیچے (▲ ▼ یا ⠿ کھینچ کر)؛ ترتیب اسی فون میں محفوظ، صرف مالک کے لیے */
+const ORD_KEY = 'pbthd_appOrder';
+let APPORD = (() => { try { const o = JSON.parse(localStorage.getItem(ORD_KEY) || 'null'); return o && typeof o === 'object' ? { mode: o.mode || '', ids: Array.isArray(o.ids) ? o.ids : [], at: +o.at || 0 } : { mode: '', ids: [], at: 0 }; } catch (e) { return { mode: '', ids: [], at: 0 }; } })();
+const ordSave = () => { APPORD.at = Date.now(); try { localStorage.setItem(ORD_KEY, JSON.stringify(APPORD)); } catch (e) {} ordCloudSoon(); };
+/* مستقل محفوظ: فون کے ساتھ فائربیس (meta/cfg.appOrder) میں بھی — ایپ بند / دوبارہ کھولیں، یا فون بدلیں، ترتیب وہی رہے */
+let ordT = 0;
+const ordCloudSoon = () => { clearTimeout(ordT); ordT = setTimeout(ordCloud, 800); };
+async function ordCloud() { clearTimeout(ordT); try { if (Store.isOwner() && Store.setCfg) { await Store.setCfg({ appOrder: { mode: APPORD.mode, ids: APPORD.ids, at: APPORD.at } }); return true; } } catch (e) { console.warn('[appOrder]', e && e.message); } return false; }
+function ordAdopt() { try { const c = CFG && CFG.appOrder; if (c && Store.isOwner() && (+c.at || 0) > (APPORD.at || 0)) { APPORD = { mode: c.mode || '', ids: Array.isArray(c.ids) ? c.ids : [], at: +c.at }; localStorage.setItem(ORD_KEY, JSON.stringify(APPORD)); } } catch (e) {} }
+function orderedApps(list) {
+  const base = list.slice(), m = APPORD.mode;
+  if (m === 'az' || m === 'za') {
+    const cmp = (x, y) => String(AN(x)).localeCompare(String(AN(y)), LANG === 'en' ? 'en' : 'ur', { sensitivity: 'base' });
+    const out = base.filter(x => x.id !== 'other').sort(cmp); if (m === 'za') out.reverse();
+    return out.concat(base.filter(x => x.id === 'other'));   // «کوئی اور» ہمیشہ آخر میں
+  }
+  if (m === 'custom') {
+    const ix = id => APPORD.ids.indexOf(id);
+    return base.map((a, k) => [a, k]).sort((p, q) => { const a = ix(p[0].id), b = ix(q[0].id); if (a < 0 && b < 0) return p[1] - q[1]; if (a < 0) return 1; if (b < 0) return -1; return a - b; }).map(p => p[0]);
+  }
+  return base;
+}
+const ordVisible = () => APPS.filter(a => Store.isOwner() || !a.hide);
+function ordBar() {
+  const E = LANG === 'en', m = APPORD.mode;
+  return `<div class="ordBar"><button class="tb ${m === 'az' ? 'on' : ''}" data-act="appSort" data-id="az">🔤 A→Z</button><button class="tb ${m === 'za' ? 'on' : ''}" data-act="appSort" data-id="za">🔤 Z→A</button><button class="tb ${m === 'custom' ? 'on' : ''}" data-act="appOrd">↕️ ${E ? 'My order' : 'اپنی ترتیب'}</button>${m ? `<button class="tb" data-act="appSort" data-id="">↺ ${E ? 'Original' : 'اصل ترتیب'}</button>` : ''}</div>`;
+}
+let ORDW = [];   // ترتیب والی فہرست میں ID کی موجودہ ترتیب
+function ordRowsHTML() {
+  const E = LANG === 'en';
+  return ORDW.map((id, k) => { const a = APPS.find(x => x.id === id); if (!a) return '';
+    return `<div class="ordRow" data-oid="${esc(id)}"><span class="ordNo">${k + 1}</span>${appIcon(a)}<b dir="auto">${esc(AN(a))}</b><button class="ordB" data-act="ordUp" data-id="${esc(id)}" aria-label="${E ? 'Move up' : 'اوپر'}" ${k === 0 ? 'disabled' : ''}>▲</button><button class="ordB" data-act="ordDn" data-id="${esc(id)}" aria-label="${E ? 'Move down' : 'نیچے'}" ${k === ORDW.length - 1 ? 'disabled' : ''}>▼</button><span class="ordH" data-oh title="${E ? 'Drag' : 'کھینچیں'}">⠿</span></div>`; }).join('');
+}
+function ordRedraw(flashId) {
+  const L = $('#ordList'); if (L) { L.innerHTML = ordRowsHTML(); if (flashId) { const r = L.querySelector(`[data-oid="${CSS.escape(flashId)}"]`); if (r) { r.classList.add('flash'); try { r.scrollIntoView({ block: 'nearest' }); } catch (e) {} setTimeout(() => r.classList.remove('flash'), 600); } } }
+}
+function ordCommit() {
+  APPORD.mode = 'custom'; APPORD.ids = ORDW.slice(); ordSave();
+  const y = window.scrollY; if (R.v === 'home') { render(); window.scrollTo(0, y); }
+}
+function ordSheet() {
+  const E = LANG === 'en';
+  ORDW = orderedApps(ordVisible()).map(a => a.id);
+  sheet(`<h2>↕️ ${E ? 'Arrange apps' : 'ایپس کی ترتیب'}<button class="x" data-act="close">✕</button></h2>
+    <p style="color:var(--mut);font-size:13.5px;margin:0 0 10px">${E ? 'Hold ⠿ and drag, or tap ▲ ▼. The top app shows first on the home screen.' : '⠿ دبا کر کھینچیں، یا ▲ ▼ دبائیں — جو ایپ سب سے اوپر ہوگی وہ ہوم پر پہلے نمبر پر آئے گی۔'}</p>
+    <div id="ordList">${ordRowsHTML()}</div>
+    <button class="bigBtn blue" id="ordOk" data-act="ordOk" style="margin-top:6px">OK</button>`);
+}
+function ordMove(id, d) {
+  const k = ORDW.indexOf(id), n = k + d; if (k < 0 || n < 0 || n >= ORDW.length) return;
+  ORDW.splice(n, 0, ORDW.splice(k, 1)[0]); ordCommit(); ordRedraw(id);
+}
+/* ⠿ کھینچ کر: ڈبہ اپنی جگہ رہتا ہے (transform سے ہلتا ہے)، چھوڑتے ہی نئی ترتیب لگتی ہے — ٹچ اور ماؤس دونوں */
+document.addEventListener('pointerdown', e => {
+  const h = e.target.closest && e.target.closest('.ordH'); if (!h) return;
+  const row = h.closest('.ordRow'), list = row && row.parentNode, sh = $('#sheet'); if (!row || !list || !sh) return;
+  e.preventDefault();
+  const rows = [...list.children], n = rows.length, from = rows.indexOf(row); if (n < 2) return;
+  const pitch = n > 1 ? rows[1].offsetTop - rows[0].offsetTop : row.offsetHeight;
+  const y0 = e.clientY, sc0 = sh.scrollTop; let y = y0, to = from, timer = 0;
+  try { h.setPointerCapture(e.pointerId); } catch (x) {}
+  row.classList.add('drag');
+  const upd = () => {
+    const dy = (y - y0) + (sh.scrollTop - sc0);
+    row.style.transform = `translateY(${dy}px)`;
+    to = Math.max(0, Math.min(n - 1, Math.round(from + dy / pitch)));
+    rows.forEach((r, i) => { if (r === row) return; r.style.transform = (to > from && i > from && i <= to) ? `translateY(${-pitch}px)` : (to < from && i >= to && i < from) ? `translateY(${pitch}px)` : ''; });
+  };
+  const edge = () => { const b = sh.getBoundingClientRect(); if (y < b.top + 56) sh.scrollTop -= 10; else if (y > b.bottom - 56) sh.scrollTop += 10; else return; upd(); };
+  timer = setInterval(edge, 16);
+  const mv = ev => { y = ev.clientY; upd(); };
+  const end = ev => {
+    clearInterval(timer); h.removeEventListener('pointermove', mv); h.removeEventListener('pointerup', end); h.removeEventListener('pointercancel', end);
+    rows.forEach(r => { r.style.transform = ''; r.classList.remove('drag'); });
+    if (ev.type !== 'pointercancel' && to !== from) { const id = ORDW[from]; ORDW.splice(to, 0, ORDW.splice(from, 1)[0]); ordCommit(); ordRedraw(id); }
+  };
+  h.addEventListener('pointermove', mv); h.addEventListener('pointerup', end); h.addEventListener('pointercancel', end);
+});
 
 /* ---------- زبان ---------- */
 const DICT = {
@@ -301,7 +380,7 @@ function vHome() {
   const open = own ? ISSUES.filter(i => isOpen(i) || isHeld(i)) : pub.filter(isOpen);
   const un = unseenMine(), mine = myList().length;
   const hrs = (LANG === 'en' ? CFG.hoursEn : CFG.hoursUr) || T('hoursDef');
-  const tiles = APPS.filter(a => own || !a.hide).map(a => {
+  const tiles = (own ? orderedApps(APPS.filter(a => own || !a.hide)) : APPS.filter(a => !a.hide)).map(a => {
     const nn = own ? ISSUES.filter(i => i.app === a.id && i.status === 'new').length : 0;
     const n = open.filter(i => i.app === a.id).length - nn; // نیلا = جن پر کام چل رہا ہے (نئے الگ سرخ میں)
     return `<button class="ap" data-act="${own ? 'oapp' : 'app'}" data-id="${esc(a.id)}">${nn ? `<span class="bd2">${nn} ${LANG === 'en' ? 'new' : (nn === 1 ? 'نیا' : 'نئے')}</span>` : ''}${appIcon(a)}<span class="n ${/[a-z]/i.test(AN(a)) && LANG !== 'en' ? 'en' : ''}">${esc(AN(a))}</span>${n ? `<span class="bd">${n}</span>` : ''}</button>`;
@@ -322,6 +401,7 @@ function vHome() {
   ${own ? urgHome() : ''}
   ${own ? rankBtns() : ''}
   <div class="secT">📱 ${T('chooseApp')} <small>— ${T('chooseAppSub')}</small></div>
+  ${own ? ordBar() : ''}
   <div class="apps">${tiles}</div>
   ${videosHTML()}
   <div class="card" style="margin-top:16px">
@@ -1687,6 +1767,14 @@ document.addEventListener('click', async e => {
       break;
     }
     case 'goOwner': go('#/owner'); break;
+    case 'appSort': { APPORD.mode = id || ''; ordSave(); const y = window.scrollY; render(); window.scrollTo(0, y); break; }   // HD1211TH083
+    case 'appOrd': ordSheet(); break;
+    case 'ordOk': { const b = $('#ordOk'); if (b) { b.disabled = true; b.textContent = '✅ OK ✔'; b.classList.add('okDone'); }
+      ordSave(); const sv = await ordCloud(); toast(LANG === 'en' ? '✅ Order saved' : '✅ ترتیب محفوظ ہو گئی', 2200);
+      const y = window.scrollY; if (R.v === 'home') { render(); window.scrollTo(0, y); }
+      setTimeout(closeSheet, 700); break; }
+    case 'ordUp': ordMove(id, -1); break;
+    case 'ordDn': ordMove(id, 1); break;
     case 'push': enablePush(); break;
     case 'eye': { const p = $('#pw'); p.type = p.type === 'password' ? 'text' : 'password'; break; }
     case 'login': {
@@ -1831,7 +1919,7 @@ $('#viewer').addEventListener('click', () => $('#viewer').classList.remove('on')
   busy(false);
   let first = true;
   Store.watch((list, cfg) => {
-    ISSUES = list; CFG = cfg || {};
+    ISSUES = list; CFG = cfg || {}; ordAdopt();
     if (first) { first = false; render(); const u = unseenMine(); if (u && R.v !== 'mine') setTimeout(() => toast(T('updatedMine'), 4000), 600); return; }
     softRender();
     if (Store.isOwner()) { clearTimeout(recordStats.t); recordStats.t = setTimeout(recordStats, 3000); ownerBadge(); }
