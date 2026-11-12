@@ -2,7 +2,7 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1111WE081';
+const APP_VERSION = 'HD1211TH082';
 const UPDATE_NOTE = '📦 زپ پینل انگلش + Segoe UI؛ ڈاؤن لوڈ / اپلوڈ سے پہلے ایک بار تصدیق';
 const DEV_PHONE = '03206793793';
 
@@ -483,15 +483,28 @@ function zipHomeBtn() {
 }
 const ZN = a => a.en || a.ur;   /* HD1111WE079: زپ پینل میں ایپ کا اصل (انگلش) نام ہی */
 /* HD1111WE081 (مالک کا حکم): ہر ایپ کی ریپو میں ابھی موجود زپ کا نمبر — لسٹ میں «⬇️ Download latest zip · نمبر»؛ اسی پر ٹچ → ڈاؤن لوڈ */
-const LATEST = {};   /* id → ورژن (undefined = ابھی دیکھ رہے، '' = نہیں ملا) */
-const zipLbl = (id, c) => { const v = (c && c.ver) || LATEST[id]; return v === undefined ? '⏳ checking latest zip…' : v ? '⬇️ Download latest zip · ' + esc(v) : '⬇️ Download latest zip'; };
+const LATEST = {}, PEND = {};   /* id → ورژن (undefined = ابھی دیکھ رہے، '' = نہیں ملا) */
+/* HD1211TH082 (مالک کا حکم): اپلوڈ ہوتے ہی نیا نمبر فوراً (⏳ لائیو ہو رہا ہے) — لائیو ہوتے ہی وہی نمبر پکا */
+const zipLbl = (id, c) => { const v = (c && c.ver) || LATEST[id], p = PEND[id], tail = p && p !== v ? ' → ⏳ ' + esc(p) + ' going live' : '';
+  return v === undefined ? (p ? '⏳ ' + esc(p) + ' going live…' : '⏳ checking latest zip…') : v ? '⬇️ Download latest zip · ' + esc(v) + tail : '⬇️ Download latest zip' + tail; };
 const zipRefresh = () => { if ($('#sheet [data-zi]')) zipSheet(); };
-async function zipLatestOne(id, repo) { try { LATEST[id] = await HDZips.latest(id, repo); } catch (e) { if (LATEST[id] === undefined) LATEST[id] = ''; } }
-function zipLatestAll() {
+let zipChanged = false;
+async function zipLatestOne(id, repo) {
+  const was = LATEST[id];
+  try { LATEST[id] = await HDZips.latest(id, repo); } catch (e) { if (LATEST[id] === undefined) LATEST[id] = ''; }
+  if (PEND[id] && (LATEST[id] === PEND[id] || (HDZips.serial(LATEST[id]) >= 0 && HDZips.serial(LATEST[id]) >= HDZips.serial(PEND[id])))) delete PEND[id];
+  if (LATEST[id] !== was) zipChanged = true;
+}
+function zipLatestAll(quiet) {
   if (!window.HDZips) return;
   const L = [...APPS.filter(a => HDZips.has(a.id)), { id: 'HD', repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io' }]; let h;
-  Promise.all(L.map(a => zipLatestOne(a.id, a.repo).then(() => { clearTimeout(h); h = setTimeout(zipRefresh, 250); }))).then(() => { clearTimeout(h); zipRefresh(); });
+  const fin = () => { if (!quiet || zipChanged) { zipChanged = false; zipRefresh(); } };
+  Promise.all(L.map(a => zipLatestOne(a.id, a.repo).then(() => { clearTimeout(h); h = setTimeout(fin, 250); }))).then(() => { clearTimeout(h); fin(); });
 }
+/* پینل کھلا ہو تو ہر 15 سیکنڈ خود نمبر دیکھتا رہتا ہے — کوئی نئی زپ (کسی بھی فون / Claude سے) آئے تو نمبر خود بدل جائے */
+let zipPollT = 0;
+function zipPoll() { clearTimeout(zipPollT); if (!$('#sheet [data-zi]')) return; zipPollT = setTimeout(() => { if (!document.hidden) zipLatestAll(true); zipPoll(); }, 15000); }
+document.addEventListener('visibilitychange', () => { if (!document.hidden && $('#sheet [data-zi]')) zipLatestAll(true); });
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 /* پروگریس بار + پیغام کو بغیر پورا پینل دوبارہ بنائے آہستہ آہستہ چلانا (پینل بند ہو تو چپ چاپ صرف حالت یاد رکھتا ہے) */
 function zpUpd(id, pct, msg) {
@@ -517,19 +530,20 @@ function zipSheet() {
     </div>`; }).join('')}</div></div>`, true);
 }
 /* HD1111WE079 (مالک کا حکم): غلطی سے ہاتھ لگنے پر کام شروع نہ ہو — ایک بار «Are you sure?»؛ پن / کوڈ نہیں، صرف OK */
-const zipAsk = (a, what) => confirm(what === 'dl'
-  ? `⬇️ Do you really want to download the latest ${ZN(a)} zip?`
+const zipAsk = (a, what, ver) => confirm(what === 'dl'
+  ? `⬇️ Download the latest ${ZN(a)} zip\n\n📦 Version: ${ver || '(checking…)'}\n\nDo you really want to download ${ver ? ver + '.zip' : 'it'}?`
   : `⬆️ Do you really want to upload a zip to ${ZN(a)}?`);
 async function zipGo(id) {
   const a = id === 'HD' ? { id: 'HD', ur: 'ہیلپ ڈیسک', en: 'PBT Help Desk', repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io' } : appOf(id);
-  if (!zipAsk(a, 'dl')) return;
+  try { await Promise.race([zipLatestOne(id, a.repo), sleep(2500)]); } catch (e) {}   /* پوچھنے سے پہلے تازہ ترین نمبر */
+  if (!zipAsk(a, 'dl', LATEST[id] || '')) return;
   ZIPC[id] = { busy: '…' }; ZPG[id] = { pct: 0 }; zipSheet();
-  try { const r = await HDZips.build(id, a.repo, (st, p) => { ZIPC[id] = { busy: st }; if (p != null) ZPG[id] = { pct: p }; zipSheet(); }); ZIPC[id] = r; ZPG[id] = { pct: 100 }; zipSheet(); zipDl(id, true); }
+  try { const r = await HDZips.build(id, a.repo, (st, p) => { ZIPC[id] = { busy: st }; if (p != null) ZPG[id] = { pct: p }; zipSheet(); }); ZIPC[id] = r; if (r.ver) LATEST[id] = r.ver; ZPG[id] = { pct: 100 }; zipSheet(); zipDl(id, true); }
   catch (e) { delete ZPG[id]; ZIPC[id] = { err: (navigator.onLine ? '' : (LANG === 'en' ? 'offline — ' : 'انٹرنیٹ نہیں — ')) + String(e && e.message || e).slice(0, 60) }; zipSheet(); }
 }
 function zipDl(id, noAsk) {
   const c = ZIPC[id]; if (!c || !c.blob) return;
-  if (!noAsk && !zipAsk(id === 'HD' ? { en: 'PBT Help Desk' } : appOf(id), 'dl')) return;
+  if (!noAsk && !zipAsk(id === 'HD' ? { en: 'PBT Help Desk' } : appOf(id), 'dl', c.ver)) return;
   const u = URL.createObjectURL(c.blob), l = document.createElement('a'); l.href = u; l.download = c.ver + '.zip'; document.body.appendChild(l); l.click(); l.remove();
   setTimeout(() => URL.revokeObjectURL(u), 60000); toast('⬇️ ' + c.ver + '.zip');
 }
@@ -566,7 +580,7 @@ async function ghTokSave() {
 async function zipUp(id) {
   const a = id === 'HD' ? { id: 'HD', en: 'PBT Help Desk', repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io' } : appOf(id);
   let old = LATEST[id];
-  if (old === undefined) { toast('⏳ Checking the existing zip…'); await Promise.race([zipLatestOne(id, a.repo), sleep(3500)]); old = LATEST[id] || ''; }
+  toast('⏳ Checking the existing zip…'); await Promise.race([zipLatestOne(id, a.repo), sleep(3500)]); old = LATEST[id] || '';
   const pre = HDZips.prefix(id);
   if (!confirm(`⬆️ Upload zip to ${ZN(a)}\n\n📦 Existing zip in the repo right now:\n${old || '(could not read the number)'}\n\n⚠️ Be sure you are uploading a NEW / latest version — not the same one again.\nOnly a zip whose name starts with “${pre}” is accepted.\n\nContinue?`)) return;
   if (!ghTok()) { ghTokSheet(); return; }
@@ -580,7 +594,7 @@ const ZSTG = { 25: '1/4 · 25% — zip accepted & uploaded to the repo. Waiting 
 async function zipUpGo(id, f) {
   const E = true, z = HDZips.ZA[id] || {}, a = id === 'HD' ? { repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io', ur: 'ہیلپ ڈیسک', en: 'PBT Help Desk' } : appOf(id);
   const repo = z.repo || a.repo, ver = f.name.replace(/\.zip$/i, '').replace(/\s*\(\d+\)$/, ''), pre = HDZips.prefix(id);
-  const set = m => { ZUP[id] = m; zipSheet(); }, bad = m => { delete ZPG[id]; set('❌ ' + m); toast('❌ ' + m, 7000); };
+  const set = m => { ZUP[id] = m; zipSheet(); }, bad = m => { delete ZPG[id]; delete PEND[id]; set('❌ ' + m); toast('❌ ' + m, 7000); };
   // ① پری فکس: صرف اسی ایپ کی زپ (مثلاً MCS…) — ورنہ قبول ہی نہیں
   if (!ver.startsWith(pre)) return bad(`“${f.name}” rejected — a ${ZN(a)} zip must start with “${pre}”.`);
   const other = HDZips.whose(ver);
@@ -608,7 +622,7 @@ async function zipUpGo(id, f) {
     });
     if (r.status === 401) { try { localStorage.removeItem('pbthd_ghtok'); } catch (e) {} ghWho = ''; ZUP[id] = ''; setTimeout(ghTokSheet, 300); }
     if (!r.ok) throw new Error(r.status === 401 ? (E ? 'token expired — add again' : 'اجازت نامہ ختم — دوبارہ لگائیں') : r.status === 404 ? (E ? 'no access to this repo' : 'اس ریپو کی اجازت نہیں') : 'GitHub ' + r.status);
-    let cur = 25; zpUpd(id, 25, '⏳ ' + ZSTG[25]);
+    let cur = 25; PEND[id] = ver; zipRefresh(); zpUpd(id, 25, '⏳ ' + ZSTG[25]);
     if (!okName) { zpUpd(id, null, '✅ 25% — in the repo (unusual name, so progress is not tracked)'); return; }
     const vf = (z.dir ? z.dir + '/' : '') + (z.vf || 'sw.js'), t0 = Date.now(), iso = () => '?t=' + Date.now();
     const get = async u => { try { const x = await fetch(u + iso(), { cache: 'no-store' }); return x.ok ? await x.text() : null; } catch (e) { return null; } };
@@ -624,12 +638,13 @@ async function zipUpGo(id, f) {
       if (Date.now() - t0 > 10 * 60e3) { zpUpd(id, null, `⏳ ${cur}% — not live yet after 10 minutes. Open this panel and check again later.`); return; }
       await sleep(5000);
       let reach = cur; try { reach = Math.max(cur, await probe()); } catch (e) {}
+      if (reach >= 75 && LATEST[id] !== ver) { LATEST[id] = ver; delete PEND[id]; zipRefresh(); }   /* main پر پہنچتے ہی لسٹ میں نیا نمبر پکا */
       if (reach > cur) { await advance(reach); if (reach < 100) continue; cur = 100; }
       else zpUpd(id, null, '⏳ ' + ZSTG[cur] + ' ' + Math.round((Date.now() - t0) / 1000) + 's');
     }
     LATEST[id] = ver; delete ZIPC[id];
     zpUpd(id, 100, `🌐 4/4 · 100% — ${ver} is LIVE in the app. Refresh the app.`); zipRefresh();
-  } catch (e) { delete ZPG[id]; set('⚠️ ' + e.message); }
+  } catch (e) { delete ZPG[id]; delete PEND[id]; set('⚠️ ' + e.message); }
 }
 function partyHomeBtn() {
   const n = partyList().length, E = LANG === 'en';
@@ -1622,7 +1637,7 @@ document.addEventListener('click', async e => {
     case 'mine': go('#/mine'); break;
     case 'ownMine': go('#/mine/' + id); break;
     case 'parties': go('#/party'); break;
-    case 'zips': zipSheet(); zipLatestAll(); break;
+    case 'zips': zipSheet(); zipLatestAll(); zipPoll(); break;
     case 'zipGo': zipGo(id); break;
     case 'zipDl': zipDl(id); break;
     case 'zipUp': zipUp(id); break;
