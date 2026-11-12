@@ -45,6 +45,25 @@
     const r = await fetch(`https://raw.githubusercontent.com/${repo}/main/${path}?${bust()}`, { cache: 'no-store' });
     if (!r.ok) throw new Error(path + ' ' + r.status); return new Uint8Array(await r.arrayBuffer());
   }
+  // ورژن: پہلے «VERSION / CACHE… / APP_VERSION = '…'» والی لائن، ورنہ فائل میں سب سے بڑا سیریل (سیریل ہمیشہ آگے)
+  const pickV = (z, t) => { const a = t.match(RX('(?:APP_VERSION|CACHE_VERSION|CACHE_NAME|VERSION|CACHE)\\s*=\\s*[\'"`][^\'"`]*?(' + z.v + ')')); if (a) return a[1];
+    const all = t.match(new RegExp(z.v, 'g')) || []; let best = '', bs = -1;
+    all.forEach(m => { const n = +((m.match(/(\d{3,4})(?:AM|PM)?$/) || [0, -1])[1]); if (n > bs) { bs = n; best = m; } }); return best; };
+  /* HD1111WE081 (مالک کا حکم): ریپو میں ابھی موجود زپ کا ورژن (صرف ایک چھوٹی فائل پڑھ کر) — لسٹ میں «Download latest zip + نمبر» اور اپلوڈ کی تنبیہ کے لیے */
+  async function latest(id, repo) {
+    const z = ZA[id]; if (!z) return '';
+    repo = z.repo || repo;
+    return pickV(z, new TextDecoder().decode(await getFile(repo, (z.dir ? z.dir + '/' : '') + (z.vf || 'sw.js'))));
+  }
+  // ہر ایپ کا شروع کا پری فکس (MCS، HD، AIO…) — اپلوڈ میں صرف اسی پری فکس والی زپ قبول
+  const prefix = id => { const m = ZA[id] && ZA[id].v.match(/^[A-Za-z]+/); return m ? m[0] : ''; };
+  // یہ ورژن نام کس ایپ کا ہے (پورا پیٹرن ملے تو) — دوسری ایپ کی زپ پکڑنے کے لیے
+  const whose = ver => Object.keys(ZA).find(k => new RegExp('^(?:' + ZA[k].v + ')$').test(ver)) || '';
+  // ورژن کا سیریل نمبر (آخری ہندسے) — پرانی/نئی کا موازنہ
+  const serial = v => { const m = String(v).match(/(\d{3,4})(?:AM|PM)?$/); return m ? +m[1] : -1; };
+  // ایپ اصل میں جہاں لائیو چلتی ہے (گیٹ ہب پیجز) اس کی ورژن فائل کا پتہ
+  const liveUrl = (id, repo) => { const z = ZA[id] || {}; repo = z.repo || repo; const [o, n] = repo.split('/');
+    return `https://${o}.github.io/${n.toLowerCase() === (o + '.github.io').toLowerCase() ? '' : n + '/'}${z.dir ? z.dir + '/' : ''}${z.vf || 'sw.js'}`; };
   async function build(id, repo, onStep) {
     const z = ZA[id]; if (!z) throw new Error('no-app');
     repo = z.repo || repo; const dir = z.dir ? z.dir + '/' : '';
@@ -53,10 +72,7 @@
     if (!z.files) { names = names.filter(n => n !== 'sw.js' && n !== 'index.html'); names.unshift('index.html', 'sw.js'); }
     names = [...names, ...(z.extra || [])];
     const out = [], dec = new TextDecoder(); let ver = '';
-    // ورژن: پہلے «VERSION / CACHE… / APP_VERSION = '…'» والی لائن، ورنہ فائل میں سب سے بڑا سیریل (سیریل ہمیشہ آگے)
-    const pick = t => { const a = t.match(RX('(?:APP_VERSION|CACHE_VERSION|CACHE_NAME|VERSION|CACHE)\\s*=\\s*[\'"`][^\'"`]*?(' + z.v + ')')); if (a) return a[1];
-      const all = t.match(new RegExp(z.v, 'g')) || []; let best = '', bs = -1;
-      all.forEach(m => { const n = +((m.match(/(\d{3})(?:AM|PM)?$/) || [0, -1])[1]); if (n > bs) { bs = n; best = m; } }); return best; };
+    const pick = t => pickV(z, t);
     for (let i = 0; i < names.length; i++) {
       onStep && onStep(`⬇️ ${i + 1}/${names.length}`, Math.round(i / names.length * 100));
       let data; try { data = await getFile(repo, dir + names[i]); } catch (e) { if (names[i] === 'index.html') throw e; continue; }
@@ -67,5 +83,5 @@
     if (!ver) { for (const f of out) { ver = pick(dec.decode(f.data)); if (ver) break; } }
     return { ver: ver || (id + '-' + new Date().toISOString().slice(0, 10)), files: out, blob: zip(out), repo, dir: z.dir || '' };
   }
-  window.HDZips = { ZA, build, has: id => !!ZA[id] };
+  window.HDZips = { ZA, build, latest, prefix, whose, serial, liveUrl, has: id => !!ZA[id] };
 })();
