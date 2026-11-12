@@ -289,10 +289,28 @@ function allSubsTable(m, lim, col){
   return table(['S.No','Date','Account / Business','Type','Amount (Rs.)','Brought by','Agent','Dev. Share','Co-Dev. Share','Status'], (lim ? L.slice(0, lim) : L).map((l, i) => `<tr><td>${i+1}</td><td class="n">${dmy(l.ts)}</td><td>${E(l.biz || String(l.rk || '').split('_').pop().toUpperCase() || '—')}</td><td>${l.kind === 'ad' ? 'Ad' : (l.src === 'play' ? 'Google Play' : 'Manual')}</td><td class="n">${N(l.amount)}</td><td>${whoTxt(l)}</td><td class="n">${N(l.sh.agent)}</td><td class="n">${N(l.sh.dev)}</td><td class="n">${N(l.sh.codev)}</td><td>${l.ready ? '<span class="v2st ok">Ready</span>' : '<span class="v2st tr">Google</span>'}</td></tr>`), 'No subscriptions this month');
 }
 function overview(m){
-  const T = (m && m.totals) || {}, L = (m && m.lines) || [], mem = L.filter(l => l.kind === 'mem').length;
-  return `<div class="v2sec v2ov"><div class="v2sh">${ic('coins', 28)}<b>Company Overview <small>(${monName(FMON)} — My City Shines)</small></b><button onclick="v2Go('acc')">View All →</button></div>
+  /* AGP1211TH033 (ہیلپ ڈیسک #228، مالک کا ⚡): «MCS Earnings» — سبسکرپشن کی آمدن، اشتہار کی آمدن، دونوں کا جوڑ؛ «MCS Share» — گوگل + مینٹیننس،
+     ایجنٹ، کو-ڈویلپر، ڈویلپر؛ ہر ڈبے کے نیچے اس کی مختصر تفصیل (tsub2)، دبانے پر پوری تفصیل (v2Det)۔ حساب سرور کا — یہاں صرف جوڑ */
+  const T = (m && m.totals) || {}, L = (m && m.lines) || [], mem = L.filter(l => l.kind === 'mem'), ad = L.filter(l => l.kind === 'ad');
+  const sum = (a, f) => a.reduce((x, l) => x + (Number(typeof f === 'function' ? f(l) : l[f]) || 0), 0), sh = k => l => (l.sh || {})[k] || 0;
+  const memAmt = sum(mem, 'amount'), adAmt = sum(ad, 'amount'), play = mem.filter(l => l.src === 'play');
+  const nAg = new Set(L.filter(l => sh('agent')(l) > 0).map(l => l.code)).size, nAgS = L.filter(l => sh('agent')(l) > 0).length;
+  const tile = x => `<div class="v2tile ${x.c} v2tap" onclick="v2Det('${x.d}')">${ic(x.i, 34, '#fff')}<div><span class="tl">${x.t}</span><b>${x.v}</b><span class="tsub2">${x.s} ›</span></div></div>`;
+  return `<div class="v2sec v2ov"><div class="v2sh">${ic('coins', 28)}<b>MCS Earnings <small>(${monName(FMON)} — My City Shines)</small></b><button onclick="v2Go('acc')">View All →</button></div>
     <div class="v2sb"><details class="v2spd"><summary>👁️ View split rules — how the money is divided</summary><div class="v2split en">⚖️ ${SPLIT_TXT}</div></details>
-    <div class="v2tiles v2t4">${[{c:'tb', i:'users', t:'Total<br>Subscriptions', v:N(mem), d:'subs'}, {c:'tg', i:'coins', t:'Total Subscription<br>Amount', v:R0(m ? m.gross : 0), d:'gross'}, {c:'to', i:'wallet', t:'Google +<br>Maintenance', v:R0((T.google || 0) + (T.maint || 0)), d:'gm'}, {c:'tp', i:'bars', t:'Agents<br>Commission', v:R0(T.agent || 0), d:'agent'}].map(x => `<div class="v2tile ${x.c} v2tap" onclick="v2Det('${x.d}')">${ic(x.i, 34, '#fff')}<div><span class="tl">${x.t}</span><b>${x.v}</b></div></div>`).join('')}</div></div></div>`;
+    <div class="v2tiles v2t4">${[
+      {c:'tb', i:'users', t:'Total<br>Subscriptions', v:N(mem.length), d:'subs', s:`▶️ Play ${play.length} • 💵 Direct ${mem.length - play.length}`},
+      {c:'tg', i:'coins', t:'Total Subscription<br>Amount', v:R0(memAmt), d:'subamt', s:`▶️ ${Rs(sum(play, 'amount'))} • 💵 ${Rs(memAmt - sum(play, 'amount'))}`},
+      {c:'to', i:'bars', t:'Total<br>Ads', v:N(ad.length), d:'ads', s:ad.length ? `Last: ${dmy(ad[ad.length - 1].ts)}` : 'No ads this month'},
+      {c:'tp', i:'coins', t:'Total Ads<br>Amount', v:R0(adAmt), d:'ads', s:'Maintenance 15% + bringer 15%'}].map(tile).join('')}</div>
+    <div class="v2gt v2tap" onclick="v2Det('gross')">${ic('wallet', 36, '#7c2d12')}<div class="gtl"><b>Total Amount</b><span>(Subscriptions + Ads)</span><small>⭐ ${Rs(memAmt)} + 📢 ${Rs(adAmt)} ›</small></div><div class="gtv">${R0(memAmt + adAmt)}</div></div>
+    </div></div>
+    <div class="v2sec v2ov"><div class="v2sh">${ic('bars', 28)}<b>MCS Share <small>(${monName(FMON)})</small></b></div><div class="v2sb">
+    <div class="v2tiles v2t4">${[
+      {c:'tc', i:'wallet', t:'Google +<br>Maintenance', v:R0((T.google || 0) + (T.maint || 0)), d:'gm', s:`Google ${Rs(T.google || 0)} • Maint. ${Rs(T.maint || 0)}`},
+      {c:'tp', i:'users', t:'Agents<br>Commission', v:R0(T.agent || 0), d:'agent', s:nAg ? `${nAg} agent(s) • ${nAgS} sale(s)` : 'No agent sale this month'},
+      {c:'tg', i:'user', t:'Co-Developer<br>Share', v:R0(T.codev || 0), d:'codev', s:`${L.filter(l => sh('codev')(l) > 0).length} sale(s) • tap for how`},
+      {c:'tb', i:'user', t:'Developer<br>Share', v:R0(T.dev || 0), d:'dev', s:`${L.filter(l => sh('dev')(l) > 0).length} sale(s) • tap for how`}].map(tile).join('')}</div></div></div>`;
 }
 function profCard(name, type, idLbl, id, ref){
   const pr = photo();
@@ -440,6 +458,10 @@ async function v2Det(k){
   const L = _detLines(), mon = monName(FMON), T = (FM && FM.totals) || {};
   const cDate = {h:'Date', f:l => dmy(l.ts)}, cBiz = {h:'Business', f:_detBiz}, cType = {h:'Type', f:_detType}, cAmt = {h:'Amount', f:l => N(l.amount), n:1, sum:l => l.amount || 0}, cWho = {h:'Brought by', f:whoTxt};
   if(k === 'subs'){ const R = L.filter(l => l.kind === 'mem'); return _detOpen('👥 Total Subscriptions — ' + mon, R.length + ' memberships sold this month. Tap a row for full details.', _detTable(R, [cDate, cBiz, cType, cAmt, cWho])); }
+  if(k === 'subamt'){ const R = L.filter(l => l.kind === 'mem'), pl = R.filter(l => l.src === 'play');
+    return _detOpen('⭐ Total Subscription Amount — ' + mon, `${R.length} membership(s) = <b>${Rs(_detSum(R, l => l.amount))}</b> • ▶️ Google Play ${pl.length} = ${Rs(_detSum(pl, l => l.amount))} • 💵 Direct ${R.length - pl.length} = ${Rs(_detSum(R.filter(l => l.src !== 'play'), l => l.amount))}. Tap a row for full details.`, _detTable(R, [cDate, cBiz, cType, cAmt, cWho])); }
+  if(k === 'ads'){ const R = L.filter(l => l.kind === 'ad');
+    return _detOpen('📢 Ads — ' + mon, `${R.length} ad(s) = <b>${Rs(_detSum(R, l => l.amount))}</b>. On ads there is no Google cut: Maintenance 15% + bringer 15%, the rest half & half Developer / Co-Developer. Tap a row for full details.`, _detTable(R, [cDate, cBiz, cAmt, cWho, {h:'Maint.', f:l => N((l.sh || {}).maint || 0), n:1, sum:'maint'}, {h:'Dev.', f:l => N((l.sh || {}).dev || 0), n:1, sum:'dev'}, {h:'Co-Dev.', f:l => N((l.sh || {}).codev || 0), n:1, sum:'codev'}])); }
   if(k === 'gross'){ const mem = L.filter(l => l.kind === 'mem'), ad = L.filter(l => l.kind === 'ad');
     return _detOpen('💰 Total Amount — ' + mon, `⭐ Memberships ${mem.length} = <b>${Rs(_detSum(mem, l => l.amount))}</b> • 📢 Ads ${ad.length} = <b>${Rs(_detSum(ad, l => l.amount))}</b> • ▶️ Google Play ${Rs(_detSum(L.filter(l => l.src === 'play'), l => l.amount))} • 💵 Direct / cash ${Rs(_detSum(L.filter(l => l.src !== 'play'), l => l.amount))}`, _detTable(L, [cDate, cBiz, cType, cAmt, cWho])); }
   if(k === 'gm'){ return _detOpen('🏦 Google + Maintenance — ' + mon, `Google 15% only on Google Play sales${FM && FM.recv ? ` (Google actually paid ${Rs(FM.recv.amount)} on ${dmy(FM.recv.ts)})` : ' (Google has not paid yet — estimate)'}. Maintenance 15% on every sale (on direct sales the Google 15% also goes to Maintenance).`,
