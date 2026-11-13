@@ -187,3 +187,13 @@ body.v2,.v2card,.v2note,.v2ok,.v2warn,.v2mut,.v2list button,.lu,.lrem,.lfg,.v2ro
 .v2gt .gtl{flex:1;display:flex;flex-direction:column;min-width:0}.v2gt .gtl b{font-size:18px;color:#0b1f4d}.v2gt .gtl span{font-size:13px;font-weight:700;color:#334155}.v2gt .gtl small{font-size:11.5px;font-weight:700;color:#7c2d12;margin-top:2px}
 .v2gt .gtv{flex:0 0 auto;background:linear-gradient(#9a5b22,#5b2e0a);color:#fff;font-weight:900;font-size:22px;padding:9px 16px;border-radius:999px;font-family:Arial,sans-serif}
 @media (max-width:380px){.v2gt .gtv{font-size:18px;padding:8px 12px}.v2gt .gtl b{font-size:16px}.v2t4 .v2tile .tsub2{font-size:10px}}
+
+/* AGP1311FR034 (#235): Company Overview — تین کارڈ ایک قطار میں */
+.v2tiles.v2t3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0 2px}
+.v2t3 .v2tile{flex-direction:column;align-items:flex-start;text-align:left;gap:4px;padding:10px 9px;min-height:104px}
+.v2t3 .v2tile>div{display:flex;flex-direction:column;min-width:0}
+.v2t3 .v2tile .tl{font-size:12.5px;line-height:1.15;margin:0 0 2px;min-height:0}
+.v2t3 .v2tile b{font-size:24px;line-height:1.1}
+.v2t3 .v2tile .tsub2{font-size:10.5px;line-height:1.2;opacity:.95}
+@media (max-width:380px){.v2t3 .v2tile{padding:8px 6px}.v2t3 .v2tile .tl{font-size:11px}.v2t3 .v2tile b{font-size:20px}.v2t3 .v2tile .tsub2{font-size:9.5px}}
+@media (min-width:700px){.v2t3 .v2tile{flex-direction:row;align-items:center;gap:12px}.v2t3 .v2tile svg{width:44px;height:44px}.v2t3 .v2tile b{font-size:30px}}
