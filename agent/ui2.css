@@ -197,3 +197,14 @@ body.v2,.v2card,.v2note,.v2ok,.v2warn,.v2mut,.v2list button,.lu,.lrem,.lfg,.v2ro
 .v2t3 .v2tile .tsub2{font-size:10.5px;line-height:1.2;opacity:.95}
 @media (max-width:380px){.v2t3 .v2tile{padding:8px 6px}.v2t3 .v2tile .tl{font-size:11px}.v2t3 .v2tile b{font-size:20px}.v2t3 .v2tile .tsub2{font-size:9.5px}}
 @media (min-width:700px){.v2t3 .v2tile{flex-direction:row;align-items:center;gap:12px}.v2t3 .v2tile svg{width:44px;height:44px}.v2t3 .v2tile b{font-size:30px}}
+
+/* AGP1311FR035: Firebase کوٹہ میٹر */
+.v2qm .v2sb{padding:8px 12px 10px}
+.qm-st{font-weight:900;font-size:13.5px;padding:7px 10px;border-radius:10px;margin:2px 0 8px;background:#f1f5f9;color:#334155}
+.qm-st.ok{background:#dcfce7;color:#166534}.qm-st.bad{background:#fee2e2;color:#991b1b;animation:qmPulse 1.2s ease-in-out infinite}
+@keyframes qmPulse{50%{background:#fecaca}}
+.qm-r{display:grid;grid-template-columns:78px 1fr auto;align-items:center;gap:8px;margin:5px 0;font-size:12.5px}
+.qm-n{font-weight:800;color:#0b1f4d}.qm-b{height:10px;background:#e5e7eb;border-radius:6px;overflow:hidden}.qm-b i{display:block;height:100%;border-radius:6px}
+.qm-v{font-weight:700;color:#0b1f4d;white-space:nowrap}.qm-v small{opacity:.6;font-weight:600}
+.qm-f{font-size:11px;color:#475569;margin-top:6px;line-height:1.4}.qm-l{font-size:13px;color:#475569;padding:6px 0}
+@media (max-width:380px){.qm-r{grid-template-columns:66px 1fr auto;font-size:11.5px}}

@@ -292,6 +292,30 @@ function allSubsTable(m, lim, col){
 }
 /* AGP1311FR034 (ہیلپ ڈیسک #235، کو-ڈویلپر، مالک کا ⚡): «Company Overview (My City Shines)» — کمپنی کی کل گنتی سرور /fin2 op=stats سے
    (Total Users = سب اکاؤنٹ Free + Paid، Total Businesses، Total Professionals — سرور My City Shines Firestore گنتا ہے، ایک گھنٹے کی کیش)؛ ہر بار ہوم کھلنے پر تازہ */
+/* AGP1311FR035 (مالک کا حکم): 🔥 Firebase کوٹہ میٹر — ڈویلپر ہوم پر سب سے اوپر، چھوٹا: آج کی پڑھائی / لکھائی / حذف (مفت حد کے ٪)،
+   اصل حالت (سرور ہر 5 منٹ ایک چھوٹی پڑھائی کر کے دیکھتا ہے — 429 = کوٹہ ختم)، کوٹہ کب نیا (Pacific آدھی رات = پاکستان دوپہر 1 / 12 بجے)۔ دبائیں تو ابھی تازہ */
+let QM = null, QM_AT = 0;
+function qmHtml(){
+  const q = QM && QM.quota; if(!q) return '<div class="qm-l">⏳ Loading quota…</div>';
+  const t = d => new Date(d).toLocaleTimeString('en-GB', {hour:'numeric', minute:'2-digit', hour12:true, timeZone:'Asia/Karachi'});
+  const left = Math.max(0, q.resetAt - Date.now()), hh = Math.floor(left / 3600e3), mm = Math.floor(left % 3600e3 / 60e3);
+  const bar = (lb, n, max) => { const p = Math.min(100, Math.round(n / max * 100)); const c = p >= 90 ? '#dc2626' : p >= 70 ? '#ea8a00' : '#16a34a';
+    return `<div class="qm-r"><span class="qm-n">${lb}</span><div class="qm-b"><i style="width:${Math.max(2, p)}%;background:${c}"></i></div><span class="qm-v">${N(n)} <small>/ ${max/1000}k</small> <b style="color:${c}">${p}%</b></span></div>`; };
+  const dead = q.live === 'quota';
+  const st = dead ? `<div class="qm-st bad">⛔ Quota FULL now — app cannot load data${q.since ? ' (since ' + t(q.since) + ')' : ''}</div>` : q.live === 'ok' ? '<div class="qm-st ok">✅ Firebase working now</div>' : '<div class="qm-st">⚠️ Status unknown (' + E(q.live || '') + ')</div>';
+  return `${st}${bar('📖 Reads', q.r, 50000)}${bar('✏️ Writes', q.w, 20000)}${bar('🗑️ Deletes', q.d, 20000)}
+    <div class="qm-f">🔄 New quota at <b>${t(q.resetAt)}</b> (in ${hh}h ${mm}m) · checked ${t(q.liveAt || Date.now())} · <span style="opacity:.75">counts from app phones (approx.)</span></div>`;
+}
+async function qmLoad(fresh){
+  if(!fresh && QM && Date.now() - QM_AT < 60e3) return;
+  try { const r = await admCall('/mcsuse', {op:'get', fresh: !!fresh}); if(r && r.ok){ QM = r; QM_AT = Date.now(); } } catch(e){}
+  const el = document.getElementById('v2qm'); if(el) el.innerHTML = qmHtml();
+}
+window.qmRefresh = () => { const el = document.getElementById('v2qm'); if(el) el.innerHTML = '<div class="qm-l">⏳ Checking…</div>'; qmLoad(true); };
+function quotaMeter(){
+  setTimeout(() => qmLoad(false), 0);
+  return `<div class="v2sec v2qm" onclick="qmRefresh()" style="cursor:pointer"><div class="v2sh">🔥<b>Firebase Quota <small>(today · tap to refresh)</small></b></div><div class="v2sb" id="v2qm">${qmHtml()}</div></div>`;
+}
 let COST = null, COST_AT = 0;
 function coTiles(){
   const x = COST || {}, v = n => n == null ? '…' : N(n);
@@ -355,6 +379,7 @@ function cdHome(f, m, c){
 function devHome(m, P, reqs, owe){
   const T = (m && m.totals) || {}, L = (P && P.list) || [], paid = L.reduce((a, p) => a + (p.paid || 0), 0);
   return `${profCard('PBT Code Labs', 'Developer', 'Developer ID', 'DEV', 'DEV')}
+    ${quotaMeter()}
     ${companyOverview()}
     ${overview(m)}
     <div class="v2sec"><div class="v2sh">${ic('user', 28)}<b>Your Personal Share <small>(Developer)</small></b></div><div class="v2sb">
