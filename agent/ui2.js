@@ -8,6 +8,8 @@ const NAV = {
   dev:   [['home','Home','home'],['acc','Accounts','bars'],['pay','Payouts','wallet'],['agents','Agents','users'],['prof','Profile','user']]
 };
 const ICON = {
+  shop: '<path d="M3 4h18l1.5 5a3 3 0 0 1-5.2 2 3 3 0 0 1-5.3 0 3 3 0 0 1-5.3 0A3 3 0 0 1 1.5 9z"/><path d="M3.5 12.5V21h6v-5h5v5h6v-8.5a4.6 4.6 0 0 1-3.2-.5 4.7 4.7 0 0 1-5.3 0 4.7 4.7 0 0 1-5.3 0 4.6 4.6 0 0 1-3.2.5z"/>',
+  prof: '<circle cx="12" cy="6.5" r="4"/><path d="M3.5 21c0-4.8 3.6-8.2 8.5-8.2s8.5 3.4 8.5 8.2z"/><path d="M12 13.2l-1.3 2 1.3 4.8 1.3-4.8z" fill="#fff" opacity=".85"/>',
   send: '<path d="M2.5 11.2 21 3.5l-4.2 17.2-5.6-5.4-3.4 3.3.5-5.1L18 6.6 7.3 12.9z"/>',
   home: '<path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   users: '<circle cx="12" cy="7.5" r="3.2"/><circle cx="5.2" cy="9" r="2.4"/><circle cx="18.8" cy="9" r="2.4"/><path d="M6 20c0-3.6 2.7-6.2 6-6.2s6 2.6 6 6.2zM1 19c0-2.8 1.8-4.8 4.3-4.8 1 0 1.9.3 2.6.8C6.5 16.2 5.6 17.6 5.4 19zM23 19c0-2.8-1.8-4.8-4.3-4.8-1 0-1.9.3-2.6.8 1.4 1.2 2.3 2.6 2.5 4z"/>',
@@ -288,6 +290,27 @@ function allSubsTable(m, lim, col){
   const L = ((m && m.lines) || []).slice().reverse();
   return table(['S.No','Date','Account / Business','Type','Amount (Rs.)','Brought by','Agent','Dev. Share','Co-Dev. Share','Status'], (lim ? L.slice(0, lim) : L).map((l, i) => `<tr><td>${i+1}</td><td class="n">${dmy(l.ts)}</td><td>${E(l.biz || String(l.rk || '').split('_').pop().toUpperCase() || '—')}</td><td>${l.kind === 'ad' ? 'Ad' : (l.src === 'play' ? 'Google Play' : 'Manual')}</td><td class="n">${N(l.amount)}</td><td>${whoTxt(l)}</td><td class="n">${N(l.sh.agent)}</td><td class="n">${N(l.sh.dev)}</td><td class="n">${N(l.sh.codev)}</td><td>${l.ready ? '<span class="v2st ok">Ready</span>' : '<span class="v2st tr">Google</span>'}</td></tr>`), 'No subscriptions this month');
 }
+/* AGP1311FR034 (ہیلپ ڈیسک #235، کو-ڈویلپر، مالک کا ⚡): «Company Overview (My City Shines)» — کمپنی کی کل گنتی سرور /fin2 op=stats سے
+   (Total Users = سب اکاؤنٹ Free + Paid، Total Businesses، Total Professionals — سرور My City Shines Firestore گنتا ہے، ایک گھنٹے کی کیش)؛ ہر بار ہوم کھلنے پر تازہ */
+let COST = null, COST_AT = 0;
+function coTiles(){
+  const x = COST || {}, v = n => n == null ? '…' : N(n);
+  return [
+    {c:'tb', i:'users', t:'Total Users', v:v(x.users), s: x.users == null ? 'Loading…' : `(Free ${N(x.free)} + Paid ${N(x.paid)})`},
+    {c:'tg', i:'shop', t:'Total Businesses', v:v(x.biz), s:'Business profiles'},
+    {c:'tp', i:'prof', t:'Total Professionals', v:v(x.pro), s:'Professional profiles'}]
+    .map(t => `<div class="v2tile ${t.c}">${ic(t.i, 30, '#fff')}<div><span class="tl">${t.t}</span><b>${t.v}</b><span class="tsub2">${t.s}</span></div></div>`).join('');
+}
+async function coLoad(){
+  if(COST && Date.now() - COST_AT < 60e3) return;
+  try { const r = await finCall({op:'stats'}); if(r && r.ok){ COST = r; COST_AT = Date.now(); } } catch(e){}
+  const el = document.getElementById('v2co'); if(el) el.innerHTML = coTiles();
+}
+function companyOverview(){
+  setTimeout(coLoad, 0);
+  return `<div class="v2sec v2ov"><div class="v2sh">${ic('coins', 28)}<b>Company Overview <small>(My City Shines)</small></b></div><div class="v2sb">
+    <div class="v2tiles v2t3" id="v2co">${coTiles()}</div></div></div>`;
+}
 function overview(m){
   /* AGP1211TH033 (ہیلپ ڈیسک #228، مالک کا ⚡): «MCS Earnings» — سبسکرپشن کی آمدن، اشتہار کی آمدن، دونوں کا جوڑ؛ «MCS Share» — گوگل + مینٹیننس،
      ایجنٹ، کو-ڈویلپر، ڈویلپر؛ ہر ڈبے کے نیچے اس کی مختصر تفصیل (tsub2)، دبانے پر پوری تفصیل (v2Det)۔ حساب سرور کا — یہاں صرف جوڑ */
@@ -321,6 +344,7 @@ function profCard(name, type, idLbl, id, ref){
 function cdHome(f, m, c){
   const cur = (f.months || []).find(x => x.mon === FMON) || {amt: 0};
   return `${profCard((CDV && CDV.name) || 'Co-Developer', 'Co-Developer', 'Co-Developer ID', ph0(c.phone), 'CODEV')}
+    ${companyOverview()}
     ${overview(m)}
     <div class="v2sec"><div class="v2sh">${ic('user', 28)}<b>Your Personal Share <small>(${E((CDV && CDV.name) || '')})</small></b></div><div class="v2sb">
     ${t2([{c:'tp', i:'coins', t:'Co-Developer Share<br>(This Month)', v:R0(cur.amt), go:"v2Det('codev')"}, {c:'tb', i:'bars', t:'Total<br>Earnings', v:R0(f.due), sub:'Ready: ' + Rs(f.ready), go:"v2Det('cdearn')"}, {c:'to', i:'wallet', t:'Total<br>Withdrawals', v:R0(f.paid), go:"v2Det('cdpaid')"}, {c:'tw', i:'wallet', t:'Your Balance', v:R0(f.balance), go:"v2Det('cdbal')"}, {btn:'v2WdReq()', i:'send', t:'Request<br>Withdrawal'}])}
@@ -331,6 +355,7 @@ function cdHome(f, m, c){
 function devHome(m, P, reqs, owe){
   const T = (m && m.totals) || {}, L = (P && P.list) || [], paid = L.reduce((a, p) => a + (p.paid || 0), 0);
   return `${profCard('PBT Code Labs', 'Developer', 'Developer ID', 'DEV', 'DEV')}
+    ${companyOverview()}
     ${overview(m)}
     <div class="v2sec"><div class="v2sh">${ic('user', 28)}<b>Your Personal Share <small>(Developer)</small></b></div><div class="v2sb">
     ${t2([{c:'tp', i:'coins', t:'Developer Share<br>(This Month)', v:R0(T.dev || 0), go:"v2Det('dev')"}, {c:'tb', i:'bars', t:'Co-Developer Share<br>(This Month)', v:R0(T.codev || 0), go:"v2Det('codev')"}, {c:'tg', i:'check', t:m && m.recv ? '✅ Received<br>from Google' : '⏳ Pending<br>from Google', v:R0(m ? (m.recv ? m.recv.amount : m.play - m.gEst) : 0), go:"v2Det('google')"}, {c:'to', i:'wallet', t:'Total Paid<br>to Team', v:R0(paid), go:"v2Det('paid')"}, {c:'tw', i:'wallet', t:'Ready — To Pay', v:R0(owe), go:"v2Det('ready')"}, {btn:"v2Go('pay')", i:'send', t:'Withdrawal<br>Requests', v: String(reqs)}])}</div></div>
