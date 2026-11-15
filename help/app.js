@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1511SU094';
-const UPDATE_NOTE = '👨‍💻 زیبرا پٹی اب صرف کو-ڈویلپر (عمران صاحب) کے مسائل پر — باقی کسی مسئلے پر نہیں';  const UPDATE_NOTE_OLD = '↕️ ایپس کی ترتیب: «OK ✔» دبانے پر پکی محفوظ (فون + فائربیس) — بند کر کے کھولیں تو وہی ترتیب رہتی ہے';
+const APP_VERSION = 'HD1511SU095';
+const UPDATE_NOTE = '🖥️ «تازہ زپ» میں «Server file — worker.js»: سرور کی اکیلی فائل اتاریں / چڑھائیں (زپ نہیں)، چڑھاتے ہی خود لائیو + ✅ / ❌';  const UPDATE_NOTE_OLD = '↕️ ایپس کی ترتیب: «OK ✔» دبانے پر پکی محفوظ (فون + فائربیس) — بند کر کے کھولیں تو وہی ترتیب رہتی ہے';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -641,6 +641,7 @@ function zipSheet() {
   sheet(`<div class="zipEn" dir="ltr"><h2>📦 Latest zip<button class="x" data-act="close">✕</button></h2>
     <p style="color:var(--mut);font-size:13px;margin:0 0 8px">Each tap reads the app straight from its repo right now — even if another Claude changed it. You will be asked to confirm before anything is downloaded or uploaded.</p>
     ${ghTok() ? '' : `<div class="zpTok"><button class="tb" data-act="ghTok">🔑 Add GitHub permission (once) — for Upload</button></div>`}
+    <div style="margin:0 0 10px"><button class="tb" style="width:100%;padding:12px;font-size:15px;background:#0f172a;color:#fff;border-color:#0f172a" data-act="srv">🖥️ Server file — worker.js (download / upload, no zip)</button></div>
     <div class="zpBar"><button class="tb" data-act="zAZ">A → Z</button><button class="tb" data-act="zZA">Z → A</button><button class="tb zSv${ZDRAFT ? ' dirty' : ''}" data-act="zSave">${ZDRAFT ? '💾 Save order' : ZSAVED ? '✅ Saved' : '💾 Save order'}</button></div>
     <div class="zpL">${L.map((a, ix) => { const c = ZIPC[a.id]; return `<div class="zpR${ZMOVED === a.id ? ' mvd' : ''}" data-zi="${esc(a.id)}">
       <div class="zpMv"><button type="button" data-act="zUp" data-id="${esc(a.id)}" aria-label="Up"${ix === 0 ? ' disabled' : ''}>▲</button><button type="button" data-act="zDn" data-id="${esc(a.id)}" aria-label="Down"${ix === L.length - 1 ? ' disabled' : ''}>▼</button></div>
@@ -710,6 +711,70 @@ async function ghTokSave() {
   if (!/^(ghp_|github_pat_)/.test(t)) { toast(LANG === 'en' ? '⚠️ This is not the permission — the code starts with ghp_ . Copy it again from GitHub.' : '⚠️ یہ اجازت نامہ نہیں — کوڈ ghp_ سے شروع ہوتا ہے۔ گیٹ ہب سے دوبارہ کاپی کر کے پیسٹ کریں۔', 6000); return; }
   try { ghWho = await ghCheck(t); localStorage.setItem('pbthd_ghtok', t); toast('✅ ' + ghWho); zipSheet(); }
   catch (e) { toast('⚠️ ' + e.message, 4000); }
+}
+/* HD1511SU095 (مالک کا حکم): 🖥️ سرور فائل — AIO ریپو کی اکیلی `cloudflare-worker/worker.js` (زپ نہیں): ⬇️ ابھی والی اتاریں (فری Claude کو دیں)،
+   ⬆️ بدلی ہوئی چڑھائیں (گیٹ ہب API، وہی ٹوکن `pbthd_ghtok`) → main پر جاتے ہی `deploy-worker.yml` خود Cloudflare پر → یہاں ✅ / ❌ (ناکام ہو تو پرانا سرور چلتا رہتا ہے) */
+const SRV = { repo: 'pbtcodelabs-pbt/AIO', path: 'cloudflare-worker/worker.js', wf: 'deploy-worker.yml' };
+let SRVMSG = '';
+function srvSheet() {
+  sheet(`<div dir="ltr"><h2>🖥️ Server file<button class="x" data-act="zips">✕</button></h2>
+    <p style="color:var(--mut);font-size:13px;margin:0 0 10px">One file only — <b>worker.js</b> (My City Shines / AIO server). Download it, give it to Claude, then upload the changed file. It goes live on its own in about 1 minute.</p>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button class="tb grn" style="padding:14px;font-size:16px" data-act="srvDl">⬇️ Download worker.js (live version)</button>
+      <button class="tb" style="padding:14px;font-size:16px;background:#1d4ed8;color:#fff;border-color:#1d4ed8" data-act="srvUp">⬆️ Upload changed worker.js</button>
+    </div>
+    ${ghTok() ? '' : `<div class="zpTok" style="margin-top:10px"><button class="tb" data-act="ghTok">🔑 Add GitHub permission (once) — for Upload</button></div>`}
+    <div id="srvMsg" class="zpU" dir="auto" style="margin-top:12px;white-space:pre-line">${esc(SRVMSG)}</div></div>`, true);
+}
+const srvSet = m => { SRVMSG = m; const el = $('#srvMsg'); if (el) el.textContent = m; };
+async function srvDl() {
+  srvSet('⏳ Reading worker.js from GitHub…');
+  try {
+    const r = await fetch(`https://raw.githubusercontent.com/${SRV.repo}/main/${SRV.path}?t=${Date.now()}`, { cache: 'no-store' });
+    if (!r.ok) throw new Error('GitHub ' + r.status);
+    const t = await r.text(), u = URL.createObjectURL(new Blob([t], { type: 'text/javascript' })), l = document.createElement('a');
+    l.href = u; l.download = 'worker.js'; document.body.appendChild(l); l.click(); l.remove(); setTimeout(() => URL.revokeObjectURL(u), 60000);
+    srvSet('✅ worker.js downloaded (' + Math.round(t.length / 1024) + ' KB, ' + t.split('\n').length + ' lines).');
+  } catch (e) { srvSet('❌ ' + (navigator.onLine ? e.message : 'No internet')); }
+}
+function srvUp() {
+  if (!ghTok()) { ghTokSheet(); return; }
+  const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.js,text/javascript,application/javascript,text/plain';
+  inp.onchange = () => { const f = inp.files && inp.files[0]; if (f) srvUpGo(f); };
+  inp.click();
+}
+async function srvUpGo(f) {
+  const H = { Authorization: 'token ' + ghTok(), 'Content-Type': 'application/json', Accept: 'application/vnd.github+json' };
+  try {
+    if (!/\.js$/i.test(f.name) && !confirm(`“${f.name}” is not a .js file. Upload as worker.js anyway?`)) return;
+    const txt = await f.text();
+    if (txt.length < 20000 || !/export\s+default/.test(txt) || !/class\s+McsStats/.test(txt)) { srvSet('❌ This does not look like the full worker.js (too small, or missing “export default” / “class McsStats”). Nothing uploaded.'); return; }
+    try { new Function(txt.replace(/^\s*export\s+default\s+/m, 'const __d = ').replace(/^\s*export\s+(class|function|const|let|async)/gm, '$1').replace(/^\s*import\s.*$/gm, '')); }
+    catch (e) { srvSet('❌ The file has a code mistake (' + String(e.message).slice(0, 120) + '). Nothing uploaded — give the error to Claude.'); return; }
+    if (!confirm(`⬆️ Upload “${f.name}” as the server file (worker.js)?\n\nSize: ${Math.round(txt.length / 1024)} KB\nIt goes live in about 1 minute.`)) return;
+    srvSet('⏳ 1/3 · Uploading…');
+    const cu = `https://api.github.com/repos/${SRV.repo}/contents/${SRV.path}`;
+    const ex = await fetch(cu + '?ref=main', { headers: H, cache: 'no-store' });
+    if (ex.status === 401) { try { localStorage.removeItem('pbthd_ghtok'); } catch (e) {} setTimeout(ghTokSheet, 300); throw new Error('token expired — add again'); }
+    if (!ex.ok) throw new Error('GitHub ' + ex.status);
+    const sha = (await ex.json()).sha, t0 = new Date(Date.now() - 5000).toISOString();
+    const ver = (/MCS\d{4}[A-Z]{2}\d{3}/.exec(f.name) || [''])[0];
+    const content = b64(new TextEncoder().encode(txt).buffer);
+    const r = await fetch(cu, { method: 'PUT', headers: H, body: JSON.stringify({ message: (ver ? ver + ' ' : '') + 'server: worker.js upload (Help Desk)', content, sha, branch: 'main' }) });
+    if (!r.ok) throw new Error(r.status === 409 ? 'someone changed it just now — download again' : 'GitHub ' + r.status);
+    const commit = ((await r.json()).commit || {}).sha || '';
+    srvSet('⏳ 2/3 · Uploaded. Cloudflare deploy starting…');
+    for (let i = 0; i < 60; i++) {
+      await sleep(5000);
+      let run = null;
+      try { const x = await fetch(`https://api.github.com/repos/${SRV.repo}/actions/workflows/${SRV.wf}/runs?branch=main&per_page=5&created=>=${encodeURIComponent(t0)}`, { headers: H, cache: 'no-store' }); if (x.ok) run = ((await x.json()).workflow_runs || []).find(w => !commit || w.head_sha === commit); } catch (e) {}
+      if (!run) { srvSet('⏳ 2/3 · Uploaded. Waiting for the deploy to start… (' + (i + 1) * 5 + 's)'); continue; }
+      if (run.status !== 'completed') { srvSet('⏳ 3/3 · Deploying to Cloudflare… (' + (i + 1) * 5 + 's)'); continue; }
+      if (run.conclusion === 'success') { srvSet('✅ Server is LIVE with the new worker.js.'); toast('✅ Server live', 5000); return; }
+      srvSet('❌ Deploy failed — the OLD server is still running (nothing broke).\nGive this to Claude: ' + run.html_url); return;
+    }
+    srvSet('⚠️ Uploaded, but the deploy status could not be read. Check again in a few minutes.');
+  } catch (e) { srvSet('❌ ' + (navigator.onLine ? e.message : 'No internet')); }
 }
 /* HD1111WE081 (مالک کا حکم): اپلوڈ شروع کرتے ہی ریپو میں موجود پرانی زپ کا نمبر دکھا کر تنبیہ؛ پھر صرف اسی ایپ کے پری فکس والی زپ قبول */
 async function zipUp(id) {
@@ -1923,6 +1988,9 @@ document.addEventListener('click', async e => {
     case 'zipGo': zipGo(id); break;
     case 'zipDl': zipDl(id); break;
     case 'zipUp': zipUp(id); break;
+    case 'srv': srvSheet(); break;
+    case 'srvDl': srvDl(); break;
+    case 'srvUp': srvUp(); break;
     case 'zipRf': zipRf(id); break;
     case 'ghTok': ghTokSheet(); break;
     case 'ghTokSave': ghTokSave(); break;
