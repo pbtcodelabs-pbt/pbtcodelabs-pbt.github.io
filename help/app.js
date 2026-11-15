@@ -2,7 +2,7 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1511SU091';
+const APP_VERSION = 'HD1511SU092';
 const UPDATE_NOTE = '📚 «سب مسائل» اور «📤 ایکسپورٹ» اب ہوم پر ایپس کے اوپر؛ ایک ایپ چننے کی ڈراپ ڈاؤن؛ ایکسپورٹ میں لیٹسٹ زپ پہلے سے شامل؛ متن ایپ وار، ہر مسئلہ ایک لائن کے فاصلے سے، ریپو کا پتہ خود بخود';  const UPDATE_NOTE_OLD = '↕️ ایپس کی ترتیب: «OK ✔» دبانے پر پکی محفوظ (فون + فائربیس) — بند کر کے کھولیں تو وہی ترتیب رہتی ہے';
 const DEV_PHONE = '03206793793';
 
@@ -1707,7 +1707,7 @@ let taps = 0, tapT = 0;
 
 /* HD1511SU087 (مالک کا حکم): «📚 سب مسائل» — ساری ایپس کے کھڑے مسائل ایک جگہ (پرانے / نئے اوپر)، «ایپ وار» بھی؛ «📤 ایکسپورٹ» — ہر مسئلے کا چیک باکس،
    اس کے آگے 📝 متن · 🖼️ اسکرین شاٹ · 📦 لیٹسٹ زپ (اختیاری)؛ سب چنا ہوا ایک ہی زپ میں (issues.txt + screenshots/ + ہر ایپ کی تازہ زپ کے فولڈر) یا صرف متن کاپی */
-const AI = { tab: 'view', mode: 'all', sort: 'old', app: '', sel: {}, edit: '', rest: '' };   // HD1511SU089: edit / rest = جس مسئلے کا ایڈٹ / واپسی کا خانہ کھلا ہے   // sel[id] = { t, s, z } — لیٹسٹ زپ پہلے سے آن (HD1511SU088)
+const AI = { tab: 'view', mode: 'all', sort: 'old', app: '', sel: {}, edit: '', rest: '', conf: '' };   // HD1511SU089: edit / rest = جس مسئلے کا ایڈٹ / واپسی کا خانہ کھلا ہے   // sel[id] = { t, s, z } — لیٹسٹ زپ پہلے سے آن (HD1511SU088)
 const aiStanding = i => !isReq(i) && !i.arch && i.status !== 'done' && i.status !== 'dup' && i.stage !== 'done';
 const aiArchOf = i => !isReq(i) && !!i.arch;
 const aiBase = () => AI.tab === 'arch' ? aiArchOf : aiStanding;
@@ -1727,7 +1727,7 @@ function aiCard(i) {
   const a = appOf(i.app), ex = AI.tab === 'exp', ar = AI.tab === 'arch', o = AI.sel[i.id], E = LANG === 'en';
   const canZip = !!(a.repo && window.HDZips && HDZips.has(a.id));
   const zl = canZip ? (LATEST[a.id] ? ' · ' + esc(LATEST[a.id]) : '') : '';
-  const ed = AI.edit === i.id, rs = AI.rest === i.id;
+  const ed = AI.edit === i.id, rs = AI.rest === i.id, cf = AI.conf === i.id;
   const txt = ed ? `<textarea class="big" id="aiEdTx" dir="auto" style="min-height:110px">${esc(i.text || '')}</textarea>
       <div class="aiBar"><button class="tb grn" data-act="aiEdSave" data-id="${i.id}">💾 ${E ? 'Save' : 'محفوظ کریں'}</button><button class="tb" data-act="aiEdit" data-id="${i.id}">✖️ ${E ? 'Cancel' : 'رہنے دیں'}</button></div>`
     : `<div class="aiTx" dir="auto" ${ex ? '' : `data-act="open" data-id="${i.id}"`}>${esc(i.text || (i.audio ? '🎤' : ''))}</div>`;
@@ -1739,13 +1739,22 @@ function aiCard(i) {
       <button class="tb" data-act="aiEdit" data-id="${i.id}">✏️ ${E ? 'Edit' : 'ایڈٹ'}</button>
       ${ar ? `<button class="tb grn" data-act="aiRest" data-id="${i.id}">↩️ ${E ? 'Restore' : 'نارمل لسٹ میں شامل کریں'}</button>` : `<button class="tb amb" data-act="aiArch" data-id="${i.id}">🗄️ ${E ? 'Archive' : 'آرکائیو'}</button>`}
       <button class="tb red" data-act="aiDel" data-id="${i.id}">🗑️ ${E ? 'Delete' : 'حذف'}</button></div>`;
-  return `<div class="aiCard${o ? ' sel' : ''}">
+  const cfBox = cf ? `<div class="aiOpts aiConf"><div style="width:100%;font-weight:800;font-size:15px">🗄️ ${E ? 'Archive issue' : 'مسئلہ نمبر'} <b class="num">#${i.no}</b> ${E ? '?' : 'آرکائیو کرنا چاہتے ہیں؟'}</div>
+      <button class="tb grn" data-act="aiArchGo" data-id="${i.id}">✅ ${E ? 'OK' : 'اوکے'}</button><button class="tb" data-act="aiArchNo" data-id="${i.id}">✖️ ${E ? 'Cancel' : 'رہنے دیں'}</button></div>` : '';
+  return `<div class="aiCard${o ? ' sel' : ''}" data-cid="${i.id}">
     <div class="aiTop">${ex ? `<input type="checkbox" class="aiChk" data-act="aiPick" data-id="${i.id}" ${o ? 'checked' : ''}>` : ''}${appIcon(a, 'appMini')}<b>${esc(AN(a))}</b>${tyChip(i.type)}${stChip(i.status)}<span class="no" style="margin-inline-start:auto">#${i.no}</span></div>
     ${txt}
     <div class="when" style="font-size:12.5px;color:var(--mut)">👤 ${esc(i.name)} · <span class="num">${esc(i.phone)}</span> · 🕒 ${ago(i.created)}${i.shots ? ` · 🖼️ ${i.shots}` : ''}${i.audio ? ' · 🎤' : ''}${ar && i.archAt ? ` · 🗄️ ${ago(i.archAt)}` : ''}</div>
     ${ex && o ? `<div class="aiOpts"><button class="tb ${o.t ? 'on' : ''}" data-act="aiOpt" data-id="${i.id}|t">📝 ${E ? 'Text' : 'متن'}</button><button class="tb ${o.s ? 'on' : ''}" data-act="aiOpt" data-id="${i.id}|s">🖼️ ${E ? 'Screenshots' : 'اسکرین شاٹ'}${i.shots ? ' (' + i.shots + ')' : ''}</button>${canZip ? `<button class="tb ${o.z ? 'on' : ''}" data-act="aiOpt" data-id="${i.id}|z">📦 ${E ? 'Latest zip' : 'لیٹسٹ زپ'}${zl}</button>` : ''}</div>` : ''}
-    ${acts}${rsBox}
+    ${acts}${cfBox}${rsBox}
   </div>`;
+}
+/* HD1511SU092: کارڈ دھوئیں کی طرح غائب، پھر نوڈ ہٹے؛ باقی کھلے خانے نہ ہوں تو شیٹ دوبارہ بنے */
+function aiSmoke(id, after) {
+  const el = document.querySelector(`.aiCard[data-cid="${id}"]`);
+  const fin = () => { if (el) el.remove(); if (after) after(); if (!AI.conf && !AI.edit && !AI.rest) aiRedraw(); };
+  if (!el) { fin(); return; }
+  el.classList.add('smoke'); setTimeout(fin, 560);
 }
 function aiHTML() {
   const E = LANG === 'en', l = aiList(), ex = AI.tab === 'exp', ar = AI.tab === 'arch', nArch = ISSUES.filter(aiArchOf).length, n = Object.keys(AI.sel).filter(k => l.some(i => i.id === k)).length;
@@ -2004,8 +2013,8 @@ document.addEventListener('click', async e => {
     case 'close': closeSheet(); break;
     case 'allIss': aiOpen('view'); break;
     case 'expIss': aiOpen('exp'); break;
-    case 'aiTab': AI.tab = id; AI.edit = ''; AI.rest = ''; if (id === 'arch') AI.sel = {}; aiRedraw(); break;
-    case 'aiEdit': AI.edit = AI.edit === id ? '' : id; AI.rest = ''; aiRedraw(); if (AI.edit) setTimeout(() => { const ta = $('#aiEdTx'); if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } }, 60); break;
+    case 'aiTab': AI.tab = id; AI.edit = ''; AI.rest = ''; AI.conf = ''; if (id === 'arch') AI.sel = {}; aiRedraw(); break;
+    case 'aiEdit': AI.edit = AI.edit === id ? '' : id; AI.rest = ''; AI.conf = ''; aiRedraw(); if (AI.edit) setTimeout(() => { const ta = $('#aiEdTx'); if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } }, 60); break;
     case 'aiEdSave': {
       const i = ISSUES.find(x => x.id === id), ta = $('#aiEdTx'); if (!i || !ta) break; const v = (ta.value || '').trim();
       if (!v) { toast(LANG === 'en' ? 'Message cannot be empty' : 'پیغام خالی نہیں ہو سکتا'); break; }
@@ -2014,23 +2023,35 @@ document.addEventListener('click', async e => {
         try { await Store.update(i.id, patch); Object.assign(i, patch); toast('✅'); } catch (er) { toast('⚠️ ' + (er.message || er), 4000); break; }
       }
       AI.edit = ''; aiRedraw(); break; }
-    case 'aiArch': {
+    case 'aiArch': AI.conf = AI.conf === id ? '' : id; AI.edit = ''; AI.rest = ''; aiRedraw(); break;
+    case 'aiArchNo': AI.conf = ''; aiRedraw(); break;
+    case 'aiArchGo': {
       const i = ISSUES.find(x => x.id === id); if (!i) break;
-      const p = { arch: true, archAt: Date.now(), urgent: false };   // فوری بھی بند — آرکائیو میں کوئی خودکار کام نہیں چلتا
-      try { await Store.update(i.id, p); Object.assign(i, p); } catch (er) { toast('⚠️ ' + (er.message || er), 4000); break; }
-      delete AI.sel[i.id]; if (AI.edit === i.id) AI.edit = '';
-      toast('🗄️ ✅ ' + (LANG === 'en' ? 'Archived' : 'آرکائیو ہو گیا')); aiRedraw(); try { render(); ownerBadge(); } catch (er) {} break; }
-    case 'aiRest': AI.rest = AI.rest === id ? '' : id; AI.edit = ''; aiRedraw(); break;
+      const p = { arch: true, archAt: Date.now(), urgent: false }, old = { arch: i.arch, archAt: i.archAt, urgent: i.urgent };   // فوری بھی بند — آرکائیو میں کوئی خودکار کام نہیں چلتا
+      AI.conf = ''; delete AI.sel[id]; Object.assign(i, p);   // فوراً — لکھائی پس منظر میں
+      aiSmoke(id); toast('🗄️ ✅ #' + i.no + ' ' + (LANG === 'en' ? 'archived' : 'آرکائیو ہو گیا'), 1800);
+      try { render(); ownerBadge(); } catch (er) {}
+      Store.update(i.id, p).catch(er => { Object.assign(i, old); toast('⚠️ ' + (er.message || er), 4500); aiRedraw(); try { render(); ownerBadge(); } catch (e2) {} });
+      break; }
+    case 'aiRest': AI.rest = AI.rest === id ? '' : id; AI.edit = ''; AI.conf = ''; aiRedraw(); break;
     case 'aiRestGo': {
       const [iid, k] = id.split('|'); const i = ISSUES.find(x => x.id === iid); if (!i) break;
       const base = { arch: false, archAt: 0 };
       const p = Object.assign(base, k === 'now' ? { urgent: true, stage: 'claude', stageAt: Date.now(), cAt: Date.now(), hold: '' } : k === 'draft' ? { urgent: false, stage: '', hold: 'draft' } : { urgent: false, stage: '', hold: '' });
-      try { await Store.update(i.id, p); Object.assign(i, p); } catch (er) { toast('⚠️ ' + (er.message || er), 4000); break; }
-      AI.rest = ''; toast('↩️ ✅ ' + (LANG === 'en' ? 'Back in the normal list' : 'نارمل لسٹ میں آ گیا')); aiRedraw(); try { render(); ownerBadge(); } catch (er) {} break; }
+      const old = {}; Object.keys(p).forEach(x => { old[x] = i[x]; });
+      AI.rest = ''; Object.assign(i, p);
+      aiSmoke(iid); toast('↩️ ✅ #' + i.no + ' ' + (LANG === 'en' ? 'back in the normal list' : 'نارمل لسٹ میں آ گیا'), 1800);
+      try { render(); ownerBadge(); } catch (er) {}
+      Store.update(i.id, p).catch(er => { Object.assign(i, old); toast('⚠️ ' + (er.message || er), 4500); aiRedraw(); try { render(); ownerBadge(); } catch (e2) {} });
+      break; }
     case 'aiDel': {
-      if (!confirm(LANG === 'en' ? 'Delete permanently?' : 'ہمیشہ کے لیے حذف کریں؟')) break;
-      try { await Store.remove(id); ISSUES = ISSUES.filter(x => x.id !== id); } catch (er) { toast('⚠️ ' + (er.message || er), 4000); break; }
-      delete AI.sel[id]; if (AI.edit === id) AI.edit = ''; toast('🗑️ ✅'); aiRedraw(); try { render(); ownerBadge(); } catch (er) {} break; }
+      const i = ISSUES.find(x => x.id === id); if (!i) break;
+      if (!confirm((LANG === 'en' ? 'Delete issue #' + i.no + ' permanently?' : 'مسئلہ نمبر ' + i.no + ' ہمیشہ کے لیے حذف کریں؟'))) break;
+      delete AI.sel[id]; AI.edit = ''; AI.conf = ''; ISSUES = ISSUES.filter(x => x.id !== id);
+      aiSmoke(id); toast('🗑️ ✅ #' + i.no, 1800);
+      try { render(); ownerBadge(); } catch (er) {}
+      Store.remove(id).catch(er => { ISSUES.push(i); toast('⚠️ ' + (er.message || er), 4500); aiRedraw(); try { render(); ownerBadge(); } catch (e2) {} });
+      break; }
     case 'aiMode': AI.mode = id; aiRedraw(); break;
     case 'aiSort': AI.sort = id; aiRedraw(); break;
     case 'aiPick': if (AI.sel[id]) delete AI.sel[id]; else AI.sel[id] = { t: 1, s: 1, z: 1 }; aiRedraw(); break;
