@@ -32,7 +32,7 @@ const LPILL = {agent: 'Agent App', codev: 'Admin 2 App', dev: 'Admin 1 App'};
 const LTITLE = {agent: ['Agent Login','ایجنٹ لاگ اِن'], codev: ['Admin 2 Login','ایڈمن 2 لاگ اِن'], dev: ['Admin 1 Login','ایڈمن 1 لاگ اِن']};
 const FIELD = {agent: 'Agent Code', codev: 'Admin 2 Code', dev: 'Admin 1 Code'};
 const AUTH = {agent: 'Authorized Agents Only', codev: 'Authorized Admin 2 Only', dev: 'Admin 1 Only'};
-let TAB = 'home', FM = null, FME = null, PEOPLE = null, CDME = null;
+let TAB = 'home', FM = null, FME = null, PEOPLE = null, CDME = null, RULEH = null;
 const Rs = n => 'Rs. ' + N(n);
 const dmy = t => { if(!t) return '—'; const d = new Date(t); return String(d.getDate()).padStart(2,'0') + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + d.getFullYear(); };
 const ph0 = p => { p = String(p||''); return p.startsWith('92') ? '0' + p.slice(2) : p; };
@@ -51,9 +51,12 @@ function hero(rk){
 function navBar(rk){
   return `<nav class="v2nav">${NAV[rk].map(([k, t, i]) => `<button class="${TAB === k ? 'on' : ''}" onclick="v2Go('${k}')">${ic(i, 30)}<span>${t}</span></button>`).join('')}</nav>`;
 }
+let HGO = (/[?&]go=([a-z]+)/.exec(location.hash) || [])[1] || '';   /* MCS1511SU460: ایپ سے «#admin?go=admins» — لاگ اِن کے بعد وہی صفحہ خود کھلے */
+function v2HashGo(){ if(!HGO) return; const k = HGO; HGO = ''; try{ history.replaceState(null, '', location.pathname + '#admin'); }catch(e){} const f = {admins: 'v2Admins', rates: 'v2Rates', pend: 'v2Pend', reports: 'v2Reports'}[k]; if(f && typeof window[f] === 'function') window[f](); }
 function page(rk, body){
   app.innerHTML = `<div class="v2wrap">${hero(rk)}<div class="v2body en">${body}</div>${navBar(rk)}</div>`;
   window.scrollTo(0, 0);
+  if(rk === 'dev' && HGO) setTimeout(v2HashGo, 80);
 }
 function sec(icon, title, body, all){ return `<div class="v2sec"><div class="v2sh">${ic(icon, 28)}<b>${title}</b>${all ? `<button onclick="v2Go('${all}')">View All →</button>` : ''}</div><div class="v2sb">${body}</div></div>`; }
 function table(heads, rows, empty){ return `<div class="v2tw"><table class="v2t"><tr>${heads.map(h => `<th>${h}</th>`).join('')}</tr>${rows.length ? rows.join('') : `<tr><td colspan="${heads.length}" class="v2empty">${empty || '—'}</td></tr>`}</table></div>`; }
@@ -277,11 +280,37 @@ window.v2Img = src => { const b = document.createElement('div'); b.className = '
 /* ---------- رینڈر ---------- */
 /* ===== AGP1011TU024 (مالک کا حکم، ہیلپ ڈیسک #214 — ایڈمن 2 کی دوسری تصویر): ایڈمن 2 / ایڈمن 1 ہوم ایجنٹ جیسے انداز میں، مکمل انگلش —
    Company Overview (اس مہینے)، Your Personal Share + Request Withdrawal، All Subscriptions History، My Transactions؛ تقسیم سرور (AGP1011TU023) سے */
-const SPLIT_TXT = '<b>⭐ Membership (Rs 1,000)</b>: Google 15% (only Google Play; direct / cash → this 15% goes to Maintenance) · Maintenance 15% · <b>15% of the full amount to whoever brought it</b> (Agent AG-… / ADMIN1 / ADMIN2; PBT = half & half) · the remainder Admin 1 / Admin 2 50 / 50'
+let SPLIT_TXT = '<b>⭐ Membership (Rs 1,000)</b>: Google 15% (only Google Play; direct / cash → this 15% goes to Maintenance) · Maintenance 15% · <b>15% of the full amount to whoever brought it</b> (Agent AG-… / ADMIN1 / ADMIN2; PBT = half & half) · the remainder Admin 1 / Admin 2 50 / 50'
   + '<br><small>Google Play 1,000 by an agent: Google 150 + Maintenance 150 + Agent 150 → 550 = Admin 1 275 + Admin 2 275</small>'
   + '<br><small>Direct 1,000 brought by ADMIN1: Maintenance 300 + ADMIN1 150 → 550 = 275 + 275 → Admin 1 425, Admin 2 275</small>'
   + '<br><b>📢 Ad</b>: Maintenance 15% (no Google) · 15% of the full amount to whoever brought it · the remainder Admin 1 / Admin 2 50 / 50'
   + '<br><small>Ad 800 brought by ADMIN1: Maintenance 120 + ADMIN1 120 → 560 = 280 + 280 → Admin 1 400, Admin 2 280</small>';
+const P15 = {t: 'p', v: 15}, RP = (x, d) => (x && (x.t === 'p' || x.t === 'f')) ? x : d;
+const rVal = (x, amt, k) => x.t === 'f' ? Math.round(Math.max(0, +x.v || 0) * k) : Math.round(amt * Math.min(100, Math.max(0, +x.v || 0)) / 100);
+const rFmt = x => x.t === 'f' ? 'Rs ' + N(x.v) : (+x.v || 0) + '%';
+const RULE0 = {at: 0, google: P15, maint: P15, bring: P15, adm: [{name: 'Admin 2', t: 'p', v: 50}]};
+function ruleAt(ts){ const H = (RULEH && RULEH.rules) || []; let r = null; for(const x of H) if(x.at <= ts && (!r || x.at >= r.at)) r = x; return r || RULE0; }
+function splitCalc(R, kind, src, amount, price, by){   /* سرور finSplit جیسا حساب — صرف وضاحت / مثال کے لیے */
+  const k = kind === 'mem' ? amount / price : 1; let left = amount; const take = n => { n = Math.max(0, Math.min(left, Math.round(n))); left -= n; return n; };
+  const g = rVal(RP(R.google, P15), amount, k), m = rVal(RP(R.maint, P15), amount, k); let google = 0, maint = 0;
+  if(kind === 'mem' && src === 'play'){ google = take(g); maint = take(m); } else if(kind === 'mem') maint = take(m + g); else maint = take(m);
+  const bring = by === 'pbt' ? 0 : take(rVal(RP(R.bring, P15), amount, k)), rest = left;
+  const adm = (R.adm || []).map(a => take(a.t === 'f' ? rVal(a, amount, k) : Math.round(rest * Math.min(100, Math.max(0, +a.v || 0)) / 100)));
+  return {google, maint, bring, rest, adm, admin1: left};
+}
+function buildSplit(r){
+  const R = r.cur, price = r.price || 1000, A = R.adm || [];
+  const names = A.map(a => E(a.name) + ' ' + (a.t === 'f' ? 'Rs ' + N(a.v) : rFmt(a) + ' of the remainder')).join(' · ') || 'no Admin 2';
+  const e1 = splitCalc(R, 'mem', 'play', price, price, 'agent'), e2 = splitCalc(R, 'mem', 'direct', price, price, 'dev'), e3 = splitCalc(R, 'ad', 'direct', 800, price, 'dev');
+  const adm = e => e.adm.map((v, i) => E(A[i].name) + ' ' + N(v)).join(' + ');
+  return `<b>⭐ Membership (Rs ${N(price)})</b>: Google ${rFmt(RP(R.google, P15))} (only Google Play; direct / cash → this goes to Maintenance) · Maintenance ${rFmt(RP(R.maint, P15))} · <b>Bringer ${rFmt(RP(R.bring, P15))}${RP(R.bring, P15).t === 'p' ? ' of the full amount' : ''}</b> (Agent AG-… / ADMIN1 / ADMIN2; PBT = stays in the remainder) · from the remainder: ${names} · the rest Admin 1`
+  + `<br><small>Google Play ${N(price)} by an agent: Google ${N(e1.google)} + Maintenance ${N(e1.maint)} + Agent ${N(e1.bring)} → ${N(e1.rest)} = ${adm(e1)}${A.length ? ' + ' : ''}Admin 1 ${N(e1.admin1)}</small>`
+  + `<br><small>Direct ${N(price)} brought by ADMIN1: Maintenance ${N(e2.maint)} + ADMIN1 ${N(e2.bring)} → ${N(e2.rest)} = ${adm(e2)}${A.length ? ' + ' : ''}Admin 1 ${N(e2.admin1)} (Admin 1 total ${N(e2.bring + e2.admin1)})</small>`
+  + `<br><b>📢 Ad</b>: Maintenance ${rFmt(RP(R.maint, P15))} (no Google) · Bringer ${rFmt(RP(R.bring, P15))} · the remainder split the same way`
+  + `<br><small>Ad 800 brought by ADMIN1: Maintenance ${N(e3.maint)} + ADMIN1 ${N(e3.bring)} → ${N(e3.rest)} = ${adm(e3)}${A.length ? ' + ' : ''}Admin 1 ${N(e3.admin1)}</small>`
+  + '<br><small>Rates change only for sales made after the change. Old sales keep the rates they had.</small>';
+}
+async function splitLoad(){ if(RULEH) return; try{ const r = await finCall({op: 'cur'}); if(r && r.ok){ RULEH = r; SPLIT_TXT = buildSplit(r); } }catch(e){} }
 function t2(list){ return `<div class="v2tiles v2t2">${list.map(x => x.btn ? `<button class="v2tile tq" onclick="${x.btn}">${ic(x.i, 36, '#fff')}<div><span class="tl">${x.t}</span>${x.v != null ? `<b>${x.v}</b>` : ''}</div></button>`
   : `<div class="v2tile ${x.c}" ${x.go ? `onclick="${x.go}" style="cursor:pointer"` : ''}>${ic(x.i, 36, x.c === 'tw' ? '#0b2a6b' : '#fff')}<div><span class="tl">${x.t}</span><b>${x.v}</b>${x.sub ? `<div class="tsub2">${x.sub}</div>` : ''}</div></div>`).join('')}</div>`; }
 const R0 = n => '<small>Rs.</small> ' + N(n);
@@ -371,6 +400,7 @@ function cdHome(f, m, c){
     <div class="v2sec"><div class="v2sh">${ic('user', 28)}<b>Your Personal Share <small>(${E((CDV && CDV.name) || '')})</small></b></div><div class="v2sb">
     ${t2([{c:'tp', i:'coins', t:'Admin 2 Share<br>(This Month)', v:R0(cur.amt), go:"v2Det('codev')"}, {c:'tb', i:'bars', t:'Total<br>Earnings', v:R0(f.due), sub:'Ready: ' + Rs(f.ready), go:"v2Det('cdearn')"}, {c:'to', i:'wallet', t:'Total<br>Withdrawals', v:R0(f.paid), go:"v2Det('cdpaid')"}, {c:'tw', i:'wallet', t:'Your Balance', v:R0(f.balance), go:"v2Det('cdbal')"}, {btn:'v2WdReq()', i:'send', t:'Request<br>Withdrawal'}])}
     ${f.req ? `<div class="v2ok en">⏳ Withdrawal request of <b class="num">${Rs(f.req.amount)}</b> sent on ${dmy(f.req.ts)} — Pending</div>` : ''}</div></div>
+    <div class="v2card"><div class="v2list"><button onclick="v2Propose()">📝 Propose a change (Admin 1 approves)</button><button onclick="v2MyPend()">📋 My requests</button></div></div>
     ${sec('cal', 'My Businesses <small>(brought by Admin 2)</small>', allSubsTable(Object.assign({}, m, {lines: ((m && m.lines) || []).filter(l => l.by === 'codev' || /ADMIN2|CODEV|AG002/i.test(String(l.code || '')))}), 10))}
     ${sec('wallet', 'My Personal Transactions <small>(Withdrawals)</small>', wdTable(f, 3), 'wd')}`;
 }
@@ -383,10 +413,11 @@ function devHome(m, P, reqs, owe){
     <div class="v2sec"><div class="v2sh">${ic('user', 28)}<b>Your Personal Share <small>(Admin 1)</small></b></div><div class="v2sb">
     ${t2([{c:'tp', i:'coins', t:'Admin 1 Share<br>(This Month)', v:R0(T.dev || 0), go:"v2Det('dev')"}, {c:'tb', i:'bars', t:'Admin 2 Share<br>(This Month)', v:R0(T.codev || 0), go:"v2Det('codev')"}, {c:'tg', i:'check', t:m && m.recv ? '✅ Received<br>from Google' : '⏳ Pending<br>from Google', v:R0(m ? (m.recv ? m.recv.amount : m.play - m.gEst) : 0), go:"v2Det('google')"}, {c:'to', i:'wallet', t:'Total Paid<br>to Team', v:R0(paid), go:"v2Det('paid')"}, {c:'tw', i:'wallet', t:'Ready — To Pay', v:R0(owe), go:"v2Det('ready')"}, {btn:"v2Go('pay')", i:'send', t:'Withdrawal<br>Requests', v: String(reqs)}])}</div></div>
     ${sec('cal', 'All Subscriptions History <small>(Company Record)</small>', allSubsTable(m, 5), 'acc')}
-    <div class="v2card"><div class="v2list"><button onclick="v2Go('acc')">💰 This month's accounts / Google receipt / Ads</button><button onclick="v2Go('pay')">✅ Payouts — accounts and QR</button><button onclick="admInbox()">💬 All Chats</button><button onclick="v2Go('agents')">🤝 Agents</button><button onclick="v2Admins()">👥 Admins & Permissions</button><button onclick="v2Rates()">⚖️ Share Rates — % or fixed</button></div></div>`;
+    <div class="v2card"><div class="v2list"><button onclick="v2Go('acc')">💰 This month's accounts / Google receipt / Ads</button><button onclick="v2Go('pay')">✅ Payouts — accounts and QR</button><button onclick="admInbox()">💬 All Chats</button><button onclick="v2Go('agents')">🤝 Agents</button><button onclick="v2Pend()">🛡️ Approvals — Admin 2 requests</button><button onclick="v2Reports()">📊 Reports</button><button onclick="v2Admins()">👥 Admins & Permissions</button><button onclick="v2Rates()">⚖️ Share Rates — % or fixed</button></div></div>`;
 }
 async function v2Render(){
   const rk = ROLEK();
+  await splitLoad();
   try{
     if(rk === 'agent'){
       if(!S){ const me = ls.get('me'); if(!me || !me.pin) return agLogin(); const r = await post('/agportal', {phone: me.phone, pin: me.pin}); if(!r.ok){ ls.set('me', {phone: me.phone}); return agLogin('❌ Wrong PIN'); } S = r; }
@@ -420,7 +451,7 @@ async function v2Render(){
     const body = TAB === 'acc' ? monthHtml(FM, false)
       : TAB === 'pay' ? payoutsHtml(PEOPLE)
       : TAB === 'agents' ? '<div id="v2ag"><div class="v2card">⏳ …</div></div>'
-      : TAB === 'prof' ? profHtml('Admin 1 — PBT Code Labs', '<div class="v2mut">👨‍💻 All agents, accounts and payouts</div><button class="sec" style="margin-top:6px" onclick="v2Admins()">👥 Admins & Permissions</button><button class="sec" style="margin-top:6px" onclick="v2Rates()">⚖️ Share Rates</button><button class="sec" style="margin-top:6px" onclick="v2Log()">📜 Accounts Audit Log</button>', false)
+      : TAB === 'prof' ? profHtml('Admin 1 — PBT Code Labs', '<div class="v2mut">👨‍💻 All agents, accounts and payouts</div><button class="sec" style="margin-top:6px" onclick="v2Pend()">🛡️ Approvals</button><button class="sec" style="margin-top:6px" onclick="v2Reports()">📊 Reports</button><button class="sec" style="margin-top:6px" onclick="v2Admins()">👥 Admins & Permissions</button><button class="sec" style="margin-top:6px" onclick="v2Rates()">⚖️ Share Rates</button><button class="sec" style="margin-top:6px" onclick="v2Log()">📜 Accounts Audit Log</button>', false)
       : devHome(FM, PEOPLE, reqs, owe);
     page('dev', body); if(TAB === 'acc') mcsAdsLoad();
     if(TAB === 'agents'){ const sv = app.innerHTML; await admHome(); const inner = app.innerHTML; app.innerHTML = sv; const el = $('#v2ag'); if(el) el.innerHTML = inner; }
@@ -488,9 +519,9 @@ window.rolePick = function(){
 function _detLines(){ return ((FM && FM.lines) || []).slice().sort((a, b) => a.ts - b.ts); }
 function _detBiz(l){ return E(l.biz || String(l.rk || '').split('_').pop().toUpperCase() || '—') + (l.subid ? `<br><small class="num">${E(l.subid)}</small>` : ''); }
 function _detType(l){ return l.kind === 'ad' ? '📢 Ad' : (l.src === 'play' ? '▶️ Google Play' : '💵 Direct'); }
-function _detHow(l){ const sh = l.sh || {}, base = (l.amount || 0) - (sh.google || 0) - (sh.maint || 0);
-  const br = Math.min(base, Math.round((l.amount || 0) * 0.15));
-  return `<small class="dhow">${N(l.amount)}${sh.google ? ' − Google ' + N(sh.google) : ''} − Maint. ${N(sh.maint || 0)} − 15% to ${whoTxt(l)} ${N(br)} = ${N(base - br)} → 50/50</small>`; }
+function _detHow(l){ const sh = l.sh || {}, R = ruleAt(l.ts || 0), price = (RULEH && RULEH.price) || 1000, A = R.adm || [];
+  const base = (l.amount || 0) - (sh.google || 0) - (sh.maint || 0), br = l.by === 'pbt' ? 0 : Math.min(base, rVal(RP(R.bring, P15), l.amount || 0, (l.kind === 'ad' ? 1 : (l.amount || 0) / price)));
+  return `<small class="dhow">${N(l.amount)}${sh.google ? ' − Google ' + N(sh.google) : ''} − Maint. ${N(sh.maint || 0)} − ${rFmt(RP(R.bring, P15))} to ${whoTxt(l)} ${N(br)} = ${N(base - br)} → ${A.map(a => E(a.name) + ' ' + rFmt(a)).join(' / ') || 'Admin 1'}${A.length ? ' / rest Admin 1' : ''}</small>`; }
 function _detSum(rows, col){ return rows.reduce((a, l) => a + (typeof col === 'function' ? col(l) : ((l.sh || {})[col] || 0)), 0); }
 function _detOpen(title, sub, html){
   const box = document.createElement('div'); box.className = 'v2modal'; box.onclick = e => { if(e.target === box) box.remove(); };
@@ -644,7 +675,7 @@ window.v2AdPick = id => { const a = (MCSADS || []).find(x => +x.id === id); if(!
   $('#xK').value = 'ad'; $('#xA').value = a.price > 0 ? a.price : ''; $('#xB').value = a.title + (a.owner ? ' — ' + a.owner : ''); $('#xRk').value = 'ad:' + a.id; $('#xR').value = '';
   const f = $('#xA').closest('.v2card'); f.scrollIntoView({behavior: 'smooth', block: 'center'}); f.classList.add('hl'); setTimeout(() => f.classList.remove('hl'), 1800);
   toast(a.price > 0 ? 'Check amount and choose «Brought by»' : 'Enter amount and choose «Brought by»'); };
-/* ===== AGP1511SU038 (مالک کا حکم، ہیلپ ڈیسک #263): ایڈمن 1 — 👥 ایڈمنز اور اجازتیں + ⚖️ حصے کی شرحیں (فیصد یا مقررہ رقم، صرف آگے کی فروخت پر) ===== */
+/* ===== AGP1511SU040 (مالک کا حکم، ہیلپ ڈیسک #263): ایڈمن 1 — 👥 ایڈمنز اور اجازتیں + ⚖️ حصے کی شرحیں (فیصد یا مقررہ رقم، صرف آگے کی فروخت پر) ===== */
 (function(){
   const PERMS = [['biz','🏪 Add / register businesses'],['agents','🤝 Propose new agents'],['chat','💬 Chats with users & agents'],['help','🛠️ Help Desk reports'],['accounts','💰 Own earnings & withdrawals'],['agview',"📋 See agents' records"],['company','📊 Company totals (all money)']];
   const modal = (h) => { const b = document.createElement('div'); b.className = 'v2modal'; b.onclick = e => { if(e.target === b) b.remove(); }; b.innerHTML = `<div class="v2card en adm38">${h}</div>`; document.body.appendChild(b); return b; };
@@ -719,7 +750,71 @@ window.v2AdPick = id => { const a = (MCSADS || []).find(x => +x.id === id); if(!
   window.rt38Save = async () => { const r = read();
     if(!confirm('Save the new rates?\n\nThey apply only to sales from this moment.\nOld sales and money already earned will not change.')) return;
     const x = await finCall({op: 'rulesave', rule: r}); if(!x || !x.ok) return toast(x && x.reason === 'adm_over' ? '⚠️ Admins percent is more than 100' : x && x.reason === 'top_over' ? '⚠️ Google + Maintenance + Bringer more than 100%' : '❌ Not saved');
-    FM = null; toast('✅ New rates saved — from now on'); close(); v2Rates(); };
+    FM = null; RULEH = null; toast('✅ New rates saved — from now on'); close(); v2Rates(); };
+})();
+/* MCS1511SU459 (مالک کا حکم): Maker-checker — ایڈمن 2 تجویز کرے، آخری منظوری صرف ایڈمن 1 */
+(function(){
+const PDN = {void: '🗑 Cancel (void) a sale / receipt', unvoid: '↩️ Restore a cancelled sale', setwho: '✏️ Change “Brought by”', payout: '💸 Payout', gift: '🎁 Free year (gift)'};
+const PDS = {p: '⏳ Waiting', ok: '✅ Approved', no: '❌ Rejected', err: '⚠️ Failed'};
+const pdBox = h => { const b = document.createElement('div'); b.className = 'v2modal'; b.onclick = e => { if(e.target === b) b.remove(); }; b.innerHTML = `<div class="v2card en">${h}</div>`; document.body.appendChild(b); return b; };
+const pdShut = () => document.querySelectorAll('.v2modal.pd459').forEach(m => m.remove());
+const pdOpen = h => { pdShut(); const b = pdBox(h); b.classList.add('pd459'); return b; };
+const pdDesc = r => { const d = r.data || {}, t = PDN[r.op] || r.op;
+  const x = r.op === 'void' || r.op === 'unvoid' ? `${E(d.id)}${d.why ? ' — ' + E(d.why) : ''}`
+    : r.op === 'setwho' ? `${E(d.id)} → <b>${E(d.code || 'PBT')}</b>`
+    : r.op === 'payout' ? `${E(d.who)} — <b>Rs ${E(d.amount)}</b>${d.method ? ' · ' + E(d.method) : ''}${d.acctNo ? ' · ' + E(d.acctNo) : ''}${d.note ? ' — ' + E(d.note) : ''}`
+    : r.op === 'gift' ? `${E(d.rec)} → until ${new Date(d.until).toLocaleDateString('en-GB')}` : '';
+  return `<b>${t}</b><div style="font-size:12.5px">${x}</div>`; };
+const pdRow = (r, adm) => `<div style="border-bottom:1px solid #e2e8f0;padding:8px 0">${pdDesc(r)}
+  <div class="v2mut" style="font-size:11.5px">${adm ? '👥 ' + E((r.data || {}).byName || r.by) + ' · ' : ''}${new Date(r.ts).toLocaleString('en-GB')} · ${PDS[r.st] || r.st}${r.dnote ? ' (' + E(r.dnote) + ')' : ''}${r.hasImg ? ' · 🖼 proof attached' : ''}</div>
+  ${adm && r.st === 'p' ? `<div class="btns"><button onclick="pdDo(${r.id}, 1)">✅ Approve</button><button class="sec" onclick="pdDo(${r.id}, 0)">❌ Reject</button></div>` : ''}</div>`;
+window.v2Pend = async () => { const r = await finCall({op: 'pend'}); if(!r || !r.ok) return toast('❌ Could not load');
+  pdOpen(`<h2>🛡️ Approvals${r.n ? ' (' + r.n + ')' : ''}</h2><div class="v2mut" style="font-size:12px">Admin 2 only proposes. The work happens when you approve. Your name and Admin 2's name are both kept in the Audit Log.</div>
+    ${(r.list || []).map(x => pdRow(x, true)).join('') || '<div class="v2mut" style="padding:10px 0">Nothing waiting ✅</div>'}
+    <div class="btns"><button class="sec" onclick="this.closest('.v2modal').remove()">✖ Close</button></div>`); };
+window.pdDo = async (id, ok) => { if(ok ? !confirm('Approve and do this work now?') : !confirm('Reject this request?')) return;
+  const x = await finCall(ok ? {op: 'pendok', id} : {op: 'pendno', id}); if(!x || !x.ok) toast('⚠️ ' + (x && x.reason ? x.reason : 'Failed')); else toast(ok ? '✅ Approved — done' : '❌ Rejected');
+  FM = null; PEOPLE = null; v2Pend(); };
+window.v2MyPend = async () => { const r = await finCall({op: 'mypend'}); if(!r || !r.ok) return toast('❌ Could not load');
+  pdOpen(`<h2>📋 My requests</h2>${(r.list || []).map(x => pdRow(x, false)).join('') || '<div class="v2mut" style="padding:10px 0">No requests yet</div>'}<div class="btns"><button onclick="v2Propose()">📝 New request</button><button class="sec" onclick="this.closest('.v2modal').remove()">✖ Close</button></div>`); };
+window.v2Propose = () => {
+  pdOpen(`<h2>📝 Propose a change</h2><div class="v2mut" style="font-size:12px">The work does not happen now. Admin 1 will approve or reject it.</div>
+    <select id="pp9Op" onchange="pp9Sh()" style="width:100%;margin:8px 0">${Object.keys(PDN).map(k => `<option value="${k}">${PDN[k]}</option>`).join('')}</select>
+    <div data-f="void unvoid setwho"><input id="pp9Id" placeholder="Sale ID (s123 = sale, x45 = manual receipt)" style="width:100%;margin:3px 0"></div>
+    <div data-f="void unvoid"><input id="pp9Why" placeholder="Reason" style="width:100%;margin:3px 0"></div>
+    <div data-f="setwho"><input id="pp9Code" placeholder="New Brought-by code (PBT / ADMIN1 / ADMIN2 / agent code)" style="width:100%;margin:3px 0"></div>
+    <div data-f="payout"><input id="pp9Who" placeholder="Who (A:agentcode / C:phone / D:dev)" style="width:100%;margin:3px 0"><input id="pp9Amt" type="number" placeholder="Amount (Rs)" style="width:100%;margin:3px 0"><input id="pp9Me" placeholder="Method (Easypaisa / JazzCash / Bank)" style="width:100%;margin:3px 0"><input id="pp9Ac" placeholder="Account number" style="width:100%;margin:3px 0"><input id="pp9No" placeholder="Note" style="width:100%;margin:3px 0"></div>
+    <div data-f="gift"><input id="pp9Rec" placeholder="Business record ID" style="width:100%;margin:3px 0"><input id="pp9Un" type="date" style="width:100%;margin:3px 0"></div>
+    <div class="btns"><button onclick="pp9Send()">📤 Send to Admin 1</button><button class="sec" onclick="v2MyPend()">📋 My requests</button><button class="sec" onclick="this.closest('.v2modal').remove()">✖ Close</button></div>`);
+  pp9Sh(); };
+window.pp9Sh = () => { const op = document.getElementById('pp9Op').value; document.querySelectorAll('.pd459 [data-f]').forEach(d => { d.style.display = d.getAttribute('data-f').split(' ').includes(op) ? '' : 'none'; }); };
+window.pp9Send = async () => { const g = i => (document.getElementById(i) || {}).value || '', op = g('pp9Op');
+  const x = {op, id: g('pp9Id').trim(), why: g('pp9Why').trim(), code: g('pp9Code').trim(), who: g('pp9Who').trim(), amount: g('pp9Amt'), method: g('pp9Me').trim(), acctNo: g('pp9Ac').trim(), note: g('pp9No').trim(), rec: g('pp9Rec').trim(), until: g('pp9Un') ? new Date(g('pp9Un') + 'T23:59:59').getTime() : 0};
+  const r = await finCall(x);
+  if(!r || !r.ok) return toast(r && r.reason === 'already' ? '⚠️ Already sent — waiting for Admin 1' : r && r.reason === 'bad' ? '⚠️ Please fill the fields correctly' : r && r.reason === 'no_perm' ? '🔒 Admin 1 has not allowed this' : '❌ Not sent');
+  toast('✅ Sent to Admin 1'); v2MyPend(); };
+})();
+/* MCS1511SU459 (مالک کا حکم): رپورٹیں — ایجنٹ وار گنتی، ٹرائل / ختم ہونے والی ممبرشپ، حساب کی جانچ */
+(function(){
+let RPT = null, RTAB = 'agents';
+const rBox = h => { document.querySelectorAll('.v2modal.rp459').forEach(m => m.remove()); const b = document.createElement('div'); b.className = 'v2modal rp459'; b.onclick = e => { if(e.target === b) b.remove(); }; b.innerHTML = `<div class="v2card en v2det">${h}</div>`; document.body.appendChild(b); };
+const dTag = d => `<span class="v2st ${d <= 3 ? 'ex' : d <= 10 ? 'tr' : 'ok'}">${d} day${d === 1 ? '' : 's'}</span>`;
+const bizTbl = L => table(['#', 'Business', 'Mobile', 'Agent', 'Until', 'Days left'], L.map((x, i) => `<tr><td>${i + 1}</td><td data-noen="1">${E(x.name || x.rec)}</td><td class="n">${E(ph0(x.phone) || '—')}</td><td class="n">${E(x.agent ? x.agent.replace('MCS-', '') : '—')}</td><td class="n">${dmy(x.until)}</td><td>${dTag(x.days)}</td></tr>`), 'Nothing here ✅');
+function rBody(){ const r = RPT, t = RTAB;
+  if(t === 'agents') return table(['#', 'Agent', 'Total', 'Active', 'Trial', 'Expired', 'Pending'], r.agents.map((a, i) => `<tr><td>${i + 1}</td><td data-noen="1">${E(a.name || '—')}<br><small class="num">${E(a.code.replace('MCS-', ''))}</small></td><td><b>${a.total}</b></td><td>${a.active}</td><td>${a.trial}</td><td>${a.expired}</td><td>${a.pending}</td></tr>`), 'No agents yet');
+  if(t === 'trial') return `<div class="v2mut" style="font-size:12px">Free trial businesses — fewest days left on top.</div>${bizTbl(r.trial)}`;
+  if(t === 'soon') return `<div class="v2mut" style="font-size:12px">Paid memberships ending within 60 days — fewest days left on top.</div>${bizTbl(r.soon)}`;
+  const c = r.check, good = c.nbad === 0;
+  return `<div class="${good ? 'v2ok' : 'v2warn'} en">${good ? '✅ All good — every line adds up to its amount' : '⚠️ ' + c.nbad + ' line(s) do not add up'}</div>
+    <div class="v2mut" style="margin:6px 0">Lines checked: <b class="num">${N(c.lines)}</b> · Total amount <b class="num">${Rs(c.sumAmount)}</b> · Total of all shares <b class="num">${Rs(c.sumParts)}</b></div>
+    ${c.bad.length ? table(['Line', 'Month', 'Amount', 'Shares sum', 'Admin 2 parts'], c.bad.map(b => `<tr><td class="n">${E(b.id)}</td><td>${E(b.mon)}</td><td>${N(b.amount)}</td><td>${N(b.parts)}</td><td>${N(b.cdSum)} / ${N(b.codev)}</td></tr>`), '') : ''}
+    <div class="v2mut" style="font-size:11.5px;margin-top:6px">Rule: Google + Maintenance + Agent + Admin 1 + Admin 2 = the line amount. This check only reads — it never changes anything.</div>`; }
+function rDraw(){ const r = RPT, tab = (k, t) => `<button class="v2chip ${RTAB === k ? 'on' : ''}" onclick="v2RptTab('${k}')">${t}</button>`;
+  rBox(`<div class="v2dh"><b>📊 Reports</b><button onclick="this.closest('.v2modal').remove()">✖</button></div>
+    <div class="v2chips">${tab('agents', '🤝 By agent')}${tab('trial', '🎁 Trial <b>' + r.counts.trial + '</b>')}${tab('soon', '⏳ Ending soon <b>' + r.soon.length + '</b>')}${tab('check', '🧮 Accounts check' + (r.check.nbad ? ' ⚠️' : ' ✅'))}</div>
+    <div style="margin-top:8px">${rBody()}</div>`); }
+window.v2Reports = async () => { const r = await finCall({op: 'reports'}); if(!r || !r.ok) return toast('❌ Could not load reports'); RPT = r; RTAB = 'agents'; rDraw(); };
+window.v2RptTab = k => { RTAB = k; if(RPT) rDraw(); };
 })();
 })();
 
