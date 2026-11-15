@@ -2,7 +2,7 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1511SU097';
+const APP_VERSION = 'HD1511SU098';
 const UPDATE_NOTE = '📦 Claude صرف بدلی فائلیں واپس دے: ایپ کی زپ الگ، worker.js الگ؛ نہ بدلی فائل اپلوڈ نہیں ہوتی';  const UPDATE_NOTE_OLD = '↕️ ایپس کی ترتیب: «OK ✔» دبانے پر پکی محفوظ (فون + فائربیس) — بند کر کے کھولیں تو وہی ترتیب رہتی ہے';
 const DEV_PHONE = '03206793793';
 
@@ -814,12 +814,31 @@ async function srvUpGo(f) {
   } catch (e) { srvSet('❌ ' + (navigator.onLine ? e.message : 'No internet')); }
 }
 /* HD1111WE081 (مالک کا حکم): اپلوڈ شروع کرتے ہی ریپو میں موجود پرانی زپ کا نمبر دکھا کر تنبیہ؛ پھر صرف اسی ایپ کے پری فکس والی زپ قبول */
+/* HD1511SU098 (مالک کا حکم): اپ لوڈ سے پہلے مختصر کھڑکی — ریپو میں موجود (لائیو) زپ کا نمبر بڑے موٹے سرخ حروف میں ڈبے کے اندر، نیچے «تازہ ترین ورژن اپ لوڈ کریں» */
+function zipUpAsk(appName, old) {
+  return new Promise(res => {
+    const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;z-index:2147483600;background:rgba(15,23,42,.6);display:grid;place-items:center;padding:16px;font-family:inherit';
+    ov.innerHTML = `<div style="background:#fff;border-radius:16px;max-width:360px;width:100%;padding:16px 14px 12px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.35)">
+      <div style="font-size:14px;color:#475569;font-weight:700">⬆️ Upload zip — ${esc(appName)}</div>
+      <div style="margin-top:10px;font-size:12.5px;color:#64748b;font-weight:700">LIVE NOW (existing zip) · اس وقت لائیو</div>
+      <div style="margin-top:6px;border:3px solid #c0161b;background:#fff1f1;border-radius:12px;padding:12px 6px;color:#c0161b;font:900 28px/1.25 'Segoe UI',Consolas,monospace;letter-spacing:1px;word-break:break-all;direction:ltr">${esc(old || '?')}</div>
+      <div style="margin-top:12px;font-size:19px;font-weight:900;color:#0f172a;line-height:1.35">Please upload the LATEST version</div>
+      <div style="margin-top:2px;font-size:15px;color:#334155">براہِ کرم تازہ ترین ورژن اپ لوڈ کریں</div>
+      <div style="display:flex;gap:10px;margin-top:14px"><button type="button" id="zaNo" style="flex:1;min-height:46px;border:1px solid #cbd5e1;background:#fff;color:#334155;border-radius:10px;font-size:16px;font-weight:700">Cancel</button><button type="button" id="zaOk" style="flex:1;min-height:46px;border:0;background:#1d4ed8;color:#fff;border-radius:10px;font-size:16px;font-weight:800">OK</button></div></div>`;
+    const done = v => { ov.remove(); res(v); };
+    ov.querySelector('#zaNo').onclick = () => done(false);
+    ov.querySelector('#zaOk').onclick = () => done(true);
+    document.body.appendChild(ov);
+  });
+}
 async function zipUp(id) {
   const a = id === 'HD' ? { id: 'HD', en: 'PBT Help Desk', repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io' } : appOf(id);
   let old = LATEST[id];
   toast('⏳ Checking the existing zip…'); await Promise.race([zipLatestOne(id, a.repo), sleep(3500)]); old = LATEST[id] || '';
   const pre = HDZips.prefix(id);
-  if (!confirm(`⬆️ Upload zip to ${ZN(a)}\n\n📦 Existing zip in the repo right now:\n${old || '(could not read the number)'}\n\n⚠️ Be sure you are uploading a NEW / latest version — not the same one again.\nOnly a zip whose name starts with “${pre}” is accepted.\n\nContinue?`)) return;
+  if (!(await zipUpAsk(ZN(a), old))) return;   /* HD1511SU098: لمبی تقریر کی جگہ چھوٹا ڈبہ — لائیو زپ کا نمبر بڑا سرخ */
   if (!ghTok()) { ghTokSheet(); return; }
   const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.zip,application/zip,application/x-zip-compressed';
   inp.onchange = () => { const f = inp.files && inp.files[0]; if (f) zipUpGo(id, f); };
