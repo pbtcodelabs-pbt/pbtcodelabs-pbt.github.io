@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1511SU096';
-const UPDATE_NOTE = '📦 «Server file» میں ایک ہی زپ Claude کے لیے: My City Shines کی فائلیں + server/worker.js — واپسی الگ الگ اپلوڈ';  const UPDATE_NOTE_OLD = '↕️ ایپس کی ترتیب: «OK ✔» دبانے پر پکی محفوظ (فون + فائربیس) — بند کر کے کھولیں تو وہی ترتیب رہتی ہے';
+const APP_VERSION = 'HD1511SU097';
+const UPDATE_NOTE = '📦 Claude صرف بدلی فائلیں واپس دے: ایپ کی زپ الگ، worker.js الگ؛ نہ بدلی فائل اپلوڈ نہیں ہوتی';  const UPDATE_NOTE_OLD = '↕️ ایپس کی ترتیب: «OK ✔» دبانے پر پکی محفوظ (فون + فائربیس) — بند کر کے کھولیں تو وہی ترتیب رہتی ہے';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -747,12 +747,31 @@ async function srvPack() {
     const a = appOf('MCS') || { repo: 'pbtcodelabs-pbt/MCS' };
     const [m, w] = await Promise.all([HDZips.build('MCS', a.repo, st => srvSet('⏳ My City Shines ' + st)), fetch(`https://raw.githubusercontent.com/${SRV.repo}/main/${SRV.path}?t=${Date.now()}`, { cache: 'no-store' }).then(r => { if (!r.ok) throw new Error('worker.js ' + r.status); return r.arrayBuffer(); })]);
     const enc = new TextEncoder(), name = m.ver + '+server';
-    const readme = `${name}\n\nFor Claude:\n- Root files (index.html, sw.js …) = My City Shines app (repo pbtcodelabs-pbt/MCS).\n- server/worker.js = Cloudflare server (repo pbtcodelabs-pbt/AIO, cloudflare-worker/worker.js).\n\nWhen done, give back TWO things:\n1) App zip named like MCS…zip (root files only, NO server folder) -> Help Desk: Latest zip -> My City Shines -> Upload zip.\n2) worker.js alone -> Help Desk: Latest zip -> Server file -> Upload changed worker.js.\nIf only one of them changed, give only that one.\n`;
+    const readme = `${name}\n\n=== RULES FOR CLAUDE (must follow) ===\n` +
+      `Files here:\n- Root files (index.html, sw.js, manifest.json …) = My City Shines app (repo pbtcodelabs-pbt/MCS).\n- server/worker.js = Cloudflare server (repo pbtcodelabs-pbt/AIO, cloudflare-worker/worker.js).\n\n` +
+      `Give back ONLY the files you actually changed. NEVER return an unchanged file.\n\n` +
+      `A) If you changed the APP: return ONE zip named with the NEW app version, e.g. MCS1511SU433.zip.\n   - Inside: only the changed app files, at the root (always index.html + sw.js, because the version changes in both).\n   - NO server folder, NO worker.js, NO unchanged files, NO READ-ME.\n   - Owner uploads it: Help Desk -> Latest zip -> My City Shines -> Upload zip.\n\n` +
+      `B) If you changed the SERVER: return worker.js ALONE (not zipped, not inside the app zip).\n   - Owner uploads it: Help Desk -> Latest zip -> Server file -> Upload changed worker.js.\n\n` +
+      `C) If you did not change one of them, do NOT return it at all.\n\n` +
+      `At the end, tell the owner in Urdu exactly, e.g.:\n  📦 MCS1511SU433.zip  ->  «Upload zip» (My City Shines)\n  🖥️ worker.js        ->  «Server file → Upload changed worker.js»\n  ❌ (not changed — nothing to upload): …\n\n` +
+      `=== مالک کے لیے ===\nClaude صرف بدلی ہوئی فائلیں واپس دے گا اور آخر میں لکھے گا کون سی کہاں اپلوڈ کرنی ہے۔ زپ (MCS…zip) → «Upload zip»، worker.js → «Server file»۔ جو نہ ملے وہ نہیں بدلی۔\n`;
     const files = [...m.files, { name: 'server/worker.js', data: new Uint8Array(w) }, { name: 'READ-ME.txt', data: enc.encode(readme) }];
     const u = URL.createObjectURL(HDZips.zip(files)), l = document.createElement('a');
     l.href = u; l.download = name + '.zip'; document.body.appendChild(l); l.click(); l.remove(); setTimeout(() => URL.revokeObjectURL(u), 60000);
     srvSet('✅ ' + name + '.zip downloaded (' + files.length + ' files).\nUpload back SEPARATELY: app zip → «Upload zip», worker.js → «Upload changed worker.js».');
   } catch (e) { srvSet('❌ ' + (navigator.onLine ? (e && e.message || e) : 'No internet')); }
+}
+/* زپ کے اندر فائلوں کے نام (central directory سے) */
+function zipNames(u) {
+  const dv = new DataView(u.buffer, u.byteOffset, u.byteLength); let e = -1;
+  for (let i = u.length - 22; i >= Math.max(0, u.length - 65557); i--) if (dv.getUint32(i, true) === 0x06054b50) { e = i; break; }
+  if (e < 0) return [];
+  const n = dv.getUint16(e + 10, true); let p = dv.getUint32(e + 16, true); const out = [], dec = new TextDecoder();
+  for (let k = 0; k < n && p + 46 <= u.length && dv.getUint32(p, true) === 0x02014b50; k++) {
+    const nl = dv.getUint16(p + 28, true), xl = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true);
+    out.push(dec.decode(u.subarray(p + 46, p + 46 + nl))); p += 46 + nl + xl + cl;
+  }
+  return out;
 }
 function srvUp() {
   if (!ghTok()) { ghTokSheet(); return; }
@@ -775,6 +794,7 @@ async function srvUpGo(f) {
     if (ex.status === 401) { try { localStorage.removeItem('pbthd_ghtok'); } catch (e) {} setTimeout(ghTokSheet, 300); throw new Error('token expired — add again'); }
     if (!ex.ok) throw new Error('GitHub ' + ex.status);
     const sha = (await ex.json()).sha, t0 = new Date(Date.now() - 5000).toISOString();
+    try { const cur = await (await fetch(`https://raw.githubusercontent.com/${SRV.repo}/main/${SRV.path}?t=${Date.now()}`, { cache: 'no-store' })).text(); if (cur === txt) { srvSet('ℹ️ No change — this worker.js is exactly the same as the live server. Nothing uploaded (no need).'); return; } } catch (e) {}   /* HD1511SU097 */
     const ver = (/MCS\d{4}[A-Z]{2}\d{3}/.exec(f.name) || [''])[0];
     const content = b64(new TextEncoder().encode(txt).buffer);
     const r = await fetch(cu, { method: 'PUT', headers: H, body: JSON.stringify({ message: (ver ? ver + ' ' : '') + 'server: worker.js upload (Help Desk)', content, sha, branch: 'main' }) });
@@ -813,6 +833,7 @@ async function zipUpGo(id, f) {
   const repo = z.repo || a.repo, ver = f.name.replace(/\.zip$/i, '').replace(/\s*\(\d+\)$/, ''), pre = HDZips.prefix(id);
   const set = m => { ZUP[id] = m; zipSheet(); }, bad = m => { delete ZPG[id]; delete PEND[id]; set('❌ ' + m); toast('❌ ' + m, 7000); };
   // ① پری فکس: صرف اسی ایپ کی زپ (مثلاً MCS…) — ورنہ قبول ہی نہیں
+  try { const zn = zipNames(new Uint8Array(await f.arrayBuffer())); if (zn.some(n => /^server\/|(^|\/)worker\.js$|^READ-ME\.txt$/i.test(n))) return bad(`“${f.name}” contains server/worker.js or READ-ME — this zip must have ONLY the changed app files. Upload worker.js separately from «🖥️ Server file».`); } catch (e) {}   /* HD1511SU097 */
   if (/server/i.test(ver)) return bad(`“${f.name}” has the server inside — upload the app zip (without the server folder) here, and worker.js from «🖥️ Server file».`);   /* HD1511SU096 */
   if (!ver.startsWith(pre)) return bad(`“${f.name}” rejected — a ${ZN(a)} zip must start with “${pre}”.`);
   const other = HDZips.whose(ver);
