@@ -2,7 +2,7 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1511SU092';
+const APP_VERSION = 'HD1511SU093';
 const UPDATE_NOTE = '📚 «سب مسائل» اور «📤 ایکسپورٹ» اب ہوم پر ایپس کے اوپر؛ ایک ایپ چننے کی ڈراپ ڈاؤن؛ ایکسپورٹ میں لیٹسٹ زپ پہلے سے شامل؛ متن ایپ وار، ہر مسئلہ ایک لائن کے فاصلے سے، ریپو کا پتہ خود بخود';  const UPDATE_NOTE_OLD = '↕️ ایپس کی ترتیب: «OK ✔» دبانے پر پکی محفوظ (فون + فائربیس) — بند کر کے کھولیں تو وہی ترتیب رہتی ہے';
 const DEV_PHONE = '03206793793';
 
@@ -308,7 +308,15 @@ function header() {
     ${own && R.v === 'home' ? `<button class="hBtn" data-act="goOwner" title="Developer">🛠️</button>` : ''}
     <button class="hBtn ${LANG === 'en' ? '' : 'en'}" data-act="lang">${T('langBtn')}</button></div>
     ${Store.mode === 'demo' ? `<div class="demo">${T('demo')}</div>` : ''}`;
+  navBar();
 }
+/* HD1511SU093 (مالک کا حکم): نیچے ہر صفحے اور ہر پاپ اپ پر پکی پٹی — ⬅️ پیچھے · 🏠 ہوم · آگے ➡️ */
+function navBar() {
+  const n = $('#nav'); if (!n) return; const E = LANG === 'en';
+  n.innerHTML = `<button data-act="navBack" aria-label="back"><b>${E ? '←' : '→'}</b>${E ? 'Back' : 'پیچھے'}</button><button class="nh" data-act="goHome" aria-label="home"><b>🏠</b>${E ? 'Home' : 'ہوم'}</button><button data-act="navFwd" aria-label="forward"><b>${E ? '→' : '←'}</b>${E ? 'Forward' : 'آگے'}</button>`;
+}
+document.addEventListener('focusin', e => { const t = e.target; if (t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) && !/^(checkbox|radio|button)$/.test(t.type || '')) document.body.classList.add('kb'); });
+document.addEventListener('focusout', () => setTimeout(() => { const a = document.activeElement; if (!(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && !/^(checkbox|radio|button)$/.test(a.type || ''))) document.body.classList.remove('kb'); }, 150));
 function foot() {
   return `<div class="foot">${T('foot')}<br><span class="num">📞 ${DEV_PHONE}</span> · <span class="ver" data-act="tap7">${APP_VERSION}</span></div>`;
 }
@@ -1980,7 +1988,9 @@ document.addEventListener('click', async e => {
       break;
     }
     case 'logout': try { localStorage.removeItem('pbthd_pw'); } catch (e) {} Store.ownerLogout(); go('#/'); break;
-    case 'goHome': closeSheet(); go('#/'); break;
+    case 'goHome': closeSheet(); if (R.v === 'home') { try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {} } else go('#/'); break;
+    case 'navBack': if ($('#ov').classList.contains('on')) { closeSheet(); break; } if (R.v === 'home') { toast(LANG === 'en' ? '🏠 This is Home' : '🏠 یہی ہوم ہے', 1200); break; } if (EMBED || history.length <= 1) go('#/'); else history.back(); break;
+    case 'navFwd': try { history.forward(); } catch (e) {} break;
     case 'settings': settingsSheet(); break;
     case 'pwEye': ['#pwOld', '#pwNew', '#pwNew2'].forEach(k => { const x = $(k); if (x) x.type = x.type === 'password' ? 'text' : 'password'; }); break;
     case 'chPw': {

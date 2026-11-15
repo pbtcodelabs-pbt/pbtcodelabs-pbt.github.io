@@ -546,6 +546,20 @@ textarea.big.need{border-color:var(--red)!important;box-shadow:0 0 0 4px rgba(22
 .aiCard.smoke{pointer-events:none;transform-origin:50% 100%;animation:aiSmoke .55s ease-in forwards}
 @keyframes aiSmoke{0%{opacity:1;filter:blur(0);transform:none;max-height:700px}55%{opacity:.5;filter:blur(4px) grayscale(1);transform:translateY(-8px) scale(1.03);max-height:700px}100%{opacity:0;filter:blur(14px) grayscale(1);transform:translateY(-28px) scale(1.12);max-height:0;margin-bottom:0;padding-top:0;padding-bottom:0;border-width:0}}
 .aiConf{background:#fffbeb;border-radius:10px;padding:8px;border:1.5px solid #f59e0b}
+
+/* HD1511SU093: نیچے کی پکی پٹی — پیچھے / ہوم / آگے */
+:root{--navH:62px}
+#nav{position:fixed;left:0;right:0;bottom:0;z-index:70;display:flex;gap:8px;justify-content:center;padding:6px 10px calc(6px + env(safe-area-inset-bottom));background:#fff;border-top:1.5px solid var(--line);box-shadow:0 -4px 14px rgba(0,0,0,.12)}
+#nav button{flex:1;max-width:210px;border:0;border-radius:14px;padding:3px 4px;font:inherit;font-weight:800;font-size:14.5px;line-height:1.4;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--soft);color:var(--ink)}
+#nav button b{font:900 22px/1.1 Arial,sans-serif}
+#nav button:active{transform:scale(.95)}
+#nav .nh{background:linear-gradient(135deg,var(--b1),var(--b2));color:#fff}
+body{padding-bottom:calc(var(--navH) + 10px + env(safe-area-inset-bottom))}
+#ov{bottom:calc(var(--navH) + env(safe-area-inset-bottom))}
+.sheet{max-height:calc(94vh - var(--navH))}
+#toast{bottom:calc(var(--navH) + 40px + env(safe-area-inset-bottom))}
+body.kb #nav{display:none}body.kb #ov{bottom:0}body.kb{padding-bottom:0}
+html.embed #nav{display:none}html.embed body{padding-bottom:0}html.embed #ov{bottom:0}
 </style>
 <style id="hd087css">
 .issHm{display:flex;gap:10px;margin:8px 0 12px}
@@ -574,6 +588,7 @@ textarea.big.need{border-color:var(--red)!important;box-shadow:0 0 0 4px rgba(22
 <div id="ov"><div class="sheet" id="sheet"></div></div>
 <div id="viewer"><img id="vimg" alt=""><button type="button" id="vclose">✕</button></div>
 <div id="toast"></div>
+<nav id="nav"></nav>
 <div id="busy"><div class="spin"></div><div id="busyT"></div></div>
 <script src="upd.js"></script>
 <script src="cloud-config.js"></script>
