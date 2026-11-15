@@ -2,7 +2,7 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1511SU090';
+const APP_VERSION = 'HD1511SU091';
 const UPDATE_NOTE = '📚 «سب مسائل» اور «📤 ایکسپورٹ» اب ہوم پر ایپس کے اوپر؛ ایک ایپ چننے کی ڈراپ ڈاؤن؛ ایکسپورٹ میں لیٹسٹ زپ پہلے سے شامل؛ متن ایپ وار، ہر مسئلہ ایک لائن کے فاصلے سے، ریپو کا پتہ خود بخود';  const UPDATE_NOTE_OLD = '↕️ ایپس کی ترتیب: «OK ✔» دبانے پر پکی محفوظ (فون + فائربیس) — بند کر کے کھولیں تو وہی ترتیب رہتی ہے';
 const DEV_PHONE = '03206793793';
 
@@ -299,7 +299,8 @@ function header() {
   const own = Store.isOwner();
   const showBack = EMBED ? !['home', 'app'].includes(R.v) : R.v !== 'home';
   const back = (EMBED ? `<button class="hBtn back" data-act="embedClose" aria-label="${T('close')}">✕</button>` : '') +
-    (showBack ? `<button class="hBtn back" data-act="back" aria-label="back">${LANG === 'en' ? '←' : '→'}</button>` : '');
+    (showBack ? `<button class="hBtn back" data-act="back" aria-label="back">${LANG === 'en' ? '←' : '→'}</button>` : '') +
+    (!EMBED && R.v !== 'home' ? `<button class="hBtn back" data-act="goHome" aria-label="home">🏠</button>` : '');
   // HD1511SU090 (مالک کا حکم): ورژن سب سے اوپر موٹا — ایک ٹیپ پر مالک (سات ٹیپ کی ضرورت نہیں)
   $('#hd').innerHTML = `<button class="hVer" data-act="verTap" aria-label="version">${APP_VERSION}</button><div class="hdIn">${back}
     <img class="logo" src="icons/icon-192.png" alt="" data-act="tap7">
@@ -377,7 +378,7 @@ function playVideo(id) {
 /* HD1511SU088: ہوم پر ایپس کے اوپر — «سب مسائل» اور «ایکسپورٹ» */
 function issHomeBtns() {
   const E = LANG === 'en', n = ISSUES.filter(aiStanding).length;
-  return `<div class="issHm"><button class="issB a" data-act="allIss">📚 ${E ? 'All issues' : 'سب مسائل'}${n ? ` <i>${n}</i>` : ''}</button><button class="issB b" data-act="expIss">📤 ${E ? 'Export' : 'ایکسپورٹ'}</button></div>`;
+  return `<div class="issHm"><button class="issB a" data-act="allIss">📚 ${E ? 'All issues' : 'سب مسائل'}${n ? ` <i>${n}</i>` : ''}</button><button class="issB b" data-act="expIss">📤 ${E ? 'Export' : 'ایکسپورٹ'}</button><button class="issB c" data-act="zips">📦 ${E ? 'Latest zip' : 'تازہ زپ'}</button></div>`;
 }
 function vHome() {
   const own = Store.isOwner();
@@ -400,16 +401,15 @@ function vHome() {
     ${own ? `<div class="st r"><span class="v">${ISSUES.filter(i => !i.arch && i.status === 'new').length}</span><span class="l">📥 ${LANG === 'en' ? 'New, unseen' : 'نئے، ان دیکھے'}</span></div>`
       : `<div class="st b"><span class="v" style="font-size:19px">${avgReply()}</span><span class="l">⏱️ ${T('avgReply')}</span></div>`}
   </div>`}
+  ${own ? issHomeBtns() : ''}
   ${own ? ownMineCard() : ''}
   ${own ? partyHomeBtn() : ''}
-  ${own ? zipHomeBtn() : ''}
   ${mine && !own ? `<button class="mineBtn" data-act="mine"><span class="i">📋</span><span class="t"><b>${T('mine')} <span class="num">(${mine})</span></b><small>${T('mineSub')}</small></span>${un ? `<span class="dot">${un}</span>` : ''}<span>${LANG === 'en' ? '›' : '‹'}</span></button>` : ''}
   ${own ? urgHome() : ''}
-  ${own ? rankBtns() : ''}
-  ${own ? issHomeBtns() : ''}
   <div class="secT">📱 ${T('chooseApp')} <small>— ${T('chooseAppSub')}</small></div>
   ${own ? ordBar() : ''}
   <div class="apps">${tiles}</div>
+  ${own ? rankBtns() : ''}
   ${videosHTML()}
   <div class="card" style="margin-top:16px">
     <div class="info"><span class="i">🕘</span><div><b>${T('hours')}:</b> ${esc(hrs)}</div></div>
@@ -1643,6 +1643,7 @@ function loginSheet() {
   sheet(`<h2>🛠️ ${E ? 'Developer' : 'ڈویلپر'}<button class="x" data-act="close">✕</button></h2>
     <p style="color:var(--mut);font-size:14px;margin:0">${first ? (E ? 'Create a password for this phone' : 'اس فون کے لیے پاس ورڈ بنائیں') : (E ? 'Enter password' : 'پاس ورڈ لکھیں')}</p>
     <div class="inpRow" style="margin:10px 0"><input class="inp ltr" type="password" id="pw" autocomplete="current-password"><button class="tb" data-act="eye">👁️</button></div>
+    <label style="display:flex;align-items:center;gap:8px;margin:0 0 12px;font-size:14.5px"><input type="checkbox" id="remPw" checked style="width:20px;height:20px">${E ? 'Remember on this phone (no password next time)' : 'اس فون پر یاد رکھیں — آئندہ پاس ورڈ نہیں پوچھے گا'}</label>
     <button class="bigBtn blue" data-act="login">🔓 ${E ? 'Open' : 'کھولیں'}</button>`);
   setTimeout(() => $('#pw') && $('#pw').focus(), 100);
 }
@@ -1966,10 +1967,11 @@ document.addEventListener('click', async e => {
     case 'eye': { const p = $('#pw'); p.type = p.type === 'password' ? 'text' : 'password'; break; }
     case 'login': {
       const pw = $('#pw').value; if (pw.length < 4) { toast(LANG === 'en' ? 'At least 4 characters' : 'کم از کم 4 حروف'); break; }
-      if (await Store.ownerLogin(pw)) { closeSheet(); go('#/owner'); } else toast(LANG === 'en' ? '❌ Wrong password' : '❌ غلط پاس ورڈ');
+      if (await Store.ownerLogin(pw)) { try { const rm = $('#remPw'); if (!rm || rm.checked) localStorage.setItem('pbthd_pw', btoa(unescape(encodeURIComponent(pw)))); else localStorage.removeItem('pbthd_pw'); } catch (e) {} closeSheet(); go('#/owner'); } else toast(LANG === 'en' ? '❌ Wrong password' : '❌ غلط پاس ورڈ');
       break;
     }
-    case 'logout': Store.ownerLogout(); go('#/'); break;
+    case 'logout': try { localStorage.removeItem('pbthd_pw'); } catch (e) {} Store.ownerLogout(); go('#/'); break;
+    case 'goHome': closeSheet(); go('#/'); break;
     case 'settings': settingsSheet(); break;
     case 'pwEye': ['#pwOld', '#pwNew', '#pwNew2'].forEach(k => { const x = $(k); if (x) x.type = x.type === 'password' ? 'text' : 'password'; }); break;
     case 'chPw': {
@@ -2140,6 +2142,8 @@ $('#viewer').addEventListener('click', () => $('#viewer').classList.remove('on')
   parse();
   busy(true);
   try { await Store.init(); } catch (e) { toast('⚠️ ' + e.message, 5000); }
+  // HD1511SU091 (مالک کا حکم): اس فون پر یاد رکھا پاس ورڈ ہو تو مالک خود بخود لاگ اِن — بار بار پاس ورڈ نہیں
+  try { if (Store.mode === 'cloud' && !Store.isOwner()) { const sp = localStorage.getItem('pbthd_pw'); if (sp) { const ok = await Store.ownerLogin(decodeURIComponent(escape(atob(sp)))); if (!ok && navigator.onLine) localStorage.removeItem('pbthd_pw'); } } } catch (e) {}
   busy(false);
   let first = true;
   Store.watch((list, cfg) => {
