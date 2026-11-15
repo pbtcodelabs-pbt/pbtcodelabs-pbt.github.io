@@ -2,7 +2,7 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1511SU089';
+const APP_VERSION = 'HD1511SU090';
 const UPDATE_NOTE = '📚 «سب مسائل» اور «📤 ایکسپورٹ» اب ہوم پر ایپس کے اوپر؛ ایک ایپ چننے کی ڈراپ ڈاؤن؛ ایکسپورٹ میں لیٹسٹ زپ پہلے سے شامل؛ متن ایپ وار، ہر مسئلہ ایک لائن کے فاصلے سے، ریپو کا پتہ خود بخود';  const UPDATE_NOTE_OLD = '↕️ ایپس کی ترتیب: «OK ✔» دبانے پر پکی محفوظ (فون + فائربیس) — بند کر کے کھولیں تو وہی ترتیب رہتی ہے';
 const DEV_PHONE = '03206793793';
 
@@ -300,7 +300,8 @@ function header() {
   const showBack = EMBED ? !['home', 'app'].includes(R.v) : R.v !== 'home';
   const back = (EMBED ? `<button class="hBtn back" data-act="embedClose" aria-label="${T('close')}">✕</button>` : '') +
     (showBack ? `<button class="hBtn back" data-act="back" aria-label="back">${LANG === 'en' ? '←' : '→'}</button>` : '');
-  $('#hd').innerHTML = `<div class="hdIn">${back}
+  // HD1511SU090 (مالک کا حکم): ورژن سب سے اوپر موٹا — ایک ٹیپ پر مالک (سات ٹیپ کی ضرورت نہیں)
+  $('#hd').innerHTML = `<button class="hVer" data-act="verTap" aria-label="version">${APP_VERSION}</button><div class="hdIn">${back}
     <img class="logo" src="icons/icon-192.png" alt="" data-act="tap7">
     <div class="brand"><b>PBT Help Desk</b><span>${T('sub')}</span></div>
     ${own && R.v === 'home' ? `<button class="hBtn" data-act="goOwner" title="Developer">🛠️</button>` : ''}
@@ -1945,6 +1946,7 @@ document.addEventListener('click', async e => {
     case 'rmAudio': F.audio = null; F.audioMs = 0; $('#recBox').innerHTML = recHTML(); break;
     case 'pastePhone': { const s = await clipText(); if (s) { F.phone = normPhone(s); document.querySelector('[data-in=phone]').value = F.phone; } break; }
     case 'send': send(); break;
+    case 'verTap': Store.isOwner() ? go('#/owner') : loginSheet(); break;
     case 'tap7': {
       const n = Date.now(); taps = n - tapT < 900 ? taps + 1 : 1; tapT = n;
       if (Store.isOwner() && taps >= 2 && act === 'tap7' && t.classList.contains('logo')) { taps = 0; go('#/owner'); break; }
