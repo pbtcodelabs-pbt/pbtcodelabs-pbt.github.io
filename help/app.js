@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1511SU095';
-const UPDATE_NOTE = '🖥️ «تازہ زپ» میں «Server file — worker.js»: سرور کی اکیلی فائل اتاریں / چڑھائیں (زپ نہیں)، چڑھاتے ہی خود لائیو + ✅ / ❌';  const UPDATE_NOTE_OLD = '↕️ ایپس کی ترتیب: «OK ✔» دبانے پر پکی محفوظ (فون + فائربیس) — بند کر کے کھولیں تو وہی ترتیب رہتی ہے';
+const APP_VERSION = 'HD1511SU096';
+const UPDATE_NOTE = '📦 «Server file» میں ایک ہی زپ Claude کے لیے: My City Shines کی فائلیں + server/worker.js — واپسی الگ الگ اپلوڈ';  const UPDATE_NOTE_OLD = '↕️ ایپس کی ترتیب: «OK ✔» دبانے پر پکی محفوظ (فون + فائربیس) — بند کر کے کھولیں تو وہی ترتیب رہتی ہے';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -720,7 +720,8 @@ function srvSheet() {
   sheet(`<div dir="ltr"><h2>🖥️ Server file<button class="x" data-act="zips">✕</button></h2>
     <p style="color:var(--mut);font-size:13px;margin:0 0 10px">One file only — <b>worker.js</b> (My City Shines / AIO server). Download it, give it to Claude, then upload the changed file. It goes live on its own in about 1 minute.</p>
     <div style="display:flex;flex-direction:column;gap:10px">
-      <button class="tb grn" style="padding:14px;font-size:16px" data-act="srvDl">⬇️ Download worker.js (live version)</button>
+      <button class="tb grn" style="padding:14px;font-size:16px;background:#7c2d12;border-color:#7c2d12;color:#fff" data-act="srvPack">📦 One zip for Claude — My City Shines (index.html + sw.js…) + server/worker.js</button>
+      <button class="tb grn" style="padding:14px;font-size:16px" data-act="srvDl">⬇️ Download worker.js only</button>
       <button class="tb" style="padding:14px;font-size:16px;background:#1d4ed8;color:#fff;border-color:#1d4ed8" data-act="srvUp">⬆️ Upload changed worker.js</button>
     </div>
     ${ghTok() ? '' : `<div class="zpTok" style="margin-top:10px"><button class="tb" data-act="ghTok">🔑 Add GitHub permission (once) — for Upload</button></div>`}
@@ -736,6 +737,22 @@ async function srvDl() {
     l.href = u; l.download = 'worker.js'; document.body.appendChild(l); l.click(); l.remove(); setTimeout(() => URL.revokeObjectURL(u), 60000);
     srvSet('✅ worker.js downloaded (' + Math.round(t.length / 1024) + ' KB, ' + t.split('\n').length + ' lines).');
   } catch (e) { srvSet('❌ ' + (navigator.onLine ? e.message : 'No internet')); }
+}
+/* HD1511SU096 (مالک کا حکم): Claude کو دینے کے لیے ایک ہی زپ — MCS کی سب فائلیں جڑ میں + `server/worker.js` + READ-ME (کیا کہاں اپلوڈ ہوتا ہے)۔
+   اپلوڈ الگ الگ ہی: ایپ کی زپ «⬆️ Upload zip» (MCS ریپو)، worker.js «⬆️ Upload changed worker.js» (AIO ریپو) — اسی لیے یہ زپ «Upload zip» میں قبول نہیں */
+async function srvPack() {
+  if (!window.HDZips) return;
+  srvSet('⏳ Reading My City Shines + server from GitHub…');
+  try {
+    const a = appOf('MCS') || { repo: 'pbtcodelabs-pbt/MCS' };
+    const [m, w] = await Promise.all([HDZips.build('MCS', a.repo, st => srvSet('⏳ My City Shines ' + st)), fetch(`https://raw.githubusercontent.com/${SRV.repo}/main/${SRV.path}?t=${Date.now()}`, { cache: 'no-store' }).then(r => { if (!r.ok) throw new Error('worker.js ' + r.status); return r.arrayBuffer(); })]);
+    const enc = new TextEncoder(), name = m.ver + '+server';
+    const readme = `${name}\n\nFor Claude:\n- Root files (index.html, sw.js …) = My City Shines app (repo pbtcodelabs-pbt/MCS).\n- server/worker.js = Cloudflare server (repo pbtcodelabs-pbt/AIO, cloudflare-worker/worker.js).\n\nWhen done, give back TWO things:\n1) App zip named like MCS…zip (root files only, NO server folder) -> Help Desk: Latest zip -> My City Shines -> Upload zip.\n2) worker.js alone -> Help Desk: Latest zip -> Server file -> Upload changed worker.js.\nIf only one of them changed, give only that one.\n`;
+    const files = [...m.files, { name: 'server/worker.js', data: new Uint8Array(w) }, { name: 'READ-ME.txt', data: enc.encode(readme) }];
+    const u = URL.createObjectURL(HDZips.zip(files)), l = document.createElement('a');
+    l.href = u; l.download = name + '.zip'; document.body.appendChild(l); l.click(); l.remove(); setTimeout(() => URL.revokeObjectURL(u), 60000);
+    srvSet('✅ ' + name + '.zip downloaded (' + files.length + ' files).\nUpload back SEPARATELY: app zip → «Upload zip», worker.js → «Upload changed worker.js».');
+  } catch (e) { srvSet('❌ ' + (navigator.onLine ? (e && e.message || e) : 'No internet')); }
 }
 function srvUp() {
   if (!ghTok()) { ghTokSheet(); return; }
@@ -796,6 +813,7 @@ async function zipUpGo(id, f) {
   const repo = z.repo || a.repo, ver = f.name.replace(/\.zip$/i, '').replace(/\s*\(\d+\)$/, ''), pre = HDZips.prefix(id);
   const set = m => { ZUP[id] = m; zipSheet(); }, bad = m => { delete ZPG[id]; delete PEND[id]; set('❌ ' + m); toast('❌ ' + m, 7000); };
   // ① پری فکس: صرف اسی ایپ کی زپ (مثلاً MCS…) — ورنہ قبول ہی نہیں
+  if (/server/i.test(ver)) return bad(`“${f.name}” has the server inside — upload the app zip (without the server folder) here, and worker.js from «🖥️ Server file».`);   /* HD1511SU096 */
   if (!ver.startsWith(pre)) return bad(`“${f.name}” rejected — a ${ZN(a)} zip must start with “${pre}”.`);
   const other = HDZips.whose(ver);
   if (other && other !== id) return bad(`“${f.name}” rejected — this looks like another app's version (${other}), not ${ZN(a)}.`);
@@ -1990,6 +2008,7 @@ document.addEventListener('click', async e => {
     case 'zipUp': zipUp(id); break;
     case 'srv': srvSheet(); break;
     case 'srvDl': srvDl(); break;
+    case 'srvPack': srvPack(); break;
     case 'srvUp': srvUp(); break;
     case 'zipRf': zipRf(id); break;
     case 'ghTok': ghTokSheet(); break;
