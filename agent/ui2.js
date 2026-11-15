@@ -4,7 +4,7 @@
 (function(){
 const NAV = {
   agent: [['home','Home','home'],['subs','Subscriptions','users'],['wd','Withdrawals','wallet'],['prof','Profile','user']], /* AGP1011TU022: ڈیزائن ماسٹر پرامپٹ جیسا — 4 بٹن */
-  codev: [['home','Home','home'],['acc','Accounts','bars'],['wd','Withdrawals','wallet'],['prof','Profile','user']], /* AGP1011TU024: ایجنٹ جیسا — 4 بٹن */
+  codev: [['home','Home','home'],['wd','Withdrawals','wallet'],['prof','Profile','user']], /* AGP1511SU037 (مالک کا حکم): ایڈمن 2 کو کمپنی کا حساب (Accounts) نہیں — صرف اپنا */
   dev:   [['home','Home','home'],['acc','Accounts','bars'],['pay','Payouts','wallet'],['agents','Agents','users'],['prof','Profile','user']]
 };
 const ICON = {
@@ -368,12 +368,10 @@ function profCard(name, type, idLbl, id, ref){
 function cdHome(f, m, c){
   const cur = (f.months || []).find(x => x.mon === FMON) || {amt: 0};
   return `${profCard((CDV && CDV.name) || 'Admin 2', 'Admin 2', 'Admin 2 ID', ph0(c.phone), 'CODEV')}
-    ${companyOverview()}
-    ${overview(m)}
     <div class="v2sec"><div class="v2sh">${ic('user', 28)}<b>Your Personal Share <small>(${E((CDV && CDV.name) || '')})</small></b></div><div class="v2sb">
     ${t2([{c:'tp', i:'coins', t:'Admin 2 Share<br>(This Month)', v:R0(cur.amt), go:"v2Det('codev')"}, {c:'tb', i:'bars', t:'Total<br>Earnings', v:R0(f.due), sub:'Ready: ' + Rs(f.ready), go:"v2Det('cdearn')"}, {c:'to', i:'wallet', t:'Total<br>Withdrawals', v:R0(f.paid), go:"v2Det('cdpaid')"}, {c:'tw', i:'wallet', t:'Your Balance', v:R0(f.balance), go:"v2Det('cdbal')"}, {btn:'v2WdReq()', i:'send', t:'Request<br>Withdrawal'}])}
     ${f.req ? `<div class="v2ok en">⏳ Withdrawal request of <b class="num">${Rs(f.req.amount)}</b> sent on ${dmy(f.req.ts)} — Pending</div>` : ''}</div></div>
-    ${sec('cal', 'All Subscriptions History <small>(Company Record)</small>', allSubsTable(m, 5), 'acc')}
+    ${sec('cal', 'My Businesses <small>(brought by Admin 2)</small>', allSubsTable(Object.assign({}, m, {lines: ((m && m.lines) || []).filter(l => l.by === 'codev' || /ADMIN2|CODEV|AG002/i.test(String(l.code || '')))}), 10))}
     ${sec('wallet', 'My Personal Transactions <small>(Withdrawals)</small>', wdTable(f, 3), 'wd')}`;
 }
 function devHome(m, P, reqs, owe){
@@ -429,7 +427,7 @@ async function v2Render(){
   }catch(e){ app.innerHTML = `<div class="v2wrap">${hero(rk)}<div class="v2body"><div class="v2card">📶 No internet — <button onclick="v2Render()">🔄 Retry</button></div></div>${navBar(rk)}</div>`; }
 }
 window.v2Render = v2Render;
-window.v2Go = t => { TAB = t; if(t === 'home'){ FM = FM && FM.mon === FMON ? FM : null; } v2Render(); };
+window.v2Go = t => { if(ROLEK() === 'codev' && (t === 'acc' || t === 'pay' || t === 'agents')) t = 'home';   /* AGP1511SU037 */ TAB = t; if(t === 'home'){ FM = FM && FM.mon === FMON ? FM : null; } v2Render(); };
 window.v2Refresh = async () => { S = null; CDME = null; FM = null; PEOPLE = null; v2Render(); };
 window.v2Logout = () => { if(!confirm('Log out?')) return; if(ROLE === 'admin'){ ls.del('admPps'); ls.del('admRt'); admTok = null; } else if(ROLE === 'codev'){ const c = ls.get('cd') || {}; ls.set('cd', {phone: c.phone}); CDV = null; } else { const m = ls.get('me') || {}; ls.set('me', {phone: m.phone}); } S = null; CDME = null; FM = null; PEOPLE = null; TAB = 'home'; ppScreen(ROLEK()); };
 window.v2Bell = async () => { const rk = ROLEK(); if(rk === 'dev') return admInbox();
