@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1411SA086';
-const UPDATE_NOTE = '🔄 تازہ زپ: ہر زپ کے آگے «Refresh» بٹن — اٹکی اپلوڈ / ڈاؤن لوڈ صاف کر کے تازہ نمبر پڑھتا ہے';  const UPDATE_NOTE_OLD = '↕️ ایپس کی ترتیب: «OK ✔» دبانے پر پکی محفوظ (فون + فائربیس) — بند کر کے کھولیں تو وہی ترتیب رہتی ہے';
+const APP_VERSION = 'HD1511SU087';
+const UPDATE_NOTE = '📚 مسائل اکٹھے: سب کھڑے مسائل ایک جگہ (پرانے/نئے اوپر)، ایپ وار بھی؛ «📤 ایکسپورٹ» — چیک باکس، متن / اسکرین شاٹ / اختیاری لیٹسٹ زپ — سب ایک زپ میں یا متن کاپی';  const UPDATE_NOTE_OLD = '↕️ ایپس کی ترتیب: «OK ✔» دبانے پر پکی محفوظ (فون + فائربیس) — بند کر کے کھولیں تو وہی ترتیب رہتی ہے';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -1382,7 +1382,7 @@ function vOwner() {
   return `<div class="own">
     <div class="card" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
       <b style="font-size:19px;flex:1">🛠️ ${LANG === 'en' ? 'Developer panel' : 'ڈویلپر پینل'}</b>
-      <button class="tb ${pushOn() ? 'grn' : 'pri'}" data-act="push" title="Notifications">🔔${pushOn() ? ' ✓' : ` ${LANG === 'en' ? 'Turn on alerts' : 'اطلاعات چالو کریں'}`}</button><button class="tb" data-act="settings">⚙️</button><button class="tb" data-act="logout">🚪</button></div>
+      <button class="tb pri" data-act="allIss">📚 ${LANG === 'en' ? 'All issues' : 'سب مسائل'}</button><button class="tb" data-act="expIss">📤 ${LANG === 'en' ? 'Export' : 'ایکسپورٹ'}</button><button class="tb ${pushOn() ? 'grn' : 'pri'}" data-act="push" title="Notifications">🔔${pushOn() ? ' ✓' : ` ${LANG === 'en' ? 'Turn on alerts' : 'اطلاعات چالو کریں'}`}</button><button class="tb" data-act="settings">⚙️</button><button class="tb" data-act="logout">🚪</button></div>
     <div class="card stats" style="grid-template-columns:repeat(4,1fr)">
       ${countsHTML(hdCounts(ISSUES.filter(i => !O.app || i.app === O.app)))}
       <div class="st g"><span class="v">${weekSolved(ISSUES.filter(i => !O.app || i.app === O.app))}</span><span class="l">✅ ${T('solvedWeek')}</span></div></div>
@@ -1695,6 +1695,104 @@ function bindForm() {
 
 /* ---------- واقعات ---------- */
 let taps = 0, tapT = 0;
+
+/* HD1511SU087 (مالک کا حکم): «📚 سب مسائل» — ساری ایپس کے کھڑے مسائل ایک جگہ (پرانے / نئے اوپر)، «ایپ وار» بھی؛ «📤 ایکسپورٹ» — ہر مسئلے کا چیک باکس،
+   اس کے آگے 📝 متن · 🖼️ اسکرین شاٹ · 📦 لیٹسٹ زپ (اختیاری)؛ سب چنا ہوا ایک ہی زپ میں (issues.txt + screenshots/ + ہر ایپ کی تازہ زپ کے فولڈر) یا صرف متن کاپی */
+const AI = { tab: 'view', mode: 'all', sort: 'old', sel: {} };   // sel[id] = { t, s, z }
+const aiStanding = i => !isReq(i) && i.status !== 'done' && i.status !== 'dup' && i.stage !== 'done';
+function aiList() {
+  const l = ISSUES.filter(aiStanding);
+  return l.sort(AI.sort === 'new' ? (a, b) => b.created - a.created : (a, b) => a.created - b.created);
+}
+function aiGroups(l) {
+  const g = new Map(); l.forEach(i => { const k = appOf(i.app).id; if (!g.has(k)) g.set(k, []); g.get(k).push(i); });
+  return [...g.entries()];   // پہلا مسئلہ جس ایپ کا اوپر (چھانٹی کے لحاظ سے) وہی گروپ اوپر
+}
+function aiCard(i) {
+  const a = appOf(i.app), ex = AI.tab === 'exp', o = AI.sel[i.id], E = LANG === 'en';
+  const canZip = !!(a.repo && window.HDZips && HDZips.has(a.id));
+  const zl = canZip ? (LATEST[a.id] ? ' · ' + esc(LATEST[a.id]) : '') : '';
+  return `<div class="aiCard${o ? ' sel' : ''}">
+    <div class="aiTop">${ex ? `<input type="checkbox" class="aiChk" data-act="aiPick" data-id="${i.id}" ${o ? 'checked' : ''}>` : ''}${appIcon(a, 'appMini')}<b>${esc(AN(a))}</b>${tyChip(i.type)}${stChip(i.status)}<span class="no" style="margin-inline-start:auto">#${i.no}</span></div>
+    <div class="aiTx" dir="auto" ${ex ? '' : `data-act="open" data-id="${i.id}"`}>${esc(i.text || (i.audio ? '🎤' : ''))}</div>
+    <div class="when" style="font-size:12.5px;color:var(--mut)">👤 ${esc(i.name)} · <span class="num">${esc(i.phone)}</span> · 🕒 ${ago(i.created)}${i.shots ? ` · 🖼️ ${i.shots}` : ''}${i.audio ? ' · 🎤' : ''}</div>
+    ${ex && o ? `<div class="aiOpts"><button class="tb ${o.t ? 'on' : ''}" data-act="aiOpt" data-id="${i.id}|t">📝 ${E ? 'Text' : 'متن'}</button><button class="tb ${o.s ? 'on' : ''}" data-act="aiOpt" data-id="${i.id}|s">🖼️ ${E ? 'Screenshots' : 'اسکرین شاٹ'}${i.shots ? ' (' + i.shots + ')' : ''}</button>${canZip ? `<button class="tb ${o.z ? 'on' : ''}" data-act="aiOpt" data-id="${i.id}|z">📦 ${E ? 'Latest zip' : 'لیٹسٹ زپ'}${zl}</button>` : ''}</div>` : ''}
+  </div>`;
+}
+function aiHTML() {
+  const E = LANG === 'en', l = aiList(), ex = AI.tab === 'exp', n = Object.keys(AI.sel).filter(k => l.some(i => i.id === k)).length;
+  const body = !l.length ? `<div class="card empty"><span class="e">🎉</span>${E ? 'No open issues' : 'کوئی کھڑا مسئلہ نہیں'}</div>`
+    : AI.mode === 'app' ? aiGroups(l).map(([id, arr]) => { const a = appOf(id); return `<div class="aiGrp">${appIcon(a, 'appMini')}<span>${esc(AN(a))}</span><span class="chip">${arr.length}</span></div>${arr.map(aiCard).join('')}`; }).join('')
+    : l.map(aiCard).join('');
+  return `<h2>📚 ${E ? 'Open issues' : 'کھڑے مسائل'} <span class="chip">${l.length}</span><button class="x" data-act="close">✕</button></h2>
+    <div class="aiBar"><button class="tb ${!ex ? 'on' : ''}" data-act="aiTab" data-id="view">👁️ ${E ? 'View' : 'دیکھیں'}</button><button class="tb ${ex ? 'on' : ''}" data-act="aiTab" data-id="exp">📤 ${E ? 'Export' : 'ایکسپورٹ'}</button></div>
+    <div class="aiBar"><button class="tb ${AI.mode === 'all' ? 'on' : ''}" data-act="aiMode" data-id="all">🌐 ${E ? 'All together' : 'سب اکٹھے'}</button><button class="tb ${AI.mode === 'app' ? 'on' : ''}" data-act="aiMode" data-id="app">📱 ${E ? 'App-wise' : 'ایپ وار'}</button>
+      <button class="tb ${AI.sort === 'old' ? 'on' : ''}" data-act="aiSort" data-id="old">⏳ ${E ? 'Oldest on top' : 'پرانے اوپر'}</button><button class="tb ${AI.sort === 'new' ? 'on' : ''}" data-act="aiSort" data-id="new">🕒 ${E ? 'Newest on top' : 'نئے اوپر'}</button></div>
+    ${ex ? `<div class="aiBar"><button class="tb" data-act="aiAll">☑️ ${E ? 'Select all' : 'سب چنیں'}</button><button class="tb" data-act="aiNone">⬜ ${E ? 'Clear' : 'ہٹائیں'}</button><span style="align-self:center;color:var(--mut);font-size:13.5px">${E ? 'Selected' : 'چنے ہوئے'}: <b>${n}</b></span></div>` : ''}
+    ${body}
+    ${ex ? `<div class="aiAct"><button class="tb pri" data-act="aiCopy" ${n ? '' : 'disabled'}>📋 ${E ? 'Copy text' : 'متن کاپی'}</button><button class="tb grn" data-act="aiZip" ${n ? '' : 'disabled'}>📦 ${E ? 'Everything in one zip' : 'سب ایک زپ میں'}</button></div>` : ''}`;
+}
+function aiOpen(tab) {
+  AI.tab = tab || 'view';
+  if (window.HDZips && !Object.keys(LATEST).length) { try { zipLatestAll(true); } catch (e) {} }
+  sheet(aiHTML());
+}
+function aiRedraw() { sheet(aiHTML(), true); }
+function aiPicked() { const m = new Map(ISSUES.map(i => [i.id, i])); return Object.keys(AI.sel).filter(k => m.has(k)).map(k => ({ i: m.get(k), o: AI.sel[k] })).sort((x, y) => AI.sort === 'new' ? y.i.created - x.i.created : x.i.created - y.i.created); }
+function aiText(picks, folder, inZip) {
+  const E = LANG === 'en'; folder = folder || {};
+  const parts = picks.map(({ i, o }) => {
+    const a = appOf(i.app), extra = [];
+    let base = o.t ? claudeText(i) : `❓ PBT Help Desk — #${i.no} · ${a.en}`;
+    base = base.replace(/\nScreenshots:[^\n]*/g, '');   // اپنی لائن نیچے، اور بند ہو تو بالکل نہیں
+    if (o.s && i.shots) extra.push('Screenshots: ' + i.shots + (inZip ? ' (screenshots/ folder)' : ''));
+    if (o.z && folder[a.id]) extra.push('Latest zip: ' + folder[a.id] + '/');
+    return base + (extra.length ? '\n' + extra.join('\n') : '');
+  });
+  return `📚 PBT Help Desk — ${picks.length} issues\n\n` + parts.join('\n\n━━━━━━━━━━━━━━━━\n\n');
+}
+async function aiCopy() {
+  const picks = aiPicked(); if (!picks.length) return;
+  try { await navigator.clipboard.writeText(aiText(picks)); toast('✅ ' + (LANG === 'en' ? 'Text copied — paste in chat' : 'متن کاپی ہو گیا — چیٹ میں پیسٹ کریں'), 3000); }
+  catch (e) { toast('⚠️ ' + (e.message || e), 4000); }
+}
+async function aiBytes(d) { if (typeof d === 'string') return new Uint8Array(await (await fetch(d)).arrayBuffer()); if (d && d.arrayBuffer) return new Uint8Array(await d.arrayBuffer()); return null; }
+async function aiExportZip() {
+  const picks = aiPicked(); if (!picks.length) return;
+  if (!window.HDZips || !HDZips.zip) { toast('⚠️ zip'); return; }
+  const E = LANG === 'en', files = [], folder = {}, notes = [];
+  try {
+    busy(true, '⏳');
+    // 1) ہر ایپ کی تازہ زپ (ایک ایپ کے کئی مسئلے ہوں تو ایک ہی بار)
+    const ids = [...new Set(picks.filter(p => p.o.z).map(p => appOf(p.i.app).id))];
+    for (let k = 0; k < ids.length; k++) {
+      const a = appOf(ids[k]);
+      if (!a.repo || !HDZips.has(a.id)) { notes.push(`${a.en}: no zip source`); continue; }
+      try {
+        const r = await HDZips.build(a.id, a.repo, st => busy(true, `📦 ${ZN(a)} (${k + 1}/${ids.length}) ${st || ''}`));
+        folder[a.id] = r.ver; r.files.forEach(f => files.push({ name: r.ver + '/' + f.name, data: f.data }));
+      } catch (e) { notes.push(`${a.en}: zip failed (${String(e && e.message || e).slice(0, 60)})`); }
+    }
+    // 2) اسکرین شاٹ
+    for (let k = 0; k < picks.length; k++) {
+      const { i, o } = picks[k]; if (!o.s || !i.shots) continue;
+      busy(true, `🖼️ #${i.no} (${k + 1}/${picks.length})`);
+      let bl = []; try { bl = (await Store.blobs(i.id) || []).filter(b => b.kind === 'shot'); } catch (e) { notes.push(`#${i.no}: screenshots failed`); }
+      for (let j = 0; j < bl.length; j++) {
+        try { const by = await aiBytes(bl[j].data); if (!by) continue; const mt = String(typeof bl[j].data === 'string' ? bl[j].data.slice(5, 20) : (bl[j].data.type || '')); const ext = /png/i.test(mt) ? 'png' : /webp/i.test(mt) ? 'webp' : 'jpg';
+          files.push({ name: `screenshots/${i.no}_${appOf(i.app).id}_${j + 1}.${ext}`, data: by }); } catch (e) {}
+      }
+    }
+    // 3) متن
+    const txt = aiText(picks, folder, true) + (notes.length ? '\n\n⚠️ ' + notes.join('\n⚠️ ') : '');
+    files.unshift({ name: 'issues.txt', data: new TextEncoder().encode(txt) });
+    const d = new Date(), tag = String(d.getDate()).padStart(2, '0') + String(d.getMonth() + 1).padStart(2, '0');
+    const blob = HDZips.zip(files); busy(false);
+    download(blob, `HelpDesk-${picks.length}issues-${tag}.zip`);
+    toast('✅ ' + picks.length + (E ? ' issues in one zip' : ' مسائل ایک زپ میں') + (notes.length ? ' ⚠️' : ''), 3500);
+  } catch (e) { busy(false); toast('⚠️ ' + (e && e.message || e), 4500); }
+}
+
 document.addEventListener('click', async e => {
   const v = e.target.closest('[data-view]'); if (v && F) { showImg(F.shots[+v.dataset.view]); return; }
   const vs = e.target.closest('[data-viewsrc]'); if (vs) { showImg(vs.src); return; }
@@ -1862,6 +1960,17 @@ document.addEventListener('click', async e => {
       PANEL = Object.assign({}, PANEL, { coDevH: Array.from(L) }); sheet(detailHTML(), true); render(); toast(L.has(h) ? '👨‍💻 ✓' : '✓'); break; }
     case 'open': openDetail(id); break;
     case 'close': closeSheet(); break;
+    case 'allIss': aiOpen('view'); break;
+    case 'expIss': aiOpen('exp'); break;
+    case 'aiTab': AI.tab = id; aiRedraw(); break;
+    case 'aiMode': AI.mode = id; aiRedraw(); break;
+    case 'aiSort': AI.sort = id; aiRedraw(); break;
+    case 'aiPick': if (AI.sel[id]) delete AI.sel[id]; else AI.sel[id] = { t: 1, s: 1, z: 0 }; aiRedraw(); break;
+    case 'aiOpt': { const [iid, k] = id.split('|'); const o = AI.sel[iid]; if (o) { o[k] = o[k] ? 0 : 1; aiRedraw(); } break; }
+    case 'aiAll': aiList().forEach(i => { if (!AI.sel[i.id]) AI.sel[i.id] = { t: 1, s: 1, z: 0 }; }); aiRedraw(); break;
+    case 'aiNone': AI.sel = {}; aiRedraw(); break;
+    case 'aiCopy': aiCopy(); break;
+    case 'aiZip': aiExportZip(); break;
     case 'setSt': {
       const p = { status: id }; if (id === 'done') p.doneAt = Date.now(); else p.doneAt = 0;
       await Store.update(DET.id, p); break;

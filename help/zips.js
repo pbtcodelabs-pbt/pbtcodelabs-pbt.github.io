@@ -83,5 +83,5 @@
     if (!ver) { for (const f of out) { ver = pick(dec.decode(f.data)); if (ver) break; } }
     return { ver: ver || (id + '-' + new Date().toISOString().slice(0, 10)), files: out, blob: zip(out), repo, dir: z.dir || '' };
   }
-  window.HDZips = { ZA, build, latest, prefix, whose, serial, liveUrl, has: id => !!ZA[id] };
+  window.HDZips = { ZA, zip, build, latest, prefix, whose, serial, liveUrl, has: id => !!ZA[id] };
 })();
