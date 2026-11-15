@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1511SU093';
-const UPDATE_NOTE = '📚 «سب مسائل» اور «📤 ایکسپورٹ» اب ہوم پر ایپس کے اوپر؛ ایک ایپ چننے کی ڈراپ ڈاؤن؛ ایکسپورٹ میں لیٹسٹ زپ پہلے سے شامل؛ متن ایپ وار، ہر مسئلہ ایک لائن کے فاصلے سے، ریپو کا پتہ خود بخود';  const UPDATE_NOTE_OLD = '↕️ ایپس کی ترتیب: «OK ✔» دبانے پر پکی محفوظ (فون + فائربیس) — بند کر کے کھولیں تو وہی ترتیب رہتی ہے';
+const APP_VERSION = 'HD1511SU094';
+const UPDATE_NOTE = '👨‍💻 زیبرا پٹی اب صرف کو-ڈویلپر (عمران صاحب) کے مسائل پر — باقی کسی مسئلے پر نہیں';  const UPDATE_NOTE_OLD = '↕️ ایپس کی ترتیب: «OK ✔» دبانے پر پکی محفوظ (فون + فائربیس) — بند کر کے کھولیں تو وہی ترتیب رہتی ہے';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -1056,7 +1056,7 @@ async function phHash(ph) { const d = waNum(digits(ph || '').replace(/[^0-9]/g, 
 const PHH = {}; // phone → hash (یادداشت)
 // کو-ڈویلپر (مانی بھائی / عمران بھائی، 03138469706) خود پہچانا جاتا ہے: پیغام «👥 کو-ڈویلپر (…)» سے شروع یا یہی نمبر؛ باقی 👨‍💻 بٹن سے نشان
 const CODEV_RX = /^\s*👥\s*کو-?\s*ڈویلپر/;
-function coDevOf(i) { if (CODEV_RX.test(i.text || '') || digits(i.phone || '').replace(/[^0-9]/g, '').endsWith('3138469706')) return true; const h = PHH[i.phone || '']; if (h === undefined && i.phone) { PHH[i.phone] = null; phHash(i.phone).then(v => { PHH[i.phone] = v; if (v && ((PANEL && PANEL.coDevH) || []).includes(v) && R.v === 'owner') render(); }); return false; } return !!h && ((PANEL && PANEL.coDevH) || []).includes(h); }
+function coDevOf(i) { /* HD1511SU094 (مالک کا حکم): زیبرا پٹی صرف کو-ڈویلپر — پیغام «👥 کو-ڈویلپر» سے شروع یا عمران صاحب کا نمبر 03138469706؛ ہاتھ سے لگا نشان (coDevH) ختم */ return CODEV_RX.test(i.text || '') || digits(i.phone || '').replace(/[^0-9]/g, '').endsWith('3138469706'); }
 function limitsCard() {
   const E = LANG === 'en', L = (PANEL && PANEL.lim) || {};
   /* HD0811SU054 (مالک کا حکم): ہر اکاؤنٹ کی دو پٹیاں — ⏱️ موجودہ 5 گھنٹے کا سیشن (o.s) اور 📅 ہفتہ وار (o.pct)؛ دونوں claude.ai/settings/usage سے ہاتھ سے (کوئی خودکار ذریعہ نہیں) */
@@ -1431,7 +1431,6 @@ function detailHTML() {
   const shots = (DET.blobs || []).filter(b => b.kind === 'shot'), au = (DET.blobs || []).find(b => b.kind === 'audio');
   const E = LANG === 'en';
   return `<div class="det dc"><h2>${appIcon(a, 'appMini')} <span class="dcT">${esc(AN(a))} <span class="num" style="color:var(--mut)">#${i.no}</span></span>
-      ${i.phone && !isOwnIssue(i) ? `<button class="tb ${coDevOf(i) ? 'amb' : ''}" data-act="coDev" title="${E ? 'Mark sender as co-developer' : 'بھیجنے والا کو ڈویلپر'}">👨‍💻${coDevOf(i) ? ' ✓' : ''}</button>` : ''}
       ${retryCorner(i).replace('rsCorner', 'rsCorner inH')}<button class="tb red dcDel" data-act="del" title="${E ? 'Delete' : 'حذف'}">🗑️ ${E ? 'Delete' : 'حذف'}</button><button class="x" data-act="close">✕</button></h2>
     <div class="dcRow">${tyChip(i.type)}${stChip(i.status)}${n ? `<span class="chip work">👋 ${n + 1}</span>` : ''}
       <span class="dcMeta">👤 <b>${esc(i.name)}</b> · <a class="num" href="tel:${esc(i.phone)}">${esc(i.phone)}</a> · <a href="https://wa.me/${waNum(i.phone)}" target="_blank" rel="noopener">💬</a> · <span class="num">${fullDate(i.created)}</span>${i.ver ? ' · <span class="num">' + esc(i.ver) + '</span>' : ''}</span></div>
