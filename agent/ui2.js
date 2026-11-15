@@ -160,7 +160,7 @@ function profHtml(name, lines, acct){
 window.v2Photo = async inp => { const f = inp.files && inp.files[0]; if(!f) return; const d = await shrink(f, 300, .82); try{ localStorage.setItem('agp_photo_' + ROLE, d); }catch(e){} v2Render(); };
 
 /* ---------- ایڈمن 2 ---------- */
-async function cdLoad(){ const c = ls.get('cd') || {}; const r = await post('/fin2', {as:'cd', phone: c.phone, pin: c.pin, op:'me'}); if(!r || !r.ok) return null; CDME = r; return r; }
+async function cdLoad(){ const c = ls.get('cd') || {}; const r = await post('/fin2', {as:'cd', phone: c.phone, pin: c.pin, op:'me'}); if(r && r.reason === 'no_perm'){ CDME = {due: 0, ready: 0, paid: 0, balance: 0, pays: [], months: [], noPerm: 1}; return CDME; } if(!r || !r.ok) return null; CDME = r; return r; }
 
 /* ---------- ایڈمن 1 ---------- */
 let SALE_RO = true;
@@ -383,7 +383,7 @@ function devHome(m, P, reqs, owe){
     <div class="v2sec"><div class="v2sh">${ic('user', 28)}<b>Your Personal Share <small>(Admin 1)</small></b></div><div class="v2sb">
     ${t2([{c:'tp', i:'coins', t:'Admin 1 Share<br>(This Month)', v:R0(T.dev || 0), go:"v2Det('dev')"}, {c:'tb', i:'bars', t:'Admin 2 Share<br>(This Month)', v:R0(T.codev || 0), go:"v2Det('codev')"}, {c:'tg', i:'check', t:m && m.recv ? '✅ Received<br>from Google' : '⏳ Pending<br>from Google', v:R0(m ? (m.recv ? m.recv.amount : m.play - m.gEst) : 0), go:"v2Det('google')"}, {c:'to', i:'wallet', t:'Total Paid<br>to Team', v:R0(paid), go:"v2Det('paid')"}, {c:'tw', i:'wallet', t:'Ready — To Pay', v:R0(owe), go:"v2Det('ready')"}, {btn:"v2Go('pay')", i:'send', t:'Withdrawal<br>Requests', v: String(reqs)}])}</div></div>
     ${sec('cal', 'All Subscriptions History <small>(Company Record)</small>', allSubsTable(m, 5), 'acc')}
-    <div class="v2card"><div class="v2list"><button onclick="v2Go('acc')">💰 This month's accounts / Google receipt / Ads</button><button onclick="v2Go('pay')">✅ Payouts — accounts and QR</button><button onclick="admInbox()">💬 All Chats</button><button onclick="v2Go('agents')">🤝 Agents</button></div></div>`;
+    <div class="v2card"><div class="v2list"><button onclick="v2Go('acc')">💰 This month's accounts / Google receipt / Ads</button><button onclick="v2Go('pay')">✅ Payouts — accounts and QR</button><button onclick="admInbox()">💬 All Chats</button><button onclick="v2Go('agents')">🤝 Agents</button><button onclick="v2Admins()">👥 Admins & Permissions</button><button onclick="v2Rates()">⚖️ Share Rates — % or fixed</button></div></div>`;
 }
 async function v2Render(){
   const rk = ROLEK();
@@ -409,7 +409,7 @@ async function v2Render(){
         : TAB === 'tx' ? txFull(f)
         : TAB === 'earn' ? earnHtml(f) + stmtBtn()
         : TAB === 'prof' ? profHtml((CDV && CDV.name) || 'Admin 2', `<div class="v2mut">📱 <span class="num">${E(ph0(c.phone))}</span></div>`, f.acct)
-        : cdHome(f, FM, c);
+        : f.noPerm ? '<div class="v2card en">🔒 Admin 1 has not given you permission to see accounts. Ask Admin 1 if you need it.</div>' : cdHome(f, FM, c);
       page('codev', body); badge(f.unread); return;
     }
     FMON = FMON || monNow();
@@ -420,7 +420,7 @@ async function v2Render(){
     const body = TAB === 'acc' ? monthHtml(FM, false)
       : TAB === 'pay' ? payoutsHtml(PEOPLE)
       : TAB === 'agents' ? '<div id="v2ag"><div class="v2card">⏳ …</div></div>'
-      : TAB === 'prof' ? profHtml('Admin 1 — PBT Code Labs', '<div class="v2mut">👨‍💻 All agents, accounts and payouts</div><button class="sec" style="margin-top:6px" onclick="v2Log()">📜 Accounts Audit Log</button>', false)
+      : TAB === 'prof' ? profHtml('Admin 1 — PBT Code Labs', '<div class="v2mut">👨‍💻 All agents, accounts and payouts</div><button class="sec" style="margin-top:6px" onclick="v2Admins()">👥 Admins & Permissions</button><button class="sec" style="margin-top:6px" onclick="v2Rates()">⚖️ Share Rates</button><button class="sec" style="margin-top:6px" onclick="v2Log()">📜 Accounts Audit Log</button>', false)
       : devHome(FM, PEOPLE, reqs, owe);
     page('dev', body); if(TAB === 'acc') mcsAdsLoad();
     if(TAB === 'agents'){ const sv = app.innerHTML; await admHome(); const inner = app.innerHTML; app.innerHTML = sv; const el = $('#v2ag'); if(el) el.innerHTML = inner; }
@@ -644,5 +644,82 @@ window.v2AdPick = id => { const a = (MCSADS || []).find(x => +x.id === id); if(!
   $('#xK').value = 'ad'; $('#xA').value = a.price > 0 ? a.price : ''; $('#xB').value = a.title + (a.owner ? ' — ' + a.owner : ''); $('#xRk').value = 'ad:' + a.id; $('#xR').value = '';
   const f = $('#xA').closest('.v2card'); f.scrollIntoView({behavior: 'smooth', block: 'center'}); f.classList.add('hl'); setTimeout(() => f.classList.remove('hl'), 1800);
   toast(a.price > 0 ? 'Check amount and choose «Brought by»' : 'Enter amount and choose «Brought by»'); };
+/* ===== AGP1511SU038 (مالک کا حکم، ہیلپ ڈیسک #263): ایڈمن 1 — 👥 ایڈمنز اور اجازتیں + ⚖️ حصے کی شرحیں (فیصد یا مقررہ رقم، صرف آگے کی فروخت پر) ===== */
+(function(){
+  const PERMS = [['biz','🏪 Add / register businesses'],['agents','🤝 Propose new agents'],['chat','💬 Chats with users & agents'],['help','🛠️ Help Desk reports'],['accounts','💰 Own earnings & withdrawals'],['agview',"📋 See agents' records"],['company','📊 Company totals (all money)']];
+  const modal = (h) => { const b = document.createElement('div'); b.className = 'v2modal'; b.onclick = e => { if(e.target === b) b.remove(); }; b.innerHTML = `<div class="v2card en adm38">${h}</div>`; document.body.appendChild(b); return b; };
+  const close = () => { const m = document.querySelector('.v2modal .adm38'); if(m) m.closest('.v2modal').remove(); };
+  const cd = (body) => admCall('/codevadmin', body);
+  const R = n => 'Rs ' + Math.round(n || 0).toLocaleString('en-US');
+  let AL = [];
+  function admRow(a){
+    const p = a.perms || {}, off = !!a.off;
+    return `<div class="a38" style="border:1.5px solid ${off ? '#fca5a5' : '#86efac'};border-radius:14px;padding:10px;margin:8px 0;background:${off ? '#fef2f2' : '#f0fdf4'}">
+      <div style="display:flex;justify-content:space-between;gap:6px;align-items:center"><b data-noen="1">${E(a.name)}</b><span class="num">${E(ph0(a.phone))}</span></div>
+      <div style="font-size:12px;margin:3px 0">${off ? '⛔ Admin role removed — past earnings kept, no new share' : '✅ Active admin — PIN: <b class="num">' + E(a.pin || '—') + '</b>'}</div>
+      ${off ? '' : `<div style="display:grid;grid-template-columns:1fr;gap:3px;margin:6px 0">${PERMS.map(([k, t]) => `<label style="display:flex;gap:8px;align-items:center;font-size:13px"><input type="checkbox" ${p[k] ? 'checked' : ''} onchange="adm38Perm('${a.phone}','${k}',this.checked)"> ${t}</label>`).join('')}</div>`}
+      <div class="btns" style="flex-wrap:wrap">${off ? `<button onclick="adm38Do('on','${a.phone}')">▶️ Make admin again (new PIN)</button>`
+        : `<button class="sec" onclick="adm38Do('on','${a.phone}')">🔄 New PIN</button><button class="sec" onclick="adm38Wa('${a.phone}')">💬 Send PIN</button><button class="v2del" onclick="adm38Do('off','${a.phone}')">⛔ Remove admin role</button>`}</div></div>`;
+  }
+  function draw(){ const el = document.querySelector('#adm38L'); if(el) el.innerHTML = AL.length ? AL.map(admRow).join('') : '<div class="v2mut">No admins yet</div>'; }
+  window.v2Admins = async () => {
+    modal(`<h2>👥 Admins & Permissions</h2><div class="v2mut" style="font-size:12px">Make any businessman or agent an admin. Tick only the work you allow. Admin 1 (you) always has everything. Their money share is set in <b>⚖️ Share Rates</b>.</div>
+      <div id="adm38L"><div class="v2mut">⏳ …</div></div>
+      <div style="border-top:1px dashed #cbd5e1;margin-top:10px;padding-top:8px"><b>➕ Make a new admin</b>
+        <input id="a38Ph" inputmode="tel" placeholder="Mobile 03XX-XXXXXXX" style="width:100%;margin:5px 0"><input id="a38Nm" placeholder="Name" style="width:100%;margin:5px 0">
+        <div style="display:grid;gap:3px">${PERMS.map(([k, t]) => `<label style="display:flex;gap:8px;align-items:center;font-size:13px"><input type="checkbox" class="a38n" data-k="${k}" ${['biz','chat','help','accounts'].includes(k) ? 'checked' : ''}> ${t}</label>`).join('')}</div>
+        <div class="btns"><button onclick="adm38Add()">✅ Make admin</button></div><div id="a38E" class="v2mut" style="color:#b91c1c"></div></div>
+      <div class="btns"><button class="sec" onclick="v2Rates()">⚖️ Share Rates</button><button class="sec" onclick="this.closest('.v2modal').remove()">✖ Close</button></div>`);
+    try{ const r = await cd({op: 'list'}); AL = (r && r.list) || []; }catch(e){ AL = []; } draw();
+  };
+  window.adm38Perm = async (ph, k, on) => { const a = AL.find(x => x.phone === ph); if(!a) return; const p = Object.assign({}, a.perms, {[k]: on ? 1 : 0}); const r = await cd({op: 'perms', phone: ph, perms: p}); if(r && r.ok){ AL = r.list; toast('✅ Saved'); } else toast('❌ Failed'); };
+  window.adm38Do = async (op, ph) => { const a = AL.find(x => x.phone === ph) || {};
+    if(op === 'off' && !confirm(`⛔ Remove admin role of ${a.name}?\n\n• His past earnings stay safe.\n• From now on he gets no admin share and cannot log in as admin.\n• He stays a normal businessman / agent.`)) return;
+    if(op === 'on' && !a.off && !confirm('Make a new PIN? The old PIN will stop working.')) return;
+    const r = await cd({op, phone: ph}); if(r && r.ok){ AL = r.list; draw(); toast(op === 'off' ? '⛔ Admin role removed' : '✅ Done — new PIN made'); } else toast('❌ Failed'); };
+  window.adm38Wa = (ph) => { const a = AL.find(x => x.phone === ph); if(!a) return; const t = `Assalam o Alaikum ${a.name},\nYou are now an Admin in My City Shines.\nMy Account → Admin Login\nMobile: ${ph0(a.phone)}\nPIN: ${a.pin}`; window.open('https://wa.me/' + a.phone + '?text=' + encodeURIComponent(t), '_blank'); };
+  window.adm38Add = async () => { const ph = $('#a38Ph').value.replace(/\D/g, ''), nm = $('#a38Nm').value.trim(), er = $('#a38E');
+    if(ph.length < 10) return (er.textContent = '⚠️ Enter a correct mobile number'); if(!nm) return (er.textContent = '⚠️ Enter the name');
+    const perms = {}; document.querySelectorAll('.a38n').forEach(c => perms[c.dataset.k] = c.checked ? 1 : 0);
+    if(!confirm(`Make ${nm} (${ph}) an admin?\nHis money share stays 0 until you set it in ⚖️ Share Rates.`)) return;
+    const r = await cd({op: 'add', phone: ph, name: nm, perms}); if(!r || !r.ok) return (er.textContent = r && r.reason === 'self' ? '⚠️ This is Admin 1 (you)' : '❌ Failed');
+    AL = r.list; draw(); $('#a38Ph').value = $('#a38Nm').value = ''; er.textContent = ''; toast('✅ New admin made — send the PIN'); };
+
+  /* ---------- ⚖️ شرحیں ---------- */
+  let RU = null;
+  const row = (id, t, sub, x) => `<div class="r38" style="display:grid;grid-template-columns:1fr 64px 80px;gap:6px;align-items:center;margin:6px 0"><div><b>${t}</b><div class="v2mut" style="font-size:11px">${sub}</div></div>
+    <select id="${id}T" onchange="rt38Prev()"><option value="p" ${x.t !== 'f' ? 'selected' : ''}>%</option><option value="f" ${x.t === 'f' ? 'selected' : ''}>Rs</option></select>
+    <input id="${id}V" type="number" min="0" step="0.5" value="${x.v != null ? x.v : 0}" oninput="rt38Prev()" class="num" style="width:100%"></div>`;
+  const val = (x, amount, k) => x.t === 'f' ? Math.round((+x.v || 0) * k) : Math.round(amount * Math.min(100, +x.v || 0) / 100);
+  function read(){ const g = id => ({t: $('#' + id + 'T').value, v: +$('#' + id + 'V').value || 0}); const adm = {};
+    (RU.admins || []).filter(a => !a.off).forEach(a => adm[a.phone] = g('a' + a.phone)); return {google: g('g'), maint: g('m'), bring: g('b'), adm}; }
+  function sim(r, src, by, amount){ const k = amount / (RU.price || 1000); let left = amount; const take = n => { n = Math.max(0, Math.min(left, Math.round(n))); left -= n; return n; };
+    const o = {google: 0, maint: 0, bring: 0, adm: {}}; const g = val(r.google, amount, k), m = val(r.maint, amount, k);
+    if(src === 'play'){ o.google = take(g); o.maint = take(m); } else o.maint = take(m + g);
+    if(by !== 'pbt') o.bring = take(val(r.bring, amount, k)); const rest = left;
+    for(const ph in r.adm){ const x = r.adm[ph]; o.adm[ph] = take(x.t === 'f' ? val(x, amount, k) : Math.round(rest * Math.min(100, +x.v || 0) / 100)); }
+    o.dev = left; return o; }
+  window.rt38Prev = () => { const r = read(), nm = ph => (RU.admins.find(a => a.phone === ph) || {}).name || ph;
+    const one = (lbl, src, by) => { const s = sim(r, src, by, RU.price || 1000);
+      return `<div style="background:#f8fafc;border-radius:10px;padding:8px;margin:5px 0;font-size:12.5px"><b>${lbl}</b><br>${src === 'play' ? `Google ${R(s.google)} · ` : ''}Maintenance ${R(s.maint)} · ${by === 'agent' ? `Agent ${R(s.bring)} · ` : ''}${Object.keys(s.adm).map(ph => `<span data-noen="1">${E(nm(ph))}</span> ${R(s.adm[ph])}`).join(' · ')}${Object.keys(s.adm).length ? ' · ' : ''}<b>Admin 1 ${R(s.dev)}</b></div>`; };
+    const pT = ['google', 'maint', 'bring'].map(k => r[k]).filter(x => x.t === 'p').reduce((a, x) => a + x.v, 0), pA = Object.values(r.adm).filter(x => x.t === 'p').reduce((a, x) => a + x.v, 0);
+    $('#rt38P').innerHTML = `<b>👁️ Example — one membership ${R(RU.price || 1000)}</b>${one('Google Play, brought by an agent', 'play', 'agent')}${one('Google Play, no agent (PBT)', 'play', 'pbt')}${one('Direct payment, brought by an agent', 'direct', 'agent')}
+      ${pT > 100 || pA > 100 ? '<div style="color:#b91c1c;font-weight:700">⚠️ Percent is more than 100 — fix it</div>' : ''}`; };
+  window.v2Rates = async () => { close(); const r = await finCall({op: 'rules'}); if(!r || !r.ok) return toast('❌ Could not load'); RU = r; const c = r.cur || {}, live = (r.admins || []).filter(a => !a.off);
+    modal(`<h2>⚖️ Share Rates</h2><div class="v2mut" style="font-size:12px">Each share can be a <b>percent</b> or a <b>fixed amount</b> (per membership year / per ad). New rates apply only to sales <b>from now on</b> — old sales and paid money never change.</div>
+      ${row('g', 'Google', 'Only on Google Play sales — % of full amount', c.google || {t:'p', v:15})}
+      ${row('m', 'Maintenance', 'Server & running cost — % of full amount', c.maint || {t:'p', v:15})}
+      ${row('b', 'Bringer (Agent)', 'Who brought the business — % of full amount', c.bring || {t:'p', v:15})}
+      <div style="border-top:1px dashed #cbd5e1;margin:8px 0 2px;padding-top:6px"><b>Admins</b> <span class="v2mut" style="font-size:11px">% = of the amount left after Google, Maintenance and Bringer. Whatever is left goes to Admin 1.</span></div>
+      ${live.map(a => row('a' + a.phone, `<span data-noen="1">${E(a.name)}</span>`, ph0(a.phone), (c.adm || {})[a.phone] || {t:'p', v:0})).join('') || '<div class="v2mut">No admins — 👥 Admins & Permissions</div>'}
+      <div id="rt38P"></div>
+      <div class="btns"><button onclick="rt38Save()">💾 Save new rates</button><button class="sec" onclick="v2Admins()">👥 Admins</button><button class="sec" onclick="this.closest('.v2modal').remove()">✖ Close</button></div>
+      <details style="margin-top:8px"><summary>📜 Rate history (${(r.rules || []).length})</summary>${(r.rules || []).map(x => `<div style="font-size:11.5px;border-bottom:1px solid #e2e8f0;padding:4px 0">${new Date(x.at).toLocaleString('en-GB')} — Google ${x.google.t === 'f' ? 'Rs ' + x.google.v : x.google.v + '%'}, Maint ${x.maint.t === 'f' ? 'Rs ' + x.maint.v : x.maint.v + '%'}, Bringer ${x.bring.t === 'f' ? 'Rs ' + x.bring.v : x.bring.v + '%'}${Object.keys(x.adm || {}).map(ph => ', ' + E(((r.admins || []).find(a => a.phone === ph) || {}).name || ph) + ' ' + (x.adm[ph].t === 'f' ? 'Rs ' + x.adm[ph].v : x.adm[ph].v + '%')).join('')}</div>`).join('') || '<div class="v2mut">Old rates (15 / 15 / 15, rest half-half)</div>'}</details>`);
+    rt38Prev(); };
+  window.rt38Save = async () => { const r = read();
+    if(!confirm('Save the new rates?\n\nThey apply only to sales from this moment.\nOld sales and money already earned will not change.')) return;
+    const x = await finCall({op: 'rulesave', rule: r}); if(!x || !x.ok) return toast(x && x.reason === 'adm_over' ? '⚠️ Admins percent is more than 100' : x && x.reason === 'top_over' ? '⚠️ Google + Maintenance + Bringer more than 100%' : '❌ Not saved');
+    FM = null; toast('✅ New rates saved — from now on'); close(); v2Rates(); };
+})();
 })();
 

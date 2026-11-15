@@ -208,3 +208,7 @@ body.v2,.v2card,.v2note,.v2ok,.v2warn,.v2mut,.v2list button,.lu,.lrem,.lfg,.v2ro
 .qm-v{font-weight:700;color:#0b1f4d;white-space:nowrap}.qm-v small{opacity:.6;font-weight:600}
 .qm-f{font-size:11px;color:#475569;margin-top:6px;line-height:1.4}.qm-l{font-size:13px;color:#475569;padding:6px 0}
 @media (max-width:380px){.qm-r{grid-template-columns:66px 1fr auto;font-size:11.5px}}
+/* AGP1511SU038: ایڈمنز / شرحیں */
+.adm38 label{display:flex!important;flex-direction:row!important;justify-content:flex-start!important;align-items:center!important;text-align:left!important;gap:10px!important;width:100%;margin:0!important;padding:5px 2px!important;line-height:1.3!important}
+.adm38 input[type=checkbox]{width:22px!important;height:22px!important;min-height:0!important;flex:0 0 22px!important;margin:0!important;padding:0!important}
+.adm38 .r38 select,.adm38 .r38 input{min-width:0;padding:8px 6px!important;font-size:15px}
