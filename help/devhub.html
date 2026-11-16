@@ -35,7 +35,9 @@ label{display:block;font-weight:700;font-size:15px;margin-top:8px}
 .app a.op{flex:0 0 auto;text-decoration:none;background:linear-gradient(135deg,#7c3aed,#4c1d95);color:#fff;border-radius:12px;padding:4px 12px 7px;font-size:16px;white-space:nowrap}
 .ok{color:#15803d}.bad{color:#b91c1c}.wait{color:#b45309}
 .fix{display:none;margin-top:6px;gap:6px}
-.fix.on{display:flex}
+.fix.on{display:flex;flex-wrap:wrap}
+.fix .rs{flex:1 1 100%;background:#1d4ed8;padding:8px 12px}
+.fix .hint{flex:1 1 100%;font-size:13px;color:#475569;direction:rtl}
 .fix input{flex:1;min-width:0;padding:7px;border:2px solid #fca5a5;border-radius:10px;font-size:16px;direction:ltr;text-align:center;font-family:Arial}
 .fix button{border:0;border-radius:10px;background:#b91c1c;color:#fff;font:inherit;font-size:15px;padding:0 12px;cursor:pointer}
 </style>
@@ -74,11 +76,11 @@ label{display:block;font-weight:700;font-size:15px;margin-top:8px}
   const $ = id => document.getElementById(id);
   // kind: 'fb' = فائربیس اکاؤنٹ کا پاس ورڈ (یہ صفحہ بدلتا ہے)؛ 'hub' = فون میں — مشترکہ پاس ورڈ مانتا ہے
   const APPS = [
-    { k: 'SM', n: 'سبزی منڈی', img: '../img/sm.webp', url: '../SM/?devpanel=1', fb: { key: 'AIzaSyAfvu0JOHGgNzp9HEcRpCnE40jSN2X2n7w', em: 'P' }, hub: 1 },
-    { k: 'FM', n: 'فروٹ منڈی', img: '../img/fm.webp', url: '../FM/?devpanel=1', fb: { key: 'AIzaSyAMmL3RfVrS6ff95rz18WKxRU265lKv3gE', em: 'P' }, hub: 1 },
-    { k: 'AB', n: 'آڑھت بک', img: '../AB/icons/icon-192.png', url: '../AB/?devpanel=1', fb: { key: 'AIzaSyCPZz36-BqYN4_sJmLkN4KuP93W3T13AaI', em: 'P' } },
-    { k: 'DR', n: 'AIO POS ڈائریکٹ', img: '../img/aiodirect.webp', url: '../AIO-POS-DIRECT/?devpanel=1', fb: { key: 'AIzaSyBdoyFrqJ67OonYVIoCM6rjeBDI1hZBGKE', email: 'developer@aioposdirect.app' } },
-    { k: 'MCS', n: 'سٹی شائنز (ایڈمن)', img: '../img/mcs.webp', url: '../MCS/?devpanel=1', fb: { key: 'AIzaSyAvu8ymIZAGEPaYwd_LBJzKS2lZ3Q4_Mog', em: 'C' } },
+    { hint: 'پرانا = سبزی منڈی کے ڈویلپر پینل والا پاس ورڈ', k: 'SM', n: 'سبزی منڈی', img: '../img/sm.webp', url: '../SM/?devpanel=1', fb: { key: 'AIzaSyAfvu0JOHGgNzp9HEcRpCnE40jSN2X2n7w', em: 'P' }, hub: 1 },
+    { hint: 'پرانا = فروٹ منڈی کے ڈویلپر پینل والا پاس ورڈ', k: 'FM', n: 'فروٹ منڈی', img: '../img/fm.webp', url: '../FM/?devpanel=1', fb: { key: 'AIzaSyAMmL3RfVrS6ff95rz18WKxRU265lKv3gE', em: 'P' }, hub: 1 },
+    { hint: 'پرانا = آڑھت بک کے ڈویلپر لاگ اِن والا', k: 'AB', n: 'آڑھت بک', img: '../AB/icons/icon-192.png', url: '../AB/?devpanel=1', fb: { key: 'AIzaSyCPZz36-BqYN4_sJmLkN4KuP93W3T13AaI', em: 'P' } },
+    { hint: 'پرانا = Direct کے ڈویلپر پینل والا پاس ورڈ', k: 'DR', n: 'AIO POS ڈائریکٹ', img: '../img/aiodirect.webp', url: '../AIO-POS-DIRECT/?devpanel=1', fb: { key: 'AIzaSyBdoyFrqJ67OonYVIoCM6rjeBDI1hZBGKE', email: 'developer@aioposdirect.app' } },
+    { hint: 'پرانا = سٹی شائنز کے ایڈمن لاگ اِن والا', k: 'MCS', n: 'سٹی شائنز (ایڈمن)', img: '../img/mcs.webp', url: '../MCS/?devpanel=1', fb: { key: 'AIzaSyAvu8ymIZAGEPaYwd_LBJzKS2lZ3Q4_Mog', em: 'C' } },
     { k: 'AIO', n: 'AIO POS', img: '../img/aio.webp', url: '../AIO/?devpanel=1', hub: 1 },
     { k: 'DG', n: 'جی جی کھاتہ بک', img: '../img/dg.webp', url: '../DG/?devpanel=1', hub: 1 },
     { k: 'MD', n: 'مدرسہ', img: '../img/hifz.webp', url: '../Hifz-progress/?devpanel=1', hub: 1 },
@@ -97,7 +99,7 @@ label{display:block;font-weight:700;font-size:15px;margin-top:8px}
       const type = a.fb ? (a.hub ? 'فائربیس + فون کا پینل' : 'فائربیس اکاؤنٹ') : (a.hub ? 'فون کا پینل (اسی فون پر)' : (a.note || ''));
       const st = s ? '<div class="st ' + s.c + '">' + s.t + '</div>' : (d ? '<div class="st ok">✅ نیا پاس ورڈ لگ چکا — ' + fmtD(d) + '</div>' : '');
       return '<div class="app"><img src="' + a.img + '" alt=""><div class="t"><b>' + a.n + '</b><small>' + type + '</small>' + st
-        + (a.fb ? '<div class="fix' + (s && s.fix ? ' on' : '') + '" id="fx_' + a.k + '"><input type="password" placeholder="اس اکاؤنٹ کا پرانا پاس ورڈ" id="fxi_' + a.k + '"><button type="button" data-fix="' + a.k + '">دوبارہ</button></div>' : '')
+        + (a.fb ? '<div class="fix' + (s && s.fix ? ' on' : '') + '" id="fx_' + a.k + '"><input type="password" placeholder="اس اکاؤنٹ کا پرانا پاس ورڈ" id="fxi_' + a.k + '"><button type="button" data-fix="' + a.k + '">دوبارہ</button>' + (a.fb.email ? '' : '<button type="button" class="rs" data-reset="' + a.k + '">📧 بھول گئے؟ ای میل پر لنک</button>') + '<div class="hint">' + (a.hint || '') + (emailOf(a) ? ' · ' + emailOf(a) : '') + '</div></div>' : '')
         + '</div><a class="op" href="' + a.url + '" target="_blank" rel="noopener">🛠️ کھولیں</a></div>';
     }).join('');
   }
@@ -106,10 +108,14 @@ label{display:block;font-weight:700;font-size:15px;margin-top:8px}
     const eye = e.target.closest('[data-eye]');
     if(eye){ const i = $(eye.dataset.eye); i.type = i.type === 'password' ? 'text' : 'password'; eye.textContent = i.type === 'password' ? '👁' : '🙈'; return; }
     const fx = e.target.closest('[data-fix]');
-    if(fx){ const a = APPS.find(x => x.k === fx.dataset.fix); const old = ($('fxi_' + a.k).value || '').trim(); if(old) fbOne(a, old).then(draw); }
+    if(fx){ const a = APPS.find(x => x.k === fx.dataset.fix); const old = ($('fxi_' + a.k).value || '').trim(); if(!old) return;
+      if(!NEWPW){ const p = (prompt('نیا پاس ورڈ (جو سب جگہ لگانا ہے) دوبارہ لکھیں:') || '').trim(); if(p.length < 6) return; NEWPW = p; }
+      fbOne(a, old).then(draw); return; }
+    const rs = e.target.closest('[data-reset]');
+    if(rs){ const a = APPS.find(x => x.k === rs.dataset.reset); resetMail(a).then(draw); }
   });
   async function sha(t){ const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)); return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join(''); }
-  const emailOf = a => a.fb.email || ($(a.fb.em === 'P' ? 'emP' : 'emC').value || '').trim().toLowerCase();
+  function emailOf(a){ return a.fb.email || ($(a.fb.em === 'P' ? 'emP' : 'emC').value || '').trim().toLowerCase(); }
   let NEWPW = '';
   async function signIn(key, email, pw){
     const r = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=' + key, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: pw, returnSecureToken: true }) });
@@ -117,6 +123,16 @@ label{display:block;font-weight:700;font-size:15px;margin-top:8px}
     return r.ok ? { ok: true, tok: d.idToken } : { ok: false, err: (d.error && d.error.message) || ('HTTP ' + r.status) };
   }
   const why = e => /INVALID_PASSWORD|INVALID_LOGIN_CREDENTIALS/.test(e) ? 'پرانا پاس ورڈ اس اکاؤنٹ کا نہیں' : /EMAIL_NOT_FOUND/.test(e) ? 'یہ Gmail اس ایپ میں نہیں' : /TOO_MANY/.test(e) ? 'بہت زیادہ کوششیں — کچھ دیر بعد' : /USER_DISABLED/.test(e) ? 'اکاؤنٹ بند ہے' : /WEAK_PASSWORD/.test(e) ? 'نیا پاس ورڈ کمزور ہے (کم از کم 6)' : /Failed to fetch|NetworkError/i.test(e) ? 'انٹرنیٹ نہیں' : e;
+  async function resetMail(a){
+    const email = emailOf(a);
+    if(!email){ ST[a.k] = { c: 'bad', t: '❌ Gmail اوپر لکھیں', fix: 1 }; return; }
+    if(!confirm('📧 ' + email + ' پر پاس ورڈ بدلنے کا لنک جائے گا۔\nلنک کھول کر وہاں وہی نیا پاس ورڈ لکھیں جو اوپر سب جگہ لگایا ہے۔\n\nبھیجیں؟')) return;
+    try{
+      const r = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=' + a.fb.key, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ requestType: 'PASSWORD_RESET', email }) });
+      const d = await r.json().catch(() => ({}));
+      ST[a.k] = r.ok ? { c: 'wait', t: '📧 لنک بھیج دیا — ' + email + ' کا ان باکس (Spam بھی) دیکھیں، وہاں نیا پاس ورڈ لکھیں', fix: 1 } : { c: 'bad', t: '❌ ' + why((d.error && d.error.message) || ('HTTP ' + r.status)), fix: 1 };
+    }catch(e){ ST[a.k] = { c: 'bad', t: '❌ ' + why(String(e && e.message || e)), fix: 1 }; }
+  }
   async function fbOne(a, old){
     const email = emailOf(a);
     if(!email){ ST[a.k] = { c: 'bad', t: '❌ Gmail اوپر لکھیں' }; return; }
