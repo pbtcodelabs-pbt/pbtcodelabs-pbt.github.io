@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1611MO105';
-const UPDATE_NOTE = '🔐 ڈویلپر پینل: ایپس کی فہرست سب سے اوپر؛ پاس ورڈ بدلنا نیچے ایک بٹن میں';  const UPDATE_NOTE_OLD = '↕️ ایپس کی ترتیب: «OK ✔» دبانے پر پکی محفوظ (فون + فائربیس) — بند کر کے کھولیں تو وہی ترتیب رہتی ہے';
+const APP_VERSION = 'HD1611MO106';
+const UPDATE_NOTE = '🔐 ڈویلپر پینل: ہر ایپ کا اردو + انگلش نام، صاف آئیکن، ▲▼ سے ترتیب بدلیں';  const UPDATE_NOTE_OLD = '↕️ ایپس کی ترتیب: «OK ✔» دبانے پر پکی محفوظ (فون + فائربیس) — بند کر کے کھولیں تو وہی ترتیب رہتی ہے';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
