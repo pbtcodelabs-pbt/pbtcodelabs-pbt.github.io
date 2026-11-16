@@ -2,7 +2,7 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1611MO099';
+const APP_VERSION = 'HD1611MO100';
 const UPDATE_NOTE = '🎬 نئی ویڈیو: My City Shines — نیا کاروبار کیسے رجسٹر کریں (سائن اپ سے لائیو تک)';  const UPDATE_NOTE_OLD = '↕️ ایپس کی ترتیب: «OK ✔» دبانے پر پکی محفوظ (فون + فائربیس) — بند کر کے کھولیں تو وہی ترتیب رہتی ہے';
 const DEV_PHONE = '03206793793';
 
@@ -649,6 +649,7 @@ function zipSheet() {
       <button class="zpA" data-act="zipGo" data-id="${esc(a.id)}">${appIcon(a, 'appMini')}<span><b>${esc(ZN(a))}</b><small class="num">${c && c.err ? '⚠️ ' + esc(c.err) : c && c.busy ? '⏳ ' + esc(c.busy) : zipLbl(a.id, c)}</small></span></button>
       ${c && c.blob ? `<button class="tb grn" data-act="zipDl" data-id="${esc(a.id)}">⬇️ ${esc(c.ver)}.zip</button>` : ''}
       <button class="tb" style="background:#1d4ed8;color:#fff;border-color:#1d4ed8" data-act="zipUp" data-id="${esc(a.id)}">⬆️ Upload zip</button>
+      <button class="tb" style="background:#7c2d12;color:#fff;border-color:#7c2d12" data-act="zipSrv" data-id="${esc(a.id)}">📦🖥️ Zip + worker.js</button>
       <button class="tb zpRf" data-act="zipRf" data-id="${esc(a.id)}">🔄 Refresh</button>
       ${zpgHtml(a.id)}
       ${ZUP[a.id] ? `<div class="zpU" dir="auto">${esc(ZUP[a.id])}</div>` : ''}
@@ -656,13 +657,38 @@ function zipSheet() {
   if (ZMOVED) { const r = document.querySelector(`#sheet [data-zi="${(window.CSS && CSS.escape) ? CSS.escape(ZMOVED) : ZMOVED}"]`); if (r && r.scrollIntoView) r.scrollIntoView({ block: 'nearest' }); ZMOVED = ''; }
 }
 /* HD1111WE079 (مالک کا حکم): غلطی سے ہاتھ لگنے پر کام شروع نہ ہو — ایک بار «Are you sure?»؛ پن / کوڈ نہیں، صرف OK */
-const zipAsk = (a, what, ver) => confirm(what === 'dl'
-  ? `⬇️ Download the latest ${ZN(a)} zip\n\n📦 Version: ${ver || '(checking…)'}\n\nDo you really want to download ${ver ? ver + '.zip' : 'it'}?`
-  : `⬆️ Do you really want to upload a zip to ${ZN(a)}?`);
+/* HD1611MO100 (مالک کا حکم): ڈاؤن لوڈ کے پاپ اپ میں نمبر کے آگے 📋 Copy — تاکہ ڈاؤن لوڈ مینیجر میں سرچ کر کے دیکھ سکیں کہ زپ پہلے سے موجود تو نہیں */
+function zipCopy(t) {
+  const ok = () => toast('📋 Copied: ' + t);
+  try { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(t).then(ok, () => zipCopyOld(t, ok)); return; } } catch (e) {}
+  zipCopyOld(t, ok);
+}
+function zipCopyOld(t, ok) {
+  try { const x = document.createElement('textarea'); x.value = t; x.style.cssText = 'position:fixed;opacity:0;left:0;top:0'; document.body.appendChild(x); x.focus(); x.select(); document.execCommand('copy'); x.remove(); ok(); }
+  catch (e) { toast('⚠️ Copy failed'); }
+}
+function zipAsk(a, what, ver) {
+  return new Promise(res => {
+    const o = document.createElement('div'); o.className = 'zipEn';
+    o.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;padding:18px';
+    const dl = what === 'dl' || what === 'pack', nm = esc(ZN(a));
+    o.innerHTML = `<div dir="ltr" style="background:#fff;color:#0f172a;border-radius:16px;padding:18px;max-width:420px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.35)">
+      <h2 style="margin:0 0 10px;font-size:18px">${what === 'pack' ? '📦🖥️ Zip + server — ' : dl ? '⬇️ Download the latest ' : '⬆️ Upload a zip to '}${nm}${dl && what !== 'pack' ? ' zip' : ''}</h2>
+      ${dl ? `<div style="display:flex;gap:8px;align-items:center;margin:0 0 12px"><div style="flex:1;background:#f1f5f9;border-radius:10px;padding:10px 12px;font-size:16px;font-weight:700;word-break:break-all;user-select:all;-webkit-user-select:all">📦 ${esc(ver || '(checking…)')}</div>${ver ? `<button type="button" class="zAkCp" style="border:0;border-radius:10px;padding:11px 14px;background:#0f766e;color:#fff;font:inherit;font-size:15px;font-weight:700;cursor:pointer">📋 Copy</button>` : ''}</div>
+      <p style="margin:0 0 14px;font-size:14px;color:#475569">${what === 'pack' ? 'Do you really want to download this app + server in one zip?' : `Do you really want to download ${ver ? esc(ver) + '.zip' : 'it'}?`}${ver ? '<br>Tip: copy the number and search it in your download manager — you may already have this zip.' : ''}</p>` : `<p style="margin:0 0 14px;font-size:14px;color:#475569">Do you really want to upload a zip to ${nm}?</p>`}
+      <div style="display:flex;gap:10px"><button type="button" class="zAkNo" style="flex:1;border:1px solid #cbd5e1;border-radius:10px;padding:12px;background:#fff;font:inherit;font-size:15px;font-weight:700;cursor:pointer">✕ No</button><button type="button" class="zAkYes" style="flex:1;border:0;border-radius:10px;padding:12px;background:#16a34a;color:#fff;font:inherit;font-size:15px;font-weight:700;cursor:pointer">✓ Yes</button></div></div>`;
+    const done = v => { o.remove(); res(v); };
+    o.querySelector('.zAkYes').onclick = () => done(true);
+    o.querySelector('.zAkNo').onclick = () => done(false);
+    const cp = o.querySelector('.zAkCp'); if (cp) cp.onclick = () => zipCopy(ver);
+    o.addEventListener('click', e => { if (e.target === o) done(false); });
+    document.body.appendChild(o);
+  });
+}
 async function zipGo(id) {
   const a = id === 'HD' ? { id: 'HD', ur: 'ہیلپ ڈیسک', en: 'PBT Help Desk', repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io' } : appOf(id);
   try { await Promise.race([zipLatestOne(id, a.repo), sleep(2500)]); } catch (e) {}   /* پوچھنے سے پہلے تازہ ترین نمبر */
-  if (!zipAsk(a, 'dl', LATEST[id] || '')) return;
+  if (!(await zipAsk(a, 'dl', LATEST[id] || ''))) return;
   const g = ZGEN[id] || 0; ZIPC[id] = { busy: '…' }; ZPG[id] = { pct: 0 }; zipSheet();
   try { const r = await HDZips.build(id, a.repo, (st, p) => { if ((ZGEN[id] || 0) !== g) return; ZIPC[id] = { busy: st }; if (p != null) ZPG[id] = { pct: p }; zipSheet(); }); if ((ZGEN[id] || 0) !== g) return; ZIPC[id] = r; if (r.ver) LATEST[id] = r.ver; ZPG[id] = { pct: 100 }; zipSheet(); zipDl(id, true); }
   catch (e) { if ((ZGEN[id] || 0) !== g) return; delete ZPG[id]; ZIPC[id] = { err: (navigator.onLine ? '' : (LANG === 'en' ? 'offline — ' : 'انٹرنیٹ نہیں — ')) + String(e && e.message || e).slice(0, 60) }; zipSheet(); }
@@ -678,9 +704,9 @@ async function zipRf(id) {
   if (LATEST[id] === undefined) LATEST[id] = '';
   zipSheet(); toast('✅ ' + ZN(a) + (LATEST[id] ? ' · ' + LATEST[id] : ''));
 }
-function zipDl(id, noAsk) {
+async function zipDl(id, noAsk) {
   const c = ZIPC[id]; if (!c || !c.blob) return;
-  if (!noAsk && !zipAsk(id === 'HD' ? { en: 'PBT Help Desk' } : appOf(id), 'dl', c.ver)) return;
+  if (!noAsk && !(await zipAsk(id === 'HD' ? { en: 'PBT Help Desk' } : appOf(id), 'dl', c.ver))) return;
   const u = URL.createObjectURL(c.blob), l = document.createElement('a'); l.href = u; l.download = c.ver + '.zip'; document.body.appendChild(l); l.click(); l.remove();
   setTimeout(() => URL.revokeObjectURL(u), 60000); toast('⬇️ ' + c.ver + '.zip');
 }
@@ -741,27 +767,32 @@ async function srvDl() {
 }
 /* HD1511SU096 (مالک کا حکم): Claude کو دینے کے لیے ایک ہی زپ — MCS کی سب فائلیں جڑ میں + `server/worker.js` + READ-ME (کیا کہاں اپلوڈ ہوتا ہے)۔
    اپلوڈ الگ الگ ہی: ایپ کی زپ «⬆️ Upload zip» (MCS ریپو)، worker.js «⬆️ Upload changed worker.js» (AIO ریپو) — اسی لیے یہ زپ «Upload zip» میں قبول نہیں */
-async function srvPack() {
+/* HD1611MO100 (مالک کا حکم): یہی «زپ + سرور» اب ہر ایپ کی قطار میں — اس ایپ کی سب فائلیں جڑ میں + `server/worker.js`؛ سرور کا پتہ ZA[id].srv میں ہو تو وہ، ورنہ وہی AIO والا worker.js */
+async function srvPackFor(id, fromRow) {
   if (!window.HDZips) return;
-  srvSet('⏳ Reading My City Shines + server from GitHub…');
+  const a = id === 'HD' ? { id: 'HD', ur: 'ہیلپ ڈیسک', en: 'PBT Help Desk', repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io' } : (appOf(id) || { id, en: id, repo: '' });
+  const sv = Object.assign({}, SRV, (HDZips.ZA[id] && HDZips.ZA[id].srv) || {}), nm = ZN(a);
+  const say = m => { if (fromRow) zpUpd(id, null, m); else srvSet(m); };
+  if (fromRow) { try { await Promise.race([zipLatestOne(id, a.repo), sleep(2500)]); } catch (e) {} if (!(await zipAsk(a, 'pack', LATEST[id] || ''))) return; ZPG[id] = { pct: 0 }; }
+  say('⏳ Reading ' + nm + ' + server from GitHub…');
   try {
-    const a = appOf('MCS') || { repo: 'pbtcodelabs-pbt/MCS' };
-    const [m, w] = await Promise.all([HDZips.build('MCS', a.repo, st => srvSet('⏳ My City Shines ' + st)), fetch(`https://raw.githubusercontent.com/${SRV.repo}/main/${SRV.path}?t=${Date.now()}`, { cache: 'no-store' }).then(r => { if (!r.ok) throw new Error('worker.js ' + r.status); return r.arrayBuffer(); })]);
-    const enc = new TextEncoder(), name = m.ver + '+server';
-    const readme = `${name}\n\n=== RULES FOR CLAUDE (must follow) ===\n` +
-      `Files here:\n- Root files (index.html, sw.js, manifest.json …) = My City Shines app (repo pbtcodelabs-pbt/MCS).\n- server/worker.js = Cloudflare server (repo pbtcodelabs-pbt/AIO, cloudflare-worker/worker.js).\n\n` +
+    const [m, w] = await Promise.all([HDZips.build(id, a.repo, (st, p) => { say('⏳ ' + nm + ' ' + st); if (fromRow && p != null) zpUpd(id, p); }), fetch(`https://raw.githubusercontent.com/${sv.repo}/main/${sv.path}?t=${Date.now()}`, { cache: 'no-store' }).then(r => { if (!r.ok) throw new Error('worker.js ' + r.status + ' (' + sv.repo + '/' + sv.path + ')'); return r.arrayBuffer(); })]);
+    const enc = new TextEncoder(), name = m.ver + '+server', repoOf = (m.repo || a.repo);
+    const readme = `${name}\n\n=== RULES FOR CLAUDE (must follow) ===\nFiles here:\n- Root files (index.html, sw.js …) = ${nm} app (repo ${repoOf}).\n- server/worker.js = Cloudflare server (repo ${sv.repo}, ${sv.path}).\n\n` +
       `Give back ONLY the files you actually changed. NEVER return an unchanged file.\n\n` +
-      `A) If you changed the APP: return ONE zip named with the NEW app version, e.g. MCS1511SU433.zip.\n   - Inside: only the changed app files, at the root (always index.html + sw.js, because the version changes in both).\n   - NO server folder, NO worker.js, NO unchanged files, NO READ-ME.\n   - Owner uploads it: Help Desk -> Latest zip -> My City Shines -> Upload zip.\n\n` +
+      `A) If you changed the APP: return ONE zip named with the NEW app version (same pattern as ${m.ver}).\n   - Inside: only the changed app files, at the root (always index.html + sw.js, because the version changes in both).\n   - NO server folder, NO worker.js, NO unchanged files, NO READ-ME.\n   - Owner uploads it: Help Desk -> Latest zip -> ${nm} -> Upload zip.\n\n` +
       `B) If you changed the SERVER: return worker.js ALONE (not zipped, not inside the app zip).\n   - Owner uploads it: Help Desk -> Latest zip -> Server file -> Upload changed worker.js.\n\n` +
       `C) If you did not change one of them, do NOT return it at all.\n\n` +
-      `At the end, tell the owner in Urdu exactly, e.g.:\n  📦 MCS1511SU433.zip  ->  «Upload zip» (My City Shines)\n  🖥️ worker.js        ->  «Server file → Upload changed worker.js»\n  ❌ (not changed — nothing to upload): …\n\n` +
-      `=== مالک کے لیے ===\nClaude صرف بدلی ہوئی فائلیں واپس دے گا اور آخر میں لکھے گا کون سی کہاں اپلوڈ کرنی ہے۔ زپ (MCS…zip) → «Upload zip»، worker.js → «Server file»۔ جو نہ ملے وہ نہیں بدلی۔\n`;
+      `At the end, tell the owner in Urdu exactly which file goes where, and which one was not changed.\n\n` +
+      `=== مالک کے لیے ===\nClaude صرف بدلی ہوئی فائلیں واپس دے گا اور آخر میں لکھے گا کون سی کہاں اپلوڈ کرنی ہے۔ ایپ کی زپ → «Upload zip»، worker.js → «Server file»۔ جو نہ ملے وہ نہیں بدلی۔\n`;
     const files = [...m.files, { name: 'server/worker.js', data: new Uint8Array(w) }, { name: 'READ-ME.txt', data: enc.encode(readme) }];
     const u = URL.createObjectURL(HDZips.zip(files)), l = document.createElement('a');
     l.href = u; l.download = name + '.zip'; document.body.appendChild(l); l.click(); l.remove(); setTimeout(() => URL.revokeObjectURL(u), 60000);
-    srvSet('✅ ' + name + '.zip downloaded (' + files.length + ' files).\nUpload back SEPARATELY: app zip → «Upload zip», worker.js → «Upload changed worker.js».');
-  } catch (e) { srvSet('❌ ' + (navigator.onLine ? (e && e.message || e) : 'No internet')); }
+    if (fromRow) zpUpd(id, 100);
+    say('✅ ' + name + '.zip downloaded (' + files.length + ' files).\nUpload back SEPARATELY: app zip → «Upload zip», worker.js → «Upload changed worker.js».');
+  } catch (e) { if (fromRow) { delete ZPG[id]; } say('❌ ' + (navigator.onLine ? (e && e.message || e) : 'No internet')); }
 }
+const srvPack = () => srvPackFor('MCS', false);
 /* زپ کے اندر فائلوں کے نام (central directory سے) */
 function zipNames(u) {
   const dv = new DataView(u.buffer, u.byteOffset, u.byteLength); let e = -1;
@@ -2050,6 +2081,7 @@ document.addEventListener('click', async e => {
     case 'srv': srvSheet(); break;
     case 'srvDl': srvDl(); break;
     case 'srvPack': srvPack(); break;
+    case 'zipSrv': srvPackFor(id, true); break;
     case 'srvUp': srvUp(); break;
     case 'zipRf': zipRf(id); break;
     case 'ghTok': ghTokSheet(); break;
