@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1611MO100';
-const UPDATE_NOTE = '🎬 نئی ویڈیو: My City Shines — نیا کاروبار کیسے رجسٹر کریں (سائن اپ سے لائیو تک)';  const UPDATE_NOTE_OLD = '↕️ ایپس کی ترتیب: «OK ✔» دبانے پر پکی محفوظ (فون + فائربیس) — بند کر کے کھولیں تو وہی ترتیب رہتی ہے';
+const APP_VERSION = 'HD1611MO101';
+const UPDATE_NOTE = '⬆️🖥️ «تازہ زپ» میں ہر ایپ کے ساتھ نیا worker.js اپلوڈ کرنے کا بٹن';  const UPDATE_NOTE_OLD = '↕️ ایپس کی ترتیب: «OK ✔» دبانے پر پکی محفوظ (فون + فائربیس) — بند کر کے کھولیں تو وہی ترتیب رہتی ہے';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -650,6 +650,7 @@ function zipSheet() {
       ${c && c.blob ? `<button class="tb grn" data-act="zipDl" data-id="${esc(a.id)}">⬇️ ${esc(c.ver)}.zip</button>` : ''}
       <button class="tb" style="background:#1d4ed8;color:#fff;border-color:#1d4ed8" data-act="zipUp" data-id="${esc(a.id)}">⬆️ Upload zip</button>
       <button class="tb" style="background:#7c2d12;color:#fff;border-color:#7c2d12" data-act="zipSrv" data-id="${esc(a.id)}">📦🖥️ Zip + worker.js</button>
+      <button class="tb" style="background:#0f172a;color:#fff;border-color:#0f172a" data-act="zipSrvUp" data-id="${esc(a.id)}">⬆️🖥️ Upload new worker.js</button>
       <button class="tb zpRf" data-act="zipRf" data-id="${esc(a.id)}">🔄 Refresh</button>
       ${zpgHtml(a.id)}
       ${ZUP[a.id] ? `<div class="zpU" dir="auto">${esc(ZUP[a.id])}</div>` : ''}
@@ -741,7 +742,7 @@ async function ghTokSave() {
 }
 /* HD1511SU095 (مالک کا حکم): 🖥️ سرور فائل — AIO ریپو کی اکیلی `cloudflare-worker/worker.js` (زپ نہیں): ⬇️ ابھی والی اتاریں (فری Claude کو دیں)،
    ⬆️ بدلی ہوئی چڑھائیں (گیٹ ہب API، وہی ٹوکن `pbthd_ghtok`) → main پر جاتے ہی `deploy-worker.yml` خود Cloudflare پر → یہاں ✅ / ❌ (ناکام ہو تو پرانا سرور چلتا رہتا ہے) */
-const SRV = { repo: 'pbtcodelabs-pbt/AIO', path: 'cloudflare-worker/worker.js', wf: 'deploy-worker.yml' };
+const SRV = { repo: 'pbtcodelabs-pbt/AIO', path: 'cloudflare-worker/worker.js', wf: 'deploy-worker.yml' }, SRV0 = SRV;
 let SRVMSG = '';
 function srvSheet() {
   sheet(`<div dir="ltr"><h2>🖥️ Server file<button class="x" data-act="zips">✕</button></h2>
@@ -754,7 +755,7 @@ function srvSheet() {
     ${ghTok() ? '' : `<div class="zpTok" style="margin-top:10px"><button class="tb" data-act="ghTok">🔑 Add GitHub permission (once) — for Upload</button></div>`}
     <div id="srvMsg" class="zpU" dir="auto" style="margin-top:12px;white-space:pre-line">${esc(SRVMSG)}</div></div>`, true);
 }
-const srvSet = m => { SRVMSG = m; const el = $('#srvMsg'); if (el) el.textContent = m; };
+const srvSet = m => { SRVMSG = m; const el = $('#srvMsg'); if (el) el.textContent = m; }, srvSet0 = srvSet;
 async function srvDl() {
   srvSet('⏳ Reading worker.js from GitHub…');
   try {
@@ -805,14 +806,18 @@ function zipNames(u) {
   }
   return out;
 }
-function srvUp() {
+/* HD1611MO101 (مالک کا حکم، ہیلپ ڈیسک #271): «📦 تازہ زپ» کی ہر ایپ کی قطار میں «Zip + worker.js» کے ساتھ «⬆️🖥️ Upload new worker.js» —
+   فون سے worker.js چنیں، وہی جانچ / اپلوڈ / Cloudflare لائیو (اس ایپ کا سرور ZA[id].srv، ورنہ AIO والا)؛ پیغام اسی قطار میں */
+function srvUp(id) {
   if (!ghTok()) { ghTokSheet(); return; }
   const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.js,text/javascript,application/javascript,text/plain';
-  inp.onchange = () => { const f = inp.files && inp.files[0]; if (f) srvUpGo(f); };
+  inp.onchange = () => { const f = inp.files && inp.files[0]; if (f) srvUpGo(f, id); };
   inp.click();
 }
-async function srvUpGo(f) {
+async function srvUpGo(f, id) {
   const H = { Authorization: 'token ' + ghTok(), 'Content-Type': 'application/json', Accept: 'application/vnd.github+json' };
+  const SRV = Object.assign({}, SRV0, (id && window.HDZips && HDZips.ZA[id] && HDZips.ZA[id].srv) || {});
+  const srvSet = id ? (m => zpUpd(id, null, m)) : srvSet0;
   try {
     if (!/\.js$/i.test(f.name) && !confirm(`“${f.name}” is not a .js file. Upload as worker.js anyway?`)) return;
     const txt = await f.text();
@@ -2083,6 +2088,7 @@ document.addEventListener('click', async e => {
     case 'srvPack': srvPack(); break;
     case 'zipSrv': srvPackFor(id, true); break;
     case 'srvUp': srvUp(); break;
+    case 'zipSrvUp': srvUp(id); break;
     case 'zipRf': zipRf(id); break;
     case 'ghTok': ghTokSheet(); break;
     case 'ghTokSave': ghTokSave(); break;
