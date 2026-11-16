@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1611MO101';
-const UPDATE_NOTE = '⬆️🖥️ «تازہ زپ» میں ہر ایپ کے ساتھ نیا worker.js اپلوڈ کرنے کا بٹن';  const UPDATE_NOTE_OLD = '↕️ ایپس کی ترتیب: «OK ✔» دبانے پر پکی محفوظ (فون + فائربیس) — بند کر کے کھولیں تو وہی ترتیب رہتی ہے';
+const APP_VERSION = 'HD1611MO102';
+const UPDATE_NOTE = '🔐 «ڈویلپر پینل» — ہر ایپ کا ڈویلپر پینل یہیں سے سیدھا، اور سب جگہ ایک ہی پاس ورڈ';  const UPDATE_NOTE_OLD = '↕️ ایپس کی ترتیب: «OK ✔» دبانے پر پکی محفوظ (فون + فائربیس) — بند کر کے کھولیں تو وہی ترتیب رہتی ہے';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -387,7 +387,7 @@ function playVideo(id) {
 /* HD1511SU088: ہوم پر ایپس کے اوپر — «سب مسائل» اور «ایکسپورٹ» */
 function issHomeBtns() {
   const E = LANG === 'en', n = ISSUES.filter(aiStanding).length;
-  return `<div class="issHm"><button class="issB a" data-act="allIss">📚 ${E ? 'All issues' : 'سب مسائل'}${n ? ` <i>${n}</i>` : ''}</button><button class="issB b" data-act="expIss">📤 ${E ? 'Export' : 'ایکسپورٹ'}</button><button class="issB c" data-act="zips">📦 ${E ? 'Latest zip' : 'تازہ زپ'}</button></div>`;
+  return `<div class="issHm"><button class="issB a" data-act="allIss">📚 ${E ? 'All issues' : 'سب مسائل'}${n ? ` <i>${n}</i>` : ''}</button><button class="issB b" data-act="expIss">📤 ${E ? 'Export' : 'ایکسپورٹ'}</button><button class="issB c" data-act="zips">📦 ${E ? 'Latest zip' : 'تازہ زپ'}</button><button class="issB c" data-act="devhub" style="background:linear-gradient(135deg,#7c3aed,#4c1d95)">🔐 ${E ? 'Developer panels' : 'ڈویلپر پینل'}</button></div>`;
 }
 function vHome() {
   const own = Store.isOwner();
@@ -2075,6 +2075,7 @@ document.addEventListener('click', async e => {
     case 'ownMine': go('#/mine/' + id); break;
     case 'parties': go('#/party'); break;
     case 'zips': zipSheet(); zipLatestAll(); zipPoll(); break;
+    case 'devhub': location.href = 'devhub.html'; break;   // 🔐 HD1611MO102: سب ڈویلپر پینل ایک جگہ
     case 'zAZ': zipSort(1); break;
     case 'zZA': zipSort(-1); break;
     case 'zUp': zipMove(id, -1); break;

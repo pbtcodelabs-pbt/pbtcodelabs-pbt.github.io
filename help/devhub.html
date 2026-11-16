@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>سب ڈویلپر پینل</title>
+<style>
+@font-face{font-family:Noori;src:url(../fonts/JameelNooriNastaleeq.woff2) format('woff2');font-display:swap}
+@font-face{font-family:NooriK;src:url(../fonts/JameelNooriNastaleeqKasheeda.woff2) format('woff2');font-display:swap}
+/* 🔐 HD1611MO102 (مالک کا حکم، 16 نومبر 2026): سب ایپس کے ڈویلپر پینل ایک جگہ + ایک پاس ورڈ سب جگہ */
+*{box-sizing:border-box}
+body{margin:0;background:#f1f5f9;color:#0f172a;font-family:Noori,'Jameel Noori Nastaleeq','Noto Nastaliq Urdu',serif;font-size:17px;line-height:1.9}
+.top{background:linear-gradient(135deg,#7c3aed,#4c1d95);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px}
+.top h1{margin:0;font-family:NooriK,Noori,serif;font-weight:normal;font-size:26px;flex:1}
+.top a{color:#fff;text-decoration:none;background:rgba(255,255,255,.18);border-radius:12px;padding:2px 12px;font-size:16px}
+.wrap{max-width:560px;margin:0 auto;padding:12px 14px 40px}
+.card{background:#fff;border-radius:18px;padding:12px 14px;margin:12px 0;box-shadow:0 2px 10px rgba(15,23,42,.08)}
+.card h2{margin:0 0 6px;font-family:NooriK,Noori,serif;font-weight:normal;font-size:22px;color:#4c1d95}
+.hint{font-size:14px;color:#475569;line-height:1.8}
+label{display:block;font-weight:700;font-size:15px;margin-top:8px}
+.pw{position:relative}
+.pw input,input.em{width:100%;padding:10px 12px;border:2px solid #c4b5fd;border-radius:12px;font-size:18px;font-family:Arial,sans-serif;direction:ltr;text-align:center;background:#fff}
+.pw input{padding-left:52px}
+.pw button{position:absolute;left:6px;top:50%;transform:translateY(-50%);width:40px;height:40px;border:0;border-radius:10px;background:#f1f5f9;font-size:20px;cursor:pointer}
+.go{display:block;width:100%;margin-top:12px;padding:12px;border:0;border-radius:14px;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;font:inherit;font-size:20px;cursor:pointer;box-shadow:0 3px 0 #14532d}
+.go:disabled{opacity:.6}
+.msg{min-height:24px;font-weight:700;font-size:15px;text-align:center;margin-top:6px}
+.app{display:flex;align-items:center;gap:10px;border:1.5px solid #e2e8f0;border-radius:16px;padding:8px 10px;margin:8px 0;background:#fff}
+.app img{width:44px;height:44px;border-radius:12px;object-fit:cover;flex:0 0 44px;background:#f1f5f9}
+.app .t{flex:1;min-width:0}
+.app .t b{display:block;font-size:17px}
+.app .t small{display:block;font-size:12.5px;color:#64748b;line-height:1.6}
+.app .st{font-size:13px;font-weight:700;line-height:1.5}
+.app a.op{flex:0 0 auto;text-decoration:none;background:linear-gradient(135deg,#7c3aed,#4c1d95);color:#fff;border-radius:12px;padding:4px 12px 7px;font-size:16px;white-space:nowrap}
+.ok{color:#15803d}.bad{color:#b91c1c}.wait{color:#b45309}
+.fix{display:none;margin-top:6px;gap:6px}
+.fix.on{display:flex}
+.fix input{flex:1;min-width:0;padding:7px;border:2px solid #fca5a5;border-radius:10px;font-size:16px;direction:ltr;text-align:center;font-family:Arial}
+.fix button{border:0;border-radius:10px;background:#b91c1c;color:#fff;font:inherit;font-size:15px;padding:0 12px;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="top"><h1>🔐 سب ڈویلپر پینل</h1><a href="./#/owner">‹ ہیلپ ڈیسک</a></div>
+<div class="wrap">
+
+<div class="card">
+  <h2>① ایک پاس ورڈ — سب جگہ</h2>
+  <div class="hint">نیا پاس ورڈ ایک بار لکھیں — سب ایپس کے ڈویلپر پینل اور فائربیس کے ڈویلپر اکاؤنٹس میں یہی لگ جائے گا۔ پاس ورڈ کہیں محفوظ نہیں ہوتا۔</div>
+  <label>🔑 نیا پاس ورڈ (کم از کم 6)</label>
+  <div class="pw"><input id="np1" type="password" autocomplete="new-password" autocapitalize="off" spellcheck="false"><button type="button" data-eye="np1">👁</button></div>
+  <label>🔑 نیا پاس ورڈ دوبارہ</label>
+  <div class="pw"><input id="np2" type="password" autocomplete="new-password" autocapitalize="off" spellcheck="false"><button type="button" data-eye="np2">👁</button></div>
+  <label>🗝️ موجودہ (پرانا) پاس ورڈ — فائربیس اکاؤنٹس کا</label>
+  <div class="pw"><input id="op" type="password" autocomplete="current-password" autocapitalize="off" spellcheck="false"><button type="button" data-eye="op">👁</button></div>
+  <div class="hint">کسی اکاؤنٹ کا پرانا پاس ورڈ الگ ہو تو نیچے اسی ایپ کے سامنے الگ خانہ کھل جائے گا۔</div>
+  <label>📧 پیارے بھائی والا Gmail (سبزی منڈی، فروٹ منڈی، آڑھت بک)</label>
+  <input class="em" id="emP" type="email" autocomplete="email" placeholder="name@gmail.com">
+  <label>📧 پی بی ٹی کوڈ لیبز والا Gmail (سٹی شائنز کا ایڈمن)</label>
+  <input class="em" id="emC" type="email" autocomplete="email" placeholder="name@gmail.com">
+  <button class="go" id="goAll" type="button">✅ سب جگہ لگائیں</button>
+  <div class="msg" id="gMsg"></div>
+</div>
+
+<div class="card">
+  <h2>② ڈویلپر پینل کھولیں</h2>
+  <div class="hint">«کھولیں» دبائیں — ایپ کھل کر سیدھا اس کا ڈویلپر پینل سامنے آ جائے گا، وہاں یہی ایک پاس ورڈ لکھیں۔</div>
+  <div id="apps"></div>
+</div>
+
+</div>
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  // kind: 'fb' = فائربیس اکاؤنٹ کا پاس ورڈ (یہ صفحہ بدلتا ہے)؛ 'hub' = فون میں — مشترکہ پاس ورڈ مانتا ہے
+  const APPS = [
+    { k: 'SM', n: 'سبزی منڈی', img: '../img/sm.webp', url: '../SM/?devpanel=1', fb: { key: 'AIzaSyAfvu0JOHGgNzp9HEcRpCnE40jSN2X2n7w', em: 'P' }, hub: 1 },
+    { k: 'FM', n: 'فروٹ منڈی', img: '../img/fm.webp', url: '../FM/?devpanel=1', fb: { key: 'AIzaSyAMmL3RfVrS6ff95rz18WKxRU265lKv3gE', em: 'P' }, hub: 1 },
+    { k: 'AB', n: 'آڑھت بک', img: '../AB/icons/icon-192.png', url: '../AB/?devpanel=1', fb: { key: 'AIzaSyCPZz36-BqYN4_sJmLkN4KuP93W3T13AaI', em: 'P' } },
+    { k: 'DR', n: 'AIO POS ڈائریکٹ', img: '../img/aiodirect.webp', url: '../AIO-POS-DIRECT/?devpanel=1', fb: { key: 'AIzaSyBdoyFrqJ67OonYVIoCM6rjeBDI1hZBGKE', email: 'developer@aioposdirect.app' } },
+    { k: 'MCS', n: 'سٹی شائنز (ایڈمن)', img: '../img/mcs.webp', url: '../MCS/?devpanel=1', fb: { key: 'AIzaSyAvu8ymIZAGEPaYwd_LBJzKS2lZ3Q4_Mog', em: 'C' } },
+    { k: 'AIO', n: 'AIO POS', img: '../img/aio.webp', url: '../AIO/?devpanel=1', hub: 1 },
+    { k: 'DG', n: 'جی جی کھاتہ بک', img: '../img/dg.webp', url: '../DG/?devpanel=1', hub: 1 },
+    { k: 'MD', n: 'مدرسہ', img: '../img/hifz.webp', url: '../Hifz-progress/?devpanel=1', hub: 1 },
+    { k: 'MA', n: 'مکتبہ', img: '../img/ma.webp', url: '../MA/maktaba.html?devpanel=1', hub: 1 },
+    { k: 'FF', n: 'FFPOS', img: '../img/ffpos.webp?v=2', url: 'https://ffpos-pbt.github.io/', note: 'الگ ویب سائٹ — وہاں پینل میں «پاس ورڈ بدلیں» سے یہی لکھ دیں' }
+  ];
+  const ls = (k, v) => { try{ if(v === undefined) return JSON.parse(localStorage.getItem(k) || 'null'); localStorage.setItem(k, JSON.stringify(v)); }catch(e){ return null; } };
+  const DONE = ls('pbt_devhub_done') || {};
+  const EMS = ls('pbt_devhub_em') || {};
+  $('emP').value = EMS.P || ''; $('emC').value = EMS.C || '';
+  const ST = {};
+  const fmtD = t => { try{ const d = new Date(t); return d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear(); }catch(e){ return ''; } };
+  function draw(){
+    $('apps').innerHTML = APPS.map(a => {
+      const s = ST[a.k], d = DONE[a.k];
+      const type = a.fb ? (a.hub ? 'فائربیس + فون کا پینل' : 'فائربیس اکاؤنٹ') : (a.hub ? 'فون کا پینل (اسی فون پر)' : (a.note || ''));
+      const st = s ? '<div class="st ' + s.c + '">' + s.t + '</div>' : (d ? '<div class="st ok">✅ نیا پاس ورڈ لگ چکا — ' + fmtD(d) + '</div>' : '');
+      return '<div class="app"><img src="' + a.img + '" alt=""><div class="t"><b>' + a.n + '</b><small>' + type + '</small>' + st
+        + (a.fb ? '<div class="fix' + (s && s.fix ? ' on' : '') + '" id="fx_' + a.k + '"><input type="password" placeholder="اس اکاؤنٹ کا پرانا پاس ورڈ" id="fxi_' + a.k + '"><button type="button" data-fix="' + a.k + '">دوبارہ</button></div>' : '')
+        + '</div><a class="op" href="' + a.url + '" target="_blank" rel="noopener">🛠️ کھولیں</a></div>';
+    }).join('');
+  }
+  draw();
+  document.addEventListener('click', e => {
+    const eye = e.target.closest('[data-eye]');
+    if(eye){ const i = $(eye.dataset.eye); i.type = i.type === 'password' ? 'text' : 'password'; eye.textContent = i.type === 'password' ? '👁' : '🙈'; return; }
+    const fx = e.target.closest('[data-fix]');
+    if(fx){ const a = APPS.find(x => x.k === fx.dataset.fix); const old = ($('fxi_' + a.k).value || '').trim(); if(old) fbOne(a, old).then(draw); }
+  });
+  async function sha(t){ const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)); return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join(''); }
+  const emailOf = a => a.fb.email || ($(a.fb.em === 'P' ? 'emP' : 'emC').value || '').trim().toLowerCase();
+  let NEWPW = '';
+  async function signIn(key, email, pw){
+    const r = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=' + key, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: pw, returnSecureToken: true }) });
+    const d = await r.json().catch(() => ({}));
+    return r.ok ? { ok: true, tok: d.idToken } : { ok: false, err: (d.error && d.error.message) || ('HTTP ' + r.status) };
+  }
+  const why = e => /INVALID_PASSWORD|INVALID_LOGIN_CREDENTIALS/.test(e) ? 'پرانا پاس ورڈ اس اکاؤنٹ کا نہیں' : /EMAIL_NOT_FOUND/.test(e) ? 'یہ Gmail اس ایپ میں نہیں' : /TOO_MANY/.test(e) ? 'بہت زیادہ کوششیں — کچھ دیر بعد' : /USER_DISABLED/.test(e) ? 'اکاؤنٹ بند ہے' : /WEAK_PASSWORD/.test(e) ? 'نیا پاس ورڈ کمزور ہے (کم از کم 6)' : /Failed to fetch|NetworkError/i.test(e) ? 'انٹرنیٹ نہیں' : e;
+  async function fbOne(a, old){
+    const email = emailOf(a);
+    if(!email){ ST[a.k] = { c: 'bad', t: '❌ Gmail اوپر لکھیں' }; return; }
+    ST[a.k] = { c: 'wait', t: '⏳ …' }; draw();
+    try{
+      let s = await signIn(a.fb.key, email, old);
+      if(!s.ok){
+        const s2 = await signIn(a.fb.key, email, NEWPW);   // پہلے ہی نیا لگ چکا ہو
+        if(s2.ok){ ST[a.k] = { c: 'ok', t: '✅ پہلے سے یہی پاس ورڈ' }; DONE[a.k] = Date.now(); ls('pbt_devhub_done', DONE); return; }
+        ST[a.k] = { c: 'bad', t: '❌ ' + why(s.err), fix: /INVALID|PASSWORD/.test(s.err) }; return;
+      }
+      if(old === NEWPW){ ST[a.k] = { c: 'ok', t: '✅ پہلے سے یہی پاس ورڈ' }; DONE[a.k] = Date.now(); ls('pbt_devhub_done', DONE); return; }
+      const r = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:update?key=' + a.fb.key, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ idToken: s.tok, password: NEWPW, returnSecureToken: true }) });
+      const d = await r.json().catch(() => ({}));
+      if(!r.ok){ ST[a.k] = { c: 'bad', t: '❌ ' + why((d.error && d.error.message) || ('HTTP ' + r.status)) }; return; }
+      ST[a.k] = { c: 'ok', t: '✅ نیا پاس ورڈ لگ گیا' }; DONE[a.k] = Date.now(); ls('pbt_devhub_done', DONE);
+    }catch(e){ ST[a.k] = { c: 'bad', t: '❌ ' + why(String(e && e.message || e)) }; }
+  }
+  $('goAll').onclick = async () => {
+    const p1 = $('np1').value.trim(), p2 = $('np2').value.trim(), old = $('op').value.trim(), m = $('gMsg');
+    m.className = 'msg bad';
+    if(p1.length < 6){ m.textContent = 'نیا پاس ورڈ کم از کم 6 حروف / ہندسے'; return; }
+    if(p1 !== p2){ m.textContent = 'دونوں نئے پاس ورڈ ایک جیسے نہیں'; return; }
+    if(!old){ m.textContent = 'موجودہ (پرانا) پاس ورڈ لکھیں'; return; }
+    NEWPW = p1;
+    EMS.P = $('emP').value.trim().toLowerCase(); EMS.C = $('emC').value.trim().toLowerCase(); ls('pbt_devhub_em', EMS);
+    if(!confirm('🔐 یہ نیا پاس ورڈ سب ایپس کے ڈویلپر پینل اور فائربیس کے ڈویلپر اکاؤنٹس (سٹی شائنز کا ایڈمن لاگ اِن بھی) میں لگ جائے گا۔\n\nکیا آگے بڑھیں؟')) return;
+    $('goAll').disabled = true; m.className = 'msg wait'; m.textContent = '⏳ لگ رہا ہے…';
+    try{ localStorage.setItem('pbt_devpass_v1', await sha('PBTDEV|' + p1)); }catch(e){}
+    APPS.filter(a => a.hub && !a.fb).forEach(a => { ST[a.k] = { c: 'ok', t: '✅ اس فون پر نیا پاس ورڈ چلے گا' }; DONE[a.k] = Date.now(); });
+    ls('pbt_devhub_done', DONE); draw();
+    for(const a of APPS.filter(x => x.fb)){ await fbOne(a, old); draw(); }
+    const bad = APPS.filter(a => ST[a.k] && ST[a.k].c === 'bad').length;
+    $('goAll').disabled = false;
+    m.className = 'msg ' + (bad ? 'bad' : 'ok');
+    m.textContent = bad ? '⚠️ ' + bad + ' جگہ نہیں لگا — نیچے سرخ والی ایپ کے سامنے اس کا پرانا پاس ورڈ لکھ کر «دوبارہ»' : '✅ سب جگہ نیا پاس ورڈ لگ گیا — یاد رکھیں: اب ہر ڈویلپر پینل میں یہی ایک پاس ورڈ';
+    ['np1', 'np2', 'op'].forEach(id => $(id).value = '');
+  };
+})();
+</script>
+</body>
+</html>
