@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1511SU098';
-const UPDATE_NOTE = '📦 Claude صرف بدلی فائلیں واپس دے: ایپ کی زپ الگ، worker.js الگ؛ نہ بدلی فائل اپلوڈ نہیں ہوتی';  const UPDATE_NOTE_OLD = '↕️ ایپس کی ترتیب: «OK ✔» دبانے پر پکی محفوظ (فون + فائربیس) — بند کر کے کھولیں تو وہی ترتیب رہتی ہے';
+const APP_VERSION = 'HD1611MO099';
+const UPDATE_NOTE = '🎬 نئی ویڈیو: My City Shines — نیا کاروبار کیسے رجسٹر کریں (سائن اپ سے لائیو تک)';  const UPDATE_NOTE_OLD = '↕️ ایپس کی ترتیب: «OK ✔» دبانے پر پکی محفوظ (فون + فائربیس) — بند کر کے کھولیں تو وہی ترتیب رہتی ہے';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -324,6 +324,7 @@ function foot() {
 /* ---------- ہوم ---------- */
 /* 🎬 تعارفی ویڈیوز — چلائیں، فون میں محفوظ (گیلری)، یا سیدھا شیئر (واٹس ایپ اسٹیٹس وغیرہ) */
 const VIDEOS = [
+  { id: 'mcs-signup', file: 'media/mcs-signup-ur.mp4', poster: 'media/mcs-signup-ur.jpg', ur: 'My City Shines — نیا کاروبار کیسے رجسٹر کریں (سائن اپ سے لائیو تک)', en: 'My City Shines — register a new business (sign up to live)', dur: '1:16', dl: 'My-City-Shines-Register-Business', share: '🏪 My City Shines — اپنا کاروبار پورے شہر کے سامنے لائیں\n✅ سائن اپ ← مفت بزنس کارڈ ← ممبرشپ — بس اتنا ہی!\nhttps://play.google.com/store/apps/details?id=com.pbtcodelabs.mycityshines' },
   { id: 'helpdesk', file: 'media/pbt-help-desk.mp4', poster: 'media/helpdesk.jpg', ur: 'Help Desk — مسئلہ کیسے بتائیں؟ مکمل طریقہ', en: 'Help Desk — how to report a problem', dur: '1:06', dl: 'PBT-Help-Desk' },
   { id: 'maktaba', file: 'media/maktaba-ur.mp4', poster: 'media/maktaba-ur.jpg', ur: 'میرا مکتبہ — پورا مکتبہ ایک ایپ میں (علماء و طلباء کے لیے)', en: 'Mera Maktaba — your whole library in one app (Urdu)', dur: '1:40', dl: 'Mera-Maktaba-Urdu', share: '📚 میرا مکتبہ — ہزاروں کتابیں ایک ایپ میں\nفن وار الماریاں، کتاب کا مکمل ریکارڈ، فہرستیں / PDF، موضوعات، ڈائری، میری مصروفیات اور جلسے کا پوسٹر\n🎁 علماء و طلباء کے لیے بہترین تحفہ\nhttps://pbtcodelabs-pbt.github.io/MA/get.html' },
   { id: 'maktaba-st', file: 'media/maktaba-status-ur.mp4', poster: 'media/maktaba-ur.jpg', ur: 'میرا مکتبہ — واٹس ایپ اسٹیٹس والی (56 سیکنڈ)', en: 'Mera Maktaba — WhatsApp Status (56s)', dur: '0:56', dl: 'Mera-Maktaba-Status', share: '📚 میرا مکتبہ — پورا مکتبہ ایک ایپ میں\n🎁 علماء و طلباء کے لیے بہترین تحفہ\nhttps://pbtcodelabs-pbt.github.io/MA/get.html' },
