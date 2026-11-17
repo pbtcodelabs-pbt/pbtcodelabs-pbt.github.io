@@ -122,6 +122,8 @@
       catch (e) { console.warn(e && e.code); return false; }
     },
     ownerFirst() { return false; },
+    /* HD1711TU112: مالک کا فائربیس ٹوکن — سرور (worker) پر ایکٹیویشن کوڈ بنانے کی اجازت کے لیے */
+    async idToken() { try { return (auth && auth.currentUser && isOwner()) ? await auth.currentUser.getIdToken() : ''; } catch (e) { return ''; } },
     async ownerLogout() { await Au.signOut(auth); },
     // 🔑 پاس ورڈ بدلیں (پینل کے اندر، ای میل کے بغیر): پرانے سے تصدیق، پھر نیا
     async changePassword(oldPw, newPw) {

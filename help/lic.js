@@ -8,7 +8,22 @@
   const L = (e, u) => (en() ? e : u);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const dmy = ts => { if (!ts) return ''; const d = new Date(ts); return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear(); };
-  let PK = [], CODES = [], FILTER = 'all', NEW = [], BUSY = false, EDIT = null, SHOWPK = false, MSG = '', OK = true;
+  let PRICE = {}, LBL = '', PK = [], CODES = [], FILTER = 'all', NEW = [], BUSY = false, EDIT = null, SHOWPK = false, MSG = '', OK = true;
+
+
+  /* HD1711TU111: قیمتیں پکی محفوظ — فون میں + کلاؤڈ (Store.setCfg)؛ پیکج کی فہرست بھی فون میں کاپی رہتی ہے */
+  const pn = v => String(v == null ? '' : v).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+  function loadLocal() {
+    try { PRICE = JSON.parse(localStorage.getItem('lic_price') || '{}') || {}; } catch (e) { PRICE = {}; }
+    try { const c = window.CFG || (typeof CFG !== 'undefined' ? CFG : null); if (c && c.licPrices) PRICE = Object.assign({}, c.licPrices, PRICE); } catch (e) {}
+    try { PK = JSON.parse(localStorage.getItem('lic_pk') || '[]') || []; } catch (e) { PK = []; }
+  }
+  function savePrice(id, v) {
+    PRICE[id] = pn(v).trim();
+    try { localStorage.setItem('lic_price', JSON.stringify(PRICE)); } catch (e) {}
+    try { if (window.Store && Store.setCfg) Store.setCfg({ licPrices: PRICE }); } catch (e) {}
+  }
+  const sendText = (c, pk) => (pk ? pk.name + '\n' : '') + (pk && PRICE[pk.id] ? L('Price: ', 'قیمت: ') + PRICE[pk.id] + '\n' : '') + L('Activation code: ', 'ایکٹیویشن کوڈ: ') + c;
 
   function css() {
     if (document.getElementById('licCss')) return;
@@ -56,11 +71,18 @@
 
   function say(t, ok) { MSG = t; OK = ok !== false; draw(); }
   async function loadAll() {
+    let pkErr = '';
     try {
-      const [p, l] = await Promise.all([call({ op: 'pkglist' }), call({ op: 'list' })]);
-      PK = p.list || []; CODES = (l.list || []).filter(x => (x.keys || []).some(k => k.startsWith('c:')));
-      MSG = '';
-    } catch (e) { MSG = '⚠️ ' + e.message; OK = false; }
+      const p = await call({ op: 'pkglist' });
+      const arr = p.list || p.packages || p.pkgs || p.items || [];
+      PK = arr; try { localStorage.setItem('lic_pk', JSON.stringify(arr)); } catch (e) {}
+      if (!arr.length) pkErr = L('Server returned 0 packages. Create a package below (📦 Packages).', 'سرور سے ایک بھی پیکج نہیں آیا۔ نیچے «📦 پیکج» میں نیا پیکج بنائیں۔');
+    } catch (e) { pkErr = '⚠️ ' + e.message + (PK.length ? L(' (showing saved list)', ' (فون میں محفوظ فہرست دکھا رہا ہوں)') : ''); }
+    try {
+      const l = await call({ op: 'list' });
+      CODES = (l.list || []).filter(x => (x.keys || []).some(k => k.startsWith('c:')));
+    } catch (e) { if (!pkErr) pkErr = '⚠️ ' + e.message; }
+    if (pkErr) { MSG = pkErr; OK = false; if (!PK.length) SHOWPK = true; } else MSG = '';
     draw();
   }
   const pkLabel = p => p.prefix + ' — ' + p.name + ' (' + (p.life ? L('lifetime', 'لائف ٹائم') : p.days + L(' days', ' دن')) + ', ' + p.devices + L(' phone(s)', ' فون') + ')';
@@ -68,18 +90,20 @@
 
   function draw() {
     const o = document.getElementById('licOv'); if (!o) return;
+    if (document.getElementById('lcLb')) LBL = document.getElementById('lcLb').value;
     const act = PK.filter(p => p.active !== false);
     const list = CODES.filter(x => FILTER === 'all' || (FILTER === 'unused' && !x.redeemed && !x.revoked) || (FILTER === 'used' && x.redeemed));
     const cnt = f => CODES.filter(x => f === 'all' || (f === 'unused' && !x.redeemed && !x.revoked) || (f === 'used' && x.redeemed)).length;
     o.innerHTML = `<div class="lcTop"><b>🔑 ${L('Generate Activation Codes — AIO POS', 'AIO POS — ایکٹیویشن کوڈ بنائیں')}</b><button class="lcX" data-l="close">✕</button></div>
 ${MSG ? `<div class="lcMsg ${OK ? 'ok' : 'bad'}">${esc(MSG)}</div>` : ''}
-<div class="lcBox"><h3>➕ ${L('Generate keys', 'کوڈ بنائیں')}</h3>
-<label>${L('Package', 'پیکج')}</label><select id="lcPk">${act.map(p => `<option value="${esc(p.id)}">${esc(pkLabel(p))}</option>`).join('') || `<option value="">—</option>`}</select>
-<label>${L('How many codes', 'کتنے کوڈ')}</label><input type="number" id="lcN" value="1" min="1" max="50" inputmode="numeric">
-<label>${L('Customer name / note (optional)', 'گاہک کا نام / نوٹ (اختیاری)')}</label><input type="text" id="lcLb" maxlength="60">
-<div class="lcRow" style="margin-top:12px"><button class="lcBtn pri" data-l="gen" ${BUSY || !act.length ? 'disabled' : ''}>🔑 ${BUSY ? '…' : L('Generate License Key', 'لائسنس کی بنائیں')}</button></div>
-${NEW.length ? `<div style="margin-top:12px"><h3>🆕 ${L('Just created', 'ابھی بنے')}</h3>${NEW.map(c => `<div class="lcItem"><div class="lcCode">${esc(c.code)}</div><div class="lcSub">${esc(c.pkgName)}</div><div class="lcRow" style="margin-top:6px"><button class="lcBtn grn" data-l="copy" data-v="${esc(c.code)}">📋 ${L('Copy', 'کاپی')}</button></div></div>`).join('')}
-<div class="lcRow" style="margin-top:8px"><button class="lcBtn" data-l="copyall">📋 ${L('Copy all', 'سب کاپی')}</button></div></div>` : ''}</div>
+<div class="lcBox"><h3>🔑 ${L('Packages — price & code', 'پیکج — قیمت اور کوڈ')}</h3>
+<div class="lcSub" style="margin:0 0 6px">${L('Type the price once — it stays saved. Tap 🔑 to make a code.', 'قیمت ایک بار لکھیں — پکی محفوظ رہتی ہے۔ کوڈ بنانے کے لیے 🔑 دبائیں۔')}</div>
+<label>${L('Customer name / note (optional)', 'گاہک کا نام / نوٹ (اختیاری)')}</label><input type="text" id="lcLb" maxlength="60" value="${esc(LBL)}">
+${act.map(p => `<div class="lcItem"><div class="lcRow" style="flex-wrap:nowrap"><div style="flex:1;min-width:0"><b>${esc(p.name)}</b><div class="lcSub">${esc(p.prefix)} · ${p.life ? L('lifetime', 'لائف ٹائم') : p.days + L(' days', ' دن')} · ${p.devices} ${L('phone(s)', 'فون')}</div></div>
+<input type="text" inputmode="numeric" data-pr="${esc(p.id)}" value="${esc(PRICE[p.id] || '')}" placeholder="${L('Price', 'قیمت')}" style="width:96px;flex:0 0 96px;text-align:center;font-weight:800">
+<button class="lcBtn pri" data-l="gen" data-id="${esc(p.id)}" ${BUSY ? 'disabled' : ''}>🔑</button></div>
+${NEW.filter(c => c.pkgId === p.id).slice(0, 1).map(c => `<div style="margin-top:8px;background:#f0fdf4;border-radius:10px;padding:8px"><div class="lcCode">${esc(c.code)}</div><div class="lcRow" style="margin-top:6px"><button class="lcBtn grn" data-l="copy" data-v="${esc(sendText(c.code, p))}">📋 ${L('Copy', 'کاپی')}</button><button class="lcBtn pri" data-l="send" data-v="${esc(sendText(c.code, p))}">📤 ${L('Send', 'بھیجیں')}</button></div></div>`).join('')}</div>`).join('') || `<div class="lcSub">—</div>`}
+</div>
 <div class="lcBox"><h3>📋 ${L('All keys', 'تمام کوڈ')}</h3>
 <div class="lcTabs">${[['all', L('All', 'سب')], ['unused', L('Unused', 'نئے')], ['used', L('Used', 'استعمال شدہ')]].map(([k, t]) => `<button class="${FILTER === k ? 'on' : ''}" data-l="flt" data-v="${k}">${t} (${cnt(k)})</button>`).join('')}</div>
 ${list.map(x => { const s = status(x); return `<div class="lcItem"><div class="lcRow"><span class="lcCode" style="flex:1">${esc(x.code)}</span><span class="lcTag ${s[0]}">${esc(s[1])}</span></div>
@@ -108,16 +132,17 @@ ${list.map(x => { const s = status(x); return `<div class="lcItem"><div class="l
     if (a === 'close') { const o = document.getElementById('licOv'); if (o) o.remove(); document.body.style.overflow = ''; return; }
     if (a === 'flt') { FILTER = v; draw(); return; }
     if (a === 'copy') { try { await navigator.clipboard.writeText(v); say('📋 ' + v, true); } catch (e) { say('⚠️ ' + v, false); } return; }
+    if (a === 'send') { try { if (navigator.share) { await navigator.share({ text: v }); } else { window.open('https://wa.me/?text=' + encodeURIComponent(v), '_blank'); } } catch (e) {} return; }
     if (a === 'copyall') { try { await navigator.clipboard.writeText(NEW.map(c => c.code).join('\n')); say('📋 ' + NEW.length, true); } catch (e) { say('⚠️', false); } return; }
     if (a === 'pkToggle') { SHOWPK = !SHOWPK; draw(); return; }
     if (a === 'pkEdit') { EDIT = PK.find(p => p.id === id) || null; SHOWPK = true; draw(); const n = document.getElementById('pkPre'); if (n) n.scrollIntoView({ block: 'center' }); return; }
     if (a === 'pkNew') { EDIT = null; draw(); return; }
     try {
       if (a === 'gen') {
-        const pk = val('lcPk'), n = Math.max(1, Math.min(50, parseInt(val('lcN'), 10) || 1)), lb = val('lcLb').trim();
+        const pk = id, n = 1, lb = (val('lcLb') || LBL).trim();
         if (!pk) { say(L('Choose a package', 'پیکج چنیں'), false); return; }
         BUSY = true; draw();
-        try { const r = await call({ op: 'gencode', pkgId: pk, count: n, label: lb }); NEW = r.codes || []; await loadAll(); say('✅ ' + NEW.length + L(' key(s) created', ' کوڈ بن گئے'), true); }
+        try { const r = await call({ op: 'gencode', pkgId: pk, count: n, label: lb }); NEW = (r.codes || []).map(c => Object.assign({ pkgId: pk }, c)); const keep = NEW; await loadAll(); NEW = keep; say('✅ ' + L('Code created', 'کوڈ بن گیا'), true); }
         finally { BUSY = false; draw(); }
       } else if (a === 'op') {
         if (t.dataset.op === 'delete' && !confirm(L('Delete this key for good?', 'یہ کوڈ ہمیشہ کے لیے حذف کریں؟'))) return;
@@ -137,8 +162,8 @@ ${list.map(x => { const s = status(x); return `<div class="lcItem"><div class="l
     if (!window.Store || !Store.isOwner || !Store.isOwner()) { try { toast('🔒'); } catch (e) {} return; }
     css();
     let o = document.getElementById('licOv'); if (o) o.remove();
-    o = document.createElement('div'); o.id = 'licOv'; o.addEventListener('click', onClick);
+    o = document.createElement('div'); o.id = 'licOv'; o.addEventListener('click', onClick); o.addEventListener('input', ev => { const t = ev.target; if (t && t.dataset && t.dataset.pr) savePrice(t.dataset.pr, t.value); if (t && t.id === 'lcLb') LBL = t.value; });
     document.body.appendChild(o); document.body.style.overflow = 'hidden';
-    NEW = []; MSG = ''; draw(); loadAll();
+    NEW = []; MSG = ''; loadLocal(); draw(); loadAll();
   };
 })();
