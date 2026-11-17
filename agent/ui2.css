@@ -212,3 +212,13 @@ body.v2,.v2card,.v2note,.v2ok,.v2warn,.v2mut,.v2list button,.lu,.lrem,.lfg,.v2ro
 .adm38 label{display:flex!important;flex-direction:row!important;justify-content:flex-start!important;align-items:center!important;text-align:left!important;gap:10px!important;width:100%;margin:0!important;padding:5px 2px!important;line-height:1.3!important}
 .adm38 input[type=checkbox]{width:22px!important;height:22px!important;min-height:0!important;flex:0 0 22px!important;margin:0!important;padding:0!important}
 .adm38 .r38 select,.adm38 .r38 input{min-width:0;padding:8px 6px!important;font-size:15px}
+
+/* AGP1711TU042: روز کا بیک اپ */
+.bk-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.bk-b{border:0;border-radius:10px;padding:9px 12px;font-weight:800;font-size:13px;background:#0b3a8f;color:#fff;cursor:pointer}
+.bk-b.bk-x{background:#e5e7eb;color:#111}
+.bk-ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px}
+.bk-box{background:#fff;border-radius:16px;padding:16px;max-width:520px;width:100%;max-height:86vh;overflow:auto;direction:ltr;text-align:left;font-family:Arial,sans-serif}
+.bk-box p{font-size:13px;color:#334155;line-height:1.45}
+.bk-list{margin:8px 0}.bk-it{display:flex;align-items:center;gap:6px;border-bottom:1px solid #e5e7eb;padding:8px 0}
+.bk-it>div{flex:1;min-width:0}.bk-it small{display:block;font-size:11px;color:#64748b}
