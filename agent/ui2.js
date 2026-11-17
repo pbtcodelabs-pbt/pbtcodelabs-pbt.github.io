@@ -716,6 +716,8 @@ async function mcsAdsLoad(){
 }
 window.v2AdPick = id => { const a = (MCSADS || []).find(x => +x.id === id); if(!a) return;
   $('#xK').value = 'ad'; $('#xA').value = a.price > 0 ? a.price : ''; $('#xB').value = a.title + (a.owner ? ' — ' + a.owner : ''); $('#xRk').value = 'ad:' + a.id; $('#xR').value = '';
+  try{ const rf = String(a.ref || '').toUpperCase().replace(/[^A-Z0-9]/g, ''), sel = $('#xR'), want = rf === 'ADMIN1' ? 'DEV' : rf === 'ADMIN2' ? 'CODEV' : rf;   /* AGP1711TU043: منظور اشتہار کا ریفرل خود */
+    if(want) for(const o of sel.options){ if(String(o.value).toUpperCase().replace(/[^A-Z0-9]/g, '').replace(/^AG0*/, 'AG') === want.replace(/^AG0*/, 'AG')){ sel.value = o.value; break; } } }catch(e){}
   const f = $('#xA').closest('.v2card'); f.scrollIntoView({behavior: 'smooth', block: 'center'}); f.classList.add('hl'); setTimeout(() => f.classList.remove('hl'), 1800);
   toast(a.price > 0 ? 'Check amount and choose «Brought by»' : 'Enter amount and choose «Brought by»'); };
 /* ===== AGP1511SU040 (مالک کا حکم، ہیلپ ڈیسک #263): ایڈمن 1 — 👥 ایڈمنز اور اجازتیں + ⚖️ حصے کی شرحیں (فیصد یا مقررہ رقم، صرف آگے کی فروخت پر) ===== */
