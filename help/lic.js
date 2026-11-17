@@ -118,13 +118,16 @@ ${list.map(x => { const s = status(x); return `<div class="lcItem"><div class="l
 <div class="lcBox" style="${APP === 'MCS' ? 'display:none' : ''}"><h3 data-l="pkToggle" style="cursor:pointer">📦 ${L('Packages', 'پیکج')} ${SHOWPK ? '▲' : '▼'}</h3>${SHOWPK ? pkgHTML() : `<div class="lcSub">${L('Names, days and phone limits of your packages — tap to edit', 'پیکجوں کے نام، دن اور فون کی حد — بدلنے کے لیے کھولیں')}</div>`}</div>`;
   }
   /* HD1711TU117 (مالک کا حکم): MCS کا کوڈ اسی بندے کا — MCS نمبر لکھیں → نام / موبائل → 🔑 → MCS008M1-K7Q9XA (صرف اسی کے کاروبار پر، ایک سال) */
+  /* HD1711TU119: عام سابقے (Muhammad، Syed، Hafiz…) چھوڑ کر اصل نام — سرور بھی یہی کرتا ہے */
+  const SKIPW = /^(MUHAMMAD|MUHAMMED|MOHAMMAD|MOHAMMED|MOHAMAD|MUHAMAD|MOHD|MHD|MUHD|M|MD|SYED|SAYED|SAYYID|SYEDA|HAFIZ|HAFEEZ|MALIK|RANA|CH|CHAUDHRY|CHAUDHARY|CHOUDHRY|CHAUDRY|MIAN|MIA|SHEIKH|SHAIKH|SH|MIR|MIRZA|KHAWAJA|KHWAJA|SARDAR|RAJA|PIR|SYD|ABDUL|ABD|MR|MRS|MS|DR|ENGR|ENG|PROF|HAJI|ALHAJ|QARI|MAULANA|MOLANA|MUFTI|SAHIB|SAB)$/;
+  const nameTag = n => { const w = String(n || '').toUpperCase().replace(/[^A-Z\s]/g, ' ').split(/\s+/).filter(Boolean); return (w.find(x => !SKIPW.test(x) && x.length >= 2) || w[0] || '').slice(0, 8); };
   function mcsHTML() {
     const x = LOOK, nc = NEW[0];
     return `<div class="lcBox"><h3>🔑 ${L('1-year code for one person', 'ایک بندے کا ایک سال کا کوڈ')}</h3>
 <label>${L('MCS ID of the business owner (e.g. MCS008)', 'کاروبار والے کا MCS نمبر (مثلاً MCS008)')}</label>
 <div class="lcRow" style="flex-wrap:nowrap"><input type="text" id="lcSid" maxlength="12" value="${esc(SID)}" placeholder="MCS008" style="text-transform:uppercase;font-family:monospace;font-weight:800;direction:ltr"><button class="lcBtn" data-l="look" ${BUSY ? 'disabled' : ''}>🔍</button></div>
 ${x ? `<div class="lcItem" style="background:#f8fafc"><b>👤 ${esc(x.name || '—')}</b><div class="lcSub" style="direction:ltr;text-align:right">🆔 ${esc(x.sub)} · 📱 ${esc(String(x.mob || '').replace(/^92/, '0'))}${x.until > Date.now() ? ' · ✅ ' + L('active till ', 'فعال: ') + dmy(x.until) : ''}</div>
-<label>${L('Name in the code (English)', 'کوڈ میں نام (انگلش)')}</label><input type="text" id="lcNm" maxlength="8" value="${esc(String(x.name || '').trim().split(/\s+/)[0].toUpperCase().replace(/[^A-Z]/g, '').slice(0, 8))}" placeholder="HABIB" style="text-transform:uppercase;font-family:monospace;font-weight:800;direction:ltr">
+<label>${L('Name in the code (English)', 'کوڈ میں نام (انگلش)')}</label><input type="text" id="lcNm" maxlength="8" value="${esc(nameTag(x.name))}" placeholder="HABIB" style="text-transform:uppercase;font-family:monospace;font-weight:800;direction:ltr">
 <div class="lcRow" style="margin-top:8px"><button class="lcBtn pri" data-l="mgen" ${BUSY ? 'disabled' : ''}>🔑 ${L('Generate code', 'کوڈ بنائیں')}</button></div></div>` : ''}
 ${nc ? `<div style="margin-top:8px;background:#f0fdf4;border-radius:10px;padding:8px"><div class="lcCode">${esc(nc.code)}</div><div class="lcSub">${L('Works only on this person\'s business — 1 year from the day it is entered', 'صرف اسی بندے کے کاروبار پر چلے گا — لکھنے کے دن سے ایک سال')}</div><div class="lcRow" style="margin-top:6px"><button class="lcBtn grn" data-l="copy" data-v="${esc(sendText(nc.code))}">📋 ${L('Copy', 'کاپی')}</button><button class="lcBtn pri" data-l="send" data-v="${esc(sendText(nc.code))}">📤 ${L('Send', 'بھیجیں')}</button></div></div>` : ''}</div>`;
   }
