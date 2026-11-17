@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1711TU120';
-const UPDATE_NOTE = '🔑 Activation Key: کاپی / واٹس ایپ میں صرف کوڈ — ساتھ کوئی لفظ نہیں؛ کوڈ کا ڈبہ چھونے سے کاپی';  const UPDATE_NOTE_OLD = '';
+const APP_VERSION = 'HD1711TU121';
+const UPDATE_NOTE = '🔑 Activation Key اب ڈیش کے بغیر (مثلاً 1P03M9RE72N) — کاپی / واٹس ایپ میں صرف کوڈ؛ پرانے ڈیش والے کوڈ بھی چلتے ہیں';  const UPDATE_NOTE_OLD = '';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
