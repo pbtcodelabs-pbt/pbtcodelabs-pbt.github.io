@@ -154,3 +154,4 @@
 - **🔑 HD1711TU118 (مالک کا حکم):** MCS کوڈ بنانے میں «کوڈ میں نام (انگلش)» (`#lcNm`، بندے کے نام سے خود، اردو نام ہو تو خود لکھیں) → `MCS008M1HABIB-K7Q9XA` — کوڈ دیکھ کر پتا چلے کس کا ہے۔
 - **HD1711TU119:** MCS کوڈ کے «نام» خانے میں عام سابقے (Muhammad، Syed، Hafiz، Malik، Rana، Ch…) چھوڑ کر اصل نام (`nameTag` / `SKIPW` — سرور بھی یہی)۔
 - **📢 AGP1711TU043 (مالک کا حکم — MCS اشتہار):** Accounts ← «📢 My City Shines ads» میں منظور اشتہار (`v2AdPick`) پر «Brought by» خود — اشتہار کا `ref` (MCS1711TU504 کی منظوری سے: AG… / ADMIN1 = DEV / ADMIN2 = CODEV / PBT)؛ رقم مالک خود لکھے۔ تقسیم سرور کی پہلے والی۔
+- **HD1711TU120 (مالک کا حکم، 17 نومبر):** 🔑 License Keys — «Copy» / «Send» (واٹس ایپ) میں صرف کوڈ (پہلے «Activation code: » ساتھ جاتا تھا اور AIO کے خانے میں کٹ کر غلط بنتا تھا)؛ نیا کوڈ بڑے سبز ڈیش والے ڈبے میں — چھونے سے کاپی (`.lcBig`، کلپ بورڈ نہ ملے تو textarea سے)؛ عنوان / بٹن «Generate Activation Key» (AIO کے «Enter Activation Key» جیسا)۔
