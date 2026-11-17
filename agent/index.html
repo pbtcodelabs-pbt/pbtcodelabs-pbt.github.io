@@ -52,12 +52,12 @@ button.sec{background:var(--line);color:var(--ink)}button.red{background:#fee2e2
 @media print{header,.foot,.noP,#tst{display:none!important}body{background:#fff}.card{box-shadow:none;break-inside:avoid}main{margin:0;max-width:none}}
 .foot{text-align:center;font-size:12px;color:var(--mut);margin:20px 0}
 </style>
-<link rel="stylesheet" href="ui2.css?v=AGP1511SU040">
+<link rel="stylesheet" href="ui2.css?v=AGP1711TU041">
 </head>
 <body>
 <header style="position:relative"><button onclick="openHelpDesk()" title="Help Desk — مسائل و تجاویز" style="position:absolute;left:12px;top:12px;background:none;padding:0;border:0"><span class="pbthd-sos" style="display:inline-flex;align-items:center;gap:4px;background:linear-gradient(#fde047,#facc15);color:#111;border-radius:999px;padding:2px 9px;font:800 12px/1.35 Arial,sans-serif;box-shadow:0 2px 0 #ca8a04;white-space:nowrap;vertical-align:middle;direction:ltr"><b style="background:#111;color:#facc15;border-radius:50%;width:15px;height:15px;display:inline-flex;align-items:center;justify-content:center;font-size:11px">?</b>Help Desk</span></button><h1 id="hdT">🤝 MCS Agent</h1><small id="hdS">ایجنٹ · ایڈمن 2 · ایڈمن 1 — PBT Code Labs</small></header>
 <main id="app"></main>
-<div class="foot"><a href="guide.html" style="color:var(--pri);font-weight:800">📄 How to Become an MCS Agent (Print / PDF)</a><br><a href="#" onclick="roleSwitch();return false" style="color:var(--pri);font-weight:800">🔄 Switch Login (Agent / Admin 1 / Admin 2)</a><br>PBT Code Labs · <span class="num" id="agpVer">AGP1511SU040</span></div>
+<div class="foot"><a href="guide.html" style="color:var(--pri);font-weight:800">📄 How to Become an MCS Agent (Print / PDF)</a><br><a href="#" onclick="roleSwitch();return false" style="color:var(--pri);font-weight:800">🔄 Switch Login (Agent / Admin 1 / Admin 2)</a><br>PBT Code Labs · <span class="num" id="agpVer">AGP1711TU041</span></div>
 <script>
 const API = 'https://aio-pos-verify.pbtcodelabs.workers.dev';
 const FB_KEY = 'AIzaSyAvu8ymIZAGEPaYwd_LBJzKS2lZ3Q4_Mog'; // My City Shines (ایڈمن لاگ اِن)
@@ -71,7 +71,7 @@ function toast(t){ let el = document.getElementById('tst'); if(!el){ el = docume
 const D = t => t ? new Date(t).toLocaleDateString('en-GB') : '—';
 const ls = { get(k, d){ try{ const v = localStorage.getItem('agp_' + k); return v ? JSON.parse(v) : d; }catch(e){ return d; } }, set(k, v){ try{ localStorage.setItem('agp_' + k, JSON.stringify(v)); }catch(e){} }, del(k){ try{ localStorage.removeItem('agp_' + k); }catch(e){} } };
 /* AGP0911MO013 (مالک کا حکم، ہیلپ ڈیسک #174): ایک ہی «PBT Portal» ایپ (APK) — پہلے صفحے پر تین لاگ اِن؛ پچھلا چنا ہوا کردار یاد (agp_role) */
-const AGP_VER = 'AGP1511SU040';
+const AGP_VER = 'AGP1711TU041';
 const ROLE = location.hash.startsWith('#admin') ? 'admin' : location.hash.startsWith('#codev') ? 'codev' : location.hash.startsWith('#agent') ? 'agent' : (ls.get('role', '') || '');
 const ADMIN = ROLE === 'admin', CODEV = ROLE === 'codev';
 function roleGo(r){ ls.set('role', r); location.hash = '#' + r; location.reload(); }
@@ -279,7 +279,7 @@ async function admOpen(code, extra){
   THR = ''; admCode = code; const s = await admCall('/agportal', Object.assign({code}, extra||{})); if(!s.ok) return alert('نہیں ملا'); S = s;
   app.innerHTML = `<div class="card"><div class="btns" style="margin:0 0 6px"><button class="sec" onclick="admHome()">← سب ایجنٹ</button></div><h2>${E(s.agent.name)} <span class="num" style="font-size:13px">${E(s.agent.code)}</span> ${CP(s.agent.code)} ${s.agent.off ? '<span class="tag" style="background:#fee2e2;color:var(--red)">⛔ غیر فعال</span>' : ''}</h2><div style="font-size:14px">📱 <span class="num">0${E(String(s.agent.phone).slice(2))}</span> · ${E(s.agent.biz)} · ${E(s.agent.city)} · منظور: ${D(s.agent.okAt)}</div></div>
     ${summaryHtml(s)}
-    <div class="card"><div class="btns" style="margin:0">${s.agent.off ? '<button onclick="admDeact(false)">✅ دوبارہ فعال کریں</button>' : '<button class="red" onclick="admDeact(true)">⛔ ایجنٹ غیر فعال کریں</button>'}</div><div class="btns"><button class="sec" onclick="admPin(false)">🔑 PIN دیکھیں</button><button class="sec" onclick="admPin(true)">🔄 نیا PIN بنائیں</button></div><div id="pinBox"></div><div style="font-size:13px;color:var(--mut);margin-top:4px">غیر فعال ایجنٹ کے کاروبار کی آئندہ تجدید / فروخت کا کمیشن کمپنی (PBT) کا ہوتا ہے — اب تک کا حساب نہیں بدلتا۔</div></div>
+    <div class="card"><div class="btns" style="margin:0">${s.agent.off ? '<button onclick="admDeact(false)">✅ دوبارہ فعال کریں</button>' : '<button class="red" onclick="admDeact(true)">⛔ ایجنٹ غیر فعال کریں</button>'}<button class="red" onclick="admFree()">🔓 ایجنٹ ختم — AG نمبر خالی کریں</button></div><div class="btns"><button class="sec" onclick="admPin(false)">🔑 PIN دیکھیں</button><button class="sec" onclick="admPin(true)">🔄 نیا PIN بنائیں</button></div><div id="pinBox"></div><div style="font-size:13px;color:var(--mut);margin-top:4px">غیر فعال ایجنٹ کے کاروبار کی آئندہ تجدید / فروخت کا کمیشن کمپنی (PBT) کا ہوتا ہے — اب تک کا حساب نہیں بدلتا۔</div></div>
     <div class="card"><h2>➕ ادائیگی درج کریں</h2><div class="btns"><input id="payAmt" class="num" inputmode="numeric" placeholder="رقم" style="max-width:140px"><input id="payNote" placeholder="نوٹ (ایزی پیسہ، TID…)" style="flex:1;min-width:160px"><button onclick="admPay()">💾</button></div>
       <h2 style="margin-top:10px">✅ ادائیگیاں</h2>${paysHtml(s, true)}</div>
     <div class="card"><h2>🏪 کاروبار</h2>${refsHtml(s)}</div>
@@ -291,6 +291,12 @@ async function admOpen(code, extra){
 async function admDeact(off){
   if(!confirm(off ? 'یہ ایجنٹ غیر فعال کریں؟\n\n• اس کے کاروبار کی آئندہ ہر تجدید / فروخت کا کمیشن کمپنی (PBT) کا ہوگا\n• اب تک کا کمایا ہوا حساب ویسا رہے گا\n• اس کا کوڈ نئے کاروبار پر نہیں لگے گا' : 'یہ ایجنٹ دوبارہ فعال کریں؟ (آئندہ کی فروخت پھر اس کی)')) return;
   const r = await admCall('/agadmin', {op: off ? 'deact' : 'react', code: admCode}); if(!r || !r.ok) return alert('نہیں ہو سکا'); admOpen(admCode);
+}
+/* AGP1711TU041 (مالک کا حکم): ایجنٹ ختم — اس کا AG نمبر خالی (ریفرل فہرست میں «Vacant — خالی»)، اگلے نئے ایجنٹ کو خود ملتا ہے؛ MCS ID / کاروبار ویسے؛ پرانا حساب الگ محفوظ */
+async function admFree(){
+  if(!confirm('یہ ایجنٹ ختم کریں؟\n\n• اس کا ' + admCode + ' نمبر خالی ہو جائے گا — اگلے نئے ایجنٹ کو ملے گا\n• اس کی MCS ID اور کاروبار ویسے رہیں گے\n• اب تک کا حساب الگ محفوظ رہے گا\n• یہ واپس نہیں ہو سکتا')) return;
+  const r = await admCall('/agadmin', {op: 'free', code: admCode}); if(!r || !r.ok) return alert(r && r.reason === 'admin_code' ? 'AG001 / AG002 ایڈمن کے لیے پکے ہیں — خالی نہیں ہوتے' : 'نہیں ہو سکا');
+  alert('✅ ' + admCode + ' اب خالی ہے — اگلے نئے ایجنٹ کو یہی نمبر ملے گا'); location.hash = '#admin'; try{ admList(); }catch(e){ location.reload(); }
 }
 async function admPay(){ const amount = parseInt($('#payAmt').value, 10); if(!(amount > 0)) return; if(!confirm('Rs ' + N(amount) + ' ادائیگی درج کریں؟')) return; await admCall('/agadmin', {op:'pay', code: admCode, amount, note: $('#payNote').value}); admOpen(admCode); }
 async function admUnpay(id){ if(!confirm('یہ ادائیگی ہٹا دیں؟')) return; await admCall('/agadmin', {op:'unpay', pid: id}); admOpen(admCode); }
@@ -392,7 +398,7 @@ function openHelpDesk(){
   location.href = 'https://pbtcodelabs-pbt.github.io/help/?' + new URLSearchParams({app: 'PBT-Portal', v: AGP_VER, phone: o.phone, name: o.name, text: o.text}) + '#/new/PBT-Portal';
 }
 </script>
-<script src="ui2.js?v=AGP1511SU040"></script>
-<script src="https://pbtcodelabs-pbt.github.io/help/widget.js" data-app="PBT-Portal" data-ver="AGP1511SU040" defer></script>
+<script src="ui2.js?v=AGP1711TU041"></script>
+<script src="https://pbtcodelabs-pbt.github.io/help/widget.js" data-app="PBT-Portal" data-ver="AGP1711TU041" defer></script>
 </body>
 </html>
