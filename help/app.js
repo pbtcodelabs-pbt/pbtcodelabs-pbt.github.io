@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1711TU117';
-const UPDATE_NOTE = '🔑 تازہ زپ میں My City Shines کے آگے «Generate Activation Code» — MCS نمبر سے اسی بندے کا کوڈ (MCS008M1-…)';  const UPDATE_NOTE_OLD = '';
+const APP_VERSION = 'HD1711TU118';
+const UPDATE_NOTE = '🔑 My City Shines کے کوڈ میں بندے کا نام بھی — MCS008M1HABIB-…';  const UPDATE_NOTE_OLD = '';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
