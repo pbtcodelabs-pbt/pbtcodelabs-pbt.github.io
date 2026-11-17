@@ -345,6 +345,48 @@ function quotaMeter(){
   setTimeout(() => qmLoad(false), 0);
   return `<div class="v2sec v2qm" onclick="qmRefresh()" style="cursor:pointer"><div class="v2sh">🔥<b>Firebase Quota <small>(today · tap to refresh)</small></b></div><div class="v2sb" id="v2qm">${qmHtml()}</div></div>`;
 }
+/* AGP1711TU042 (مالک کا حکم — روز کا بیک اپ): ڈویلپر ہوم پر «💾 Daily Backup» — سرور (AIO worker cron، رات 3 بجے PKT) ہر رات سارا MCS ڈیٹا
+   (سرور کی جدولیں، فائربیس کے لائیو کارڈ، appConfig، باقی کارڈوں کی نقل) ایک فائل میں، 30 دن؛ یہاں فہرست، ⬇️ ڈاؤن لوڈ، 📤 Google Drive (فون کا شیئر)، ابھی بنائیں */
+let BK = null;
+function bkInfoTxt(x){ const i = x.info || {}, t = i.tables || {}; const cards = (i.dirCards || 0) + (i.servicesLive || 0) + (i.doctorsLive || 0);
+  return `${N(cards)} cards • ${N(t.mcsuser || 0)} accounts • ${N(t.prof || 0)} memberships • ${N(t.sale || 0)} sales • ${(x.len * 0.75 / 1024 / 1024).toFixed(1)} MB${i.fsErr ? ' • ⚠️ Firebase: ' + E(i.fsErr) : ''}`; }
+function bkHtml(){
+  if(!BK) return '<div class="qm-l">⏳ Loading…</div>';
+  const L = BK.list || [], x = L[0];
+  if(!x) return '<div class="qm-l">No backup yet — first one tonight at 3:00 AM, or tap «Make backup now».</div><button class="bk-b" onclick="event.stopPropagation();bkRun()">💾 Make backup now</button>';
+  const age = (Date.now() - x.at) / 3600e3, ok = age < 30;
+  return `<div class="qm-st ${ok ? 'ok' : 'bad'}">${ok ? '✅' : '⚠️'} Last backup: <b>${dmy(x.at)}</b> ${new Date(x.at).toLocaleTimeString('en-GB', {hour:'numeric', minute:'2-digit', hour12:true, timeZone:'Asia/Karachi'})} — ${L.length} day(s) saved (last 30 kept)</div>
+    <div class="qm-f">${bkInfoTxt(x)}</div>
+    <div class="bk-row"><button class="bk-b" onclick="event.stopPropagation();bkAll()">📂 All backups</button><button class="bk-b" onclick="event.stopPropagation();bkSave('${x.day}', 1)">📤 Save to Google Drive</button></div>`;
+}
+async function bkLoad(){ try { const r = await admCall('/mcsbackup', {op:'list'}); if(r && r.ok) BK = r; } catch(e){} const el = document.getElementById('v2bk'); if(el) el.innerHTML = bkHtml(); }
+window.bkRun = async () => { const el = document.getElementById('v2bk'); if(el) el.innerHTML = '<div class="qm-l">⏳ Making backup… (up to a minute)</div>';
+  try { const r = await admCall('/mcsbackup', {op:'run'}); toast(r && r.ok ? '✅ Backup made' : '⚠️ Backup failed'); } catch(e){ toast('⚠️ Backup failed'); } bkLoad(); };
+async function bkFile(day){ const r = await admCall('/mcsbackup', {op:'get', day}); if(!r || !r.ok) throw new Error('none');
+  const b = atob(r.data), u = new Uint8Array(b.length); for(let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i);
+  return new File([u], `MCS-backup-${day}.json.gz`, {type:'application/gzip'}); }
+window.bkSave = async (day, share) => {
+  toast('⏳ Preparing backup file…');
+  let f; try { f = await bkFile(day); } catch(e){ return toast('⚠️ Could not get the backup'); }
+  if(share && navigator.canShare && navigator.canShare({files:[f]})){
+    /* فائل لانے کے بعد فون کی اجازت ختم ہو سکتی ہے — اس لیے «ابھی محفوظ کریں» دوسرا دبانا */
+    const o = document.createElement('div'); o.className = 'bk-ov'; o.innerHTML = `<div class="bk-box"><b>📤 Save to Google Drive</b><p>File ready: ${E(f.name)} (${(f.size / 1024 / 1024).toFixed(1)} MB).<br>Tap the button, then choose <b>Drive</b> → folder «MCS Backup» → Save.</p><button class="bk-b">📤 Save now</button> <button class="bk-b bk-x">✖ Close</button></div>`;
+    o.querySelector('.bk-x').onclick = () => o.remove();
+    o.querySelector('.bk-b').onclick = async () => { try { await navigator.share({files:[f], title:f.name}); } catch(e){} o.remove(); };
+    document.body.appendChild(o); return;
+  }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(f); a.download = f.name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+  toast('⬇️ Downloaded: ' + f.name);
+};
+window.bkAll = () => {
+  const L = (BK && BK.list) || [], o = document.createElement('div'); o.className = 'bk-ov';
+  o.innerHTML = `<div class="bk-box"><b>📂 Daily backups (last 30 days)</b><p>Each file has everything: accounts, memberships, sales, agents, settings and all cards. Keep a copy in Google Drive.</p>
+    <div class="bk-list">${L.map(x => `<div class="bk-it"><div><b>${dmy(x.at)}</b><small>${bkInfoTxt(x)}</small></div><button class="bk-b" onclick="bkSave('${x.day}', 0)">⬇️</button><button class="bk-b" onclick="bkSave('${x.day}', 1)">📤</button></div>`).join('') || '<p>No backup yet.</p>'}</div>
+    <button class="bk-b" onclick="this.closest('.bk-ov').remove();bkRun()">💾 Make backup now</button> <button class="bk-b bk-x" onclick="this.closest('.bk-ov').remove()">✖ Close</button></div>`;
+  document.body.appendChild(o);
+};
+function backupCard(){ setTimeout(bkLoad, 0);
+  return `<div class="v2sec v2qm"><div class="v2sh">💾<b>Daily Backup <small>(every night 3:00 AM)</small></b></div><div class="v2sb" id="v2bk">${bkHtml()}</div></div>`; }
 let COST = null, COST_AT = 0;
 function coTiles(){
   const x = COST || {}, v = n => n == null ? '…' : N(n);
@@ -408,6 +450,7 @@ function devHome(m, P, reqs, owe){
   const T = (m && m.totals) || {}, L = (P && P.list) || [], paid = L.reduce((a, p) => a + (p.paid || 0), 0);
   return `${profCard('PBT Code Labs', 'Admin 1', 'Admin 1 ID', 'DEV', 'DEV')}
     ${quotaMeter()}
+    ${backupCard()}
     ${companyOverview()}
     ${overview(m)}
     <div class="v2sec"><div class="v2sh">${ic('user', 28)}<b>Your Personal Share <small>(Admin 1)</small></b></div><div class="v2sb">
