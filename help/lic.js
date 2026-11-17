@@ -12,7 +12,7 @@
   const L = (e, u) => (en() ? e : u);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const dmy = ts => { if (!ts) return ''; const d = new Date(ts); return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear(); };
-  let PRICE = {}, LBL = '', PK = [], CODES = [], FILTER = 'all', NEW = [], BUSY = false, EDIT = null, SHOWPK = false, MSG = '', OK = true;
+  let SID = '', LOOK = null, PRICE = {}, LBL = '', PK = [], CODES = [], FILTER = 'all', NEW = [], BUSY = false, EDIT = null, SHOWPK = false, MSG = '', OK = true;
 
 
   /* HD1711TU111: قیمتیں پکی محفوظ — فون میں + کلاؤڈ (Store.setCfg)؛ پیکج کی فہرست بھی فون میں کاپی رہتی ہے */
@@ -70,7 +70,7 @@
     return j;
   }
   function errText(c) {
-    const m = { no_pkg: ['Package not found / switched off', 'پیکج نہیں ملا / بند ہے'], bad_prefix: ['Name (code start) too short', 'نام (کوڈ کا شروع) بہت چھوٹا ہے'], prefix_taken: ['This name is already used by another package', 'یہ نام کسی اور پیکج کا ہے'], no_days: ['Enter days or choose Lifetime', 'دن لکھیں یا لائف ٹائم چنیں'], not_ready: ['Server not ready', 'سرور تیار نہیں'], bad_op: ['Server is old — upload the new worker.js', 'سرور پرانا ہے — نیا worker.js اپلوڈ کریں'] };
+    const m = { no_pkg: ['Package not found / switched off', 'پیکج نہیں ملا / بند ہے'], bad_prefix: ['Name (code start) too short', 'نام (کوڈ کا شروع) بہت چھوٹا ہے'], prefix_taken: ['This name is already used by another package', 'یہ نام کسی اور پیکج کا ہے'], no_days: ['Enter days or choose Lifetime', 'دن لکھیں یا لائف ٹائم چنیں'], no_sid: ['No person with this MCS ID', 'اس MCS نمبر کا کوئی بندہ نہیں ملا'], not_ready: ['Server not ready', 'سرور تیار نہیں'], bad_op: ['Server is old — upload the new worker.js', 'سرور پرانا ہے — نیا worker.js اپلوڈ کریں'] };
     return m[c] ? L(m[c][0], m[c][1]) : String(c || 'error');
   }
 
@@ -99,10 +99,10 @@
     const act = PK.filter(p => p.active !== false);
     const list = CODES.filter(x => FILTER === 'all' || (FILTER === 'unused' && !x.redeemed && !x.revoked) || (FILTER === 'used' && x.redeemed));
     const cnt = f => CODES.filter(x => f === 'all' || (f === 'unused' && !x.redeemed && !x.revoked) || (f === 'used' && x.redeemed)).length;
-    o.innerHTML = `<div class="lcTop"><b>🔑 ${L('Generate Activation Codes', 'ایکٹیویشن کوڈ بنائیں')}</b><button class="lcX" data-l="close">✕</button></div>
-<div class="lcBox" style="padding:8px"><div class="lcTabs" style="margin:0">${APPS.map(([k, t]) => `<button class="${APP === k ? 'on' : ''}" data-l="app" data-v="${k}">${t}</button>`).join('')}</div>${APP === 'MCS' ? `<div class="lcSub" style="margin-top:6px">${L('1-year registration code — enter it in the registration form; the business goes live for 1 year at once.', 'ایک سال کا رجسٹریشن کوڈ — رجسٹریشن فارم میں لکھیں، کاروبار فوراً ایک سال کے لیے لائیو۔')}</div>` : ''}</div>
+    o.innerHTML = `<div class="lcTop"><b>🔑 ${L('Generate Activation Code', 'ایکٹیویشن کوڈ بنائیں')} — ${APP === 'MCS' ? 'My City Shines' : 'AIO POS'}</b><button class="lcX" data-l="close">✕</button></div>
+<div class="lcBox" style="padding:8px"><div class="lcTabs" style="margin:0">${APPS.map(([k, t]) => `<button class="${APP === k ? 'on' : ''}" data-l="app" data-v="${k}">${t}</button>`).join('')}</div>${APP === 'MCS' ? `<div class="lcSub" style="margin-top:6px">${L('1-year code — works only for that person; entered in the registration form, the business goes live for 1 year at once.', 'ایک سال کا کوڈ — صرف اسی بندے کا؛ رجسٹریشن فارم میں لکھیں، کاروبار فوراً ایک سال کے لیے لائیو۔')}</div>` : ''}</div>
 ${MSG ? `<div class="lcMsg ${OK ? 'ok' : 'bad'}">${esc(MSG)}</div>` : ''}
-<div class="lcBox"><h3>🔑 ${L('Packages — price & code', 'پیکج — قیمت اور کوڈ')}</h3>
+${APP === 'MCS' ? mcsHTML() : ''}<div class="lcBox" style="${APP === 'MCS' ? 'display:none' : ''}"><h3>🔑 ${L('Packages — price & code', 'پیکج — قیمت اور کوڈ')}</h3>
 <div class="lcSub" style="margin:0 0 6px">${L('Type the price once — it stays saved. Tap 🔑 to make a code.', 'قیمت ایک بار لکھیں — پکی محفوظ رہتی ہے۔ کوڈ بنانے کے لیے 🔑 دبائیں۔')}</div>
 <label>${L('Customer name / note (optional)', 'گاہک کا نام / نوٹ (اختیاری)')}</label><input type="text" id="lcLb" maxlength="60" value="${esc(LBL)}">
 ${act.map(p => `<div class="lcItem"><div class="lcRow" style="flex-wrap:nowrap"><div style="flex:1;min-width:0"><b>${esc(p.name)}</b><div class="lcSub">${esc(p.prefix)} · ${p.life ? L('lifetime', 'لائف ٹائم') : p.days + L(' days', ' دن')} · ${p.devices} ${L('phone(s)', 'فون')}</div></div>
@@ -115,7 +115,17 @@ ${NEW.filter(c => c.pkgId === p.id).slice(0, 1).map(c => `<div style="margin-top
 ${list.map(x => { const s = status(x); return `<div class="lcItem"><div class="lcRow"><span class="lcCode" style="flex:1">${esc(x.code)}</span><span class="lcTag ${s[0]}">${esc(s[1])}</span></div>
 <div class="lcSub">${esc(x.pkgName || (x.pend ? (x.pend.life ? 'Lifetime' : x.pend.days + ' days') + ', ' + x.pend.devices + ' phone(s)' : ''))}${x.label ? ' · 👤 ' + esc(x.label) : ''} · ${L('created', 'بنا')} ${dmy(x.at)}${x.redeemed ? ' · 📱 ' + (x.used || 0) + '/' + (x.devices || 1) : ''}</div>
 <div class="lcRow" style="margin-top:8px"><button class="lcBtn" data-l="copy" data-v="${esc(x.code)}">📋</button>${x.redeemed ? `<button class="lcBtn" data-l="op" data-op="reset" data-id="${esc(x.id)}">📱 ${L('Reset phones', 'فون صاف')}</button>` : ''}${x.revoked ? `<button class="lcBtn" data-l="op" data-op="unrevoke" data-id="${esc(x.id)}">↩️ ${L('Restore', 'بحال')}</button>` : `<button class="lcBtn" data-l="op" data-op="revoke" data-id="${esc(x.id)}">⛔ ${L('Block', 'بند')}</button>`}<button class="lcBtn red" data-l="op" data-op="delete" data-id="${esc(x.id)}">🗑️</button></div></div>`; }).join('') || `<div class="lcSub" style="margin-top:8px">${L('No keys here', 'یہاں کوئی کوڈ نہیں')}</div>`}</div>
-<div class="lcBox"><h3 data-l="pkToggle" style="cursor:pointer">📦 ${L('Packages', 'پیکج')} ${SHOWPK ? '▲' : '▼'}</h3>${SHOWPK ? pkgHTML() : `<div class="lcSub">${L('Names, days and phone limits of your packages — tap to edit', 'پیکجوں کے نام، دن اور فون کی حد — بدلنے کے لیے کھولیں')}</div>`}</div>`;
+<div class="lcBox" style="${APP === 'MCS' ? 'display:none' : ''}"><h3 data-l="pkToggle" style="cursor:pointer">📦 ${L('Packages', 'پیکج')} ${SHOWPK ? '▲' : '▼'}</h3>${SHOWPK ? pkgHTML() : `<div class="lcSub">${L('Names, days and phone limits of your packages — tap to edit', 'پیکجوں کے نام، دن اور فون کی حد — بدلنے کے لیے کھولیں')}</div>`}</div>`;
+  }
+  /* HD1711TU117 (مالک کا حکم): MCS کا کوڈ اسی بندے کا — MCS نمبر لکھیں → نام / موبائل → 🔑 → MCS008M1-K7Q9XA (صرف اسی کے کاروبار پر، ایک سال) */
+  function mcsHTML() {
+    const x = LOOK, nc = NEW[0];
+    return `<div class="lcBox"><h3>🔑 ${L('1-year code for one person', 'ایک بندے کا ایک سال کا کوڈ')}</h3>
+<label>${L('MCS ID of the business owner (e.g. MCS008)', 'کاروبار والے کا MCS نمبر (مثلاً MCS008)')}</label>
+<div class="lcRow" style="flex-wrap:nowrap"><input type="text" id="lcSid" maxlength="12" value="${esc(SID)}" placeholder="MCS008" style="text-transform:uppercase;font-family:monospace;font-weight:800;direction:ltr"><button class="lcBtn" data-l="look" ${BUSY ? 'disabled' : ''}>🔍</button></div>
+${x ? `<div class="lcItem" style="background:#f8fafc"><b>👤 ${esc(x.name || '—')}</b><div class="lcSub" style="direction:ltr;text-align:right">🆔 ${esc(x.sub)} · 📱 ${esc(String(x.mob || '').replace(/^92/, '0'))}${x.until > Date.now() ? ' · ✅ ' + L('active till ', 'فعال: ') + dmy(x.until) : ''}</div>
+<div class="lcRow" style="margin-top:8px"><button class="lcBtn pri" data-l="mgen" ${BUSY ? 'disabled' : ''}>🔑 ${L('Generate code', 'کوڈ بنائیں')}</button></div></div>` : ''}
+${nc ? `<div style="margin-top:8px;background:#f0fdf4;border-radius:10px;padding:8px"><div class="lcCode">${esc(nc.code)}</div><div class="lcSub">${L('Works only on this person\'s business — 1 year from the day it is entered', 'صرف اسی بندے کے کاروبار پر چلے گا — لکھنے کے دن سے ایک سال')}</div><div class="lcRow" style="margin-top:6px"><button class="lcBtn grn" data-l="copy" data-v="${esc(sendText(nc.code))}">📋 ${L('Copy', 'کاپی')}</button><button class="lcBtn pri" data-l="send" data-v="${esc(sendText(nc.code))}">📤 ${L('Send', 'بھیجیں')}</button></div></div>` : ''}</div>`;
   }
   function pkgHTML() {
     const e = EDIT || {};
@@ -137,7 +147,18 @@ ${list.map(x => { const s = status(x); return `<div class="lcItem"><div class="l
     const a = t.dataset.l, v = t.dataset.v, id = t.dataset.id;
     if (a === 'close') { const o = document.getElementById('licOv'); if (o) o.remove(); document.body.style.overflow = ''; return; }
     if (a === 'flt') { FILTER = v; draw(); return; }
-    if (a === 'app') { if (v === APP) return; APP = v; try { localStorage.setItem('lic_app', v); } catch (e) {} NEW = []; CODES = []; MSG = ''; EDIT = null; SHOWPK = false; loadLocal(); draw(); loadAll(); return; }
+    if (a === 'look' || a === 'mgen') {
+      SID = val('lcSid').toUpperCase().replace(/[^A-Z0-9]/g, ''); if (/^\d+$/.test(SID)) SID = 'MCS' + SID.padStart(3, '0');
+      if (!/^MCS\d+(M\d+)?$/.test(SID)) { say(L('Enter an MCS ID like MCS008', 'MCS نمبر لکھیں، مثلاً MCS008'), false); return; }
+      BUSY = true; draw();
+      try {
+        if (a === 'look' || !LOOK) { const r = await call({ op: 'mcslook', sid: SID }); LOOK = r; NEW = []; MSG = ''; }
+        if (a === 'mgen') { const r = await call({ op: 'gencode', sid: SID, label: LOOK && LOOK.name || '' }); NEW = r.codes || []; const keep = NEW; await loadAll(); NEW = keep; say('✅ ' + L('Code created', 'کوڈ بن گیا'), true); }
+      } catch (e) { LOOK = null; say('⚠️ ' + e.message, false); }
+      finally { BUSY = false; draw(); }
+      return;
+    }
+    if (a === 'app') { if (v === APP) return; APP = v; try { localStorage.setItem('lic_app', v); } catch (e) {} NEW = []; CODES = []; MSG = ''; EDIT = null; LOOK = null; SHOWPK = false; loadLocal(); draw(); loadAll(); return; }
     if (a === 'copy') { try { await navigator.clipboard.writeText(v); say('📋 ' + v, true); } catch (e) { say('⚠️ ' + v, false); } return; }
     if (a === 'send') { try { if (navigator.share) { await navigator.share({ text: v }); } else { window.open('https://wa.me/?text=' + encodeURIComponent(v), '_blank'); } } catch (e) {} return; }
     if (a === 'copyall') { try { await navigator.clipboard.writeText(NEW.map(c => c.code).join('\n')); say('📋 ' + NEW.length, true); } catch (e) { say('⚠️', false); } return; }
@@ -165,11 +186,13 @@ ${list.map(x => { const s = status(x); return `<div class="lcItem"><div class="l
     } catch (e) { say('⚠️ ' + e.message, false); }
   }
 
-  window.licOpen = function () {
+  window.licOpen = function (app) {
+    if (app === 'MCS' || app === 'AIO') { APP = app; try { localStorage.setItem('lic_app', app); } catch (e) {} }
+    LOOK = null;
     if (!window.Store || !Store.isOwner || !Store.isOwner()) { try { toast('🔒'); } catch (e) {} return; }
     css();
     let o = document.getElementById('licOv'); if (o) o.remove();
-    o = document.createElement('div'); o.id = 'licOv'; o.addEventListener('click', onClick); o.addEventListener('input', ev => { const t = ev.target; if (t && t.dataset && t.dataset.pr) savePrice(t.dataset.pr, t.value); if (t && t.id === 'lcLb') LBL = t.value; });
+    o = document.createElement('div'); o.id = 'licOv'; o.addEventListener('click', onClick); o.addEventListener('keydown', ev => { if (ev.key === 'Enter' && ev.target && ev.target.id === 'lcSid') { const b = o.querySelector('[data-l=look]'); if (b) b.click(); } }); o.addEventListener('input', ev => { const t = ev.target; if (t && t.dataset && t.dataset.pr) savePrice(t.dataset.pr, t.value); if (t && t.id === 'lcLb') LBL = t.value; if (t && t.id === 'lcSid') SID = t.value; });
     document.body.appendChild(o); document.body.style.overflow = 'hidden';
     NEW = []; MSG = ''; loadLocal(); draw(); loadAll();
   };
