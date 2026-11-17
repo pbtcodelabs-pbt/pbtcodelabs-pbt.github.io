@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1711TU114';
-const UPDATE_NOTE = '📦 زپ پینل نیا: بڑا آئیکن + ▲▼ بائیں؛ ڈاؤن لوڈ (سبز) اور اپلوڈ (نیلا) الگ الگ کالم';  const UPDATE_NOTE_OLD = '';
+const APP_VERSION = 'HD1711TU115';
+const UPDATE_NOTE = '🔑 ایکٹیویشن کوڈ: گاہک کو صرف کوڈ جاتا ہے — پیکج کا نام / قیمت پیغام میں نہیں';  const UPDATE_NOTE_OLD = '';
 const DEV_PHONE = '03206793793';
 
 const APPS = [

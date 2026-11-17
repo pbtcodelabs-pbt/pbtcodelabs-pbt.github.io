@@ -23,7 +23,8 @@
     try { localStorage.setItem('lic_price', JSON.stringify(PRICE)); } catch (e) {}
     try { if (window.Store && Store.setCfg) Store.setCfg({ licPrices: PRICE }); } catch (e) {}
   }
-  const sendText = (c, pk) => (pk ? pk.name + '\n' : '') + (pk && PRICE[pk.id] ? L('Price: ', 'قیمت: ') + PRICE[pk.id] + '\n' : '') + L('Activation code: ', 'ایکٹیویشن کوڈ: ') + c;
+  /* HD1711TU115 (مالک کا حکم): گاہک کو صرف کوڈ — پیکج کا نام / مدت / قیمت پیغام میں کبھی نہیں (قیمت صرف مالک کی یادداشت، اسی صفحے پر) */
+  const sendText = c => 'Activation code: ' + c;
 
   function css() {
     if (document.getElementById('licCss')) return;
