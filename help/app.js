@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1711TU107';
-const UPDATE_NOTE = '🎬 My City Shines رجسٹریشن ویڈیو: پرومو کوڈ کا ذکر ہٹا دیا';  const UPDATE_NOTE_OLD = '↕️ ایپس کی ترتیب: «OK ✔» دبانے پر پکی محفوظ (فون + فائربیس) — بند کر کے کھولیں تو وہی ترتیب رہتی ہے';
+const APP_VERSION = 'HD1711TU108';
+const UPDATE_NOTE = '📦 زپ پینل نیا: بڑا آئیکن + ▲▼ بائیں؛ ڈاؤن لوڈ (سبز) اور اپلوڈ (نیلا) الگ الگ کالم';  const UPDATE_NOTE_OLD = '';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -645,13 +645,23 @@ function zipSheet() {
     <div style="margin:0 0 10px"><button class="tb" style="width:100%;padding:12px;font-size:15px;background:#0f172a;color:#fff;border-color:#0f172a" data-act="srv">🖥️ Server file — worker.js (download / upload, no zip)</button></div>
     <div class="zpBar"><button class="tb" data-act="zAZ">A → Z</button><button class="tb" data-act="zZA">Z → A</button><button class="tb zSv${ZDRAFT ? ' dirty' : ''}" data-act="zSave">${ZDRAFT ? '💾 Save order' : ZSAVED ? '✅ Saved' : '💾 Save order'}</button></div>
     <div class="zpL">${L.map((a, ix) => { const c = ZIPC[a.id]; return `<div class="zpR${ZMOVED === a.id ? ' mvd' : ''}" data-zi="${esc(a.id)}">
-      <div class="zpMv"><button type="button" data-act="zUp" data-id="${esc(a.id)}" aria-label="Up"${ix === 0 ? ' disabled' : ''}>▲</button><button type="button" data-act="zDn" data-id="${esc(a.id)}" aria-label="Down"${ix === L.length - 1 ? ' disabled' : ''}>▼</button></div>
-      <button class="zpA" data-act="zipGo" data-id="${esc(a.id)}">${appIcon(a, 'appMini')}<span><b>${esc(ZN(a))}</b><small class="num">${c && c.err ? '⚠️ ' + esc(c.err) : c && c.busy ? '⏳ ' + esc(c.busy) : zipLbl(a.id, c)}</small></span></button>
-      ${c && c.blob ? `<button class="tb grn" data-act="zipDl" data-id="${esc(a.id)}">⬇️ ${esc(c.ver)}.zip</button>` : ''}
-      <button class="tb" style="background:#1d4ed8;color:#fff;border-color:#1d4ed8" data-act="zipUp" data-id="${esc(a.id)}">⬆️ Upload zip</button>
-      <button class="tb" style="background:#7c2d12;color:#fff;border-color:#7c2d12" data-act="zipSrv" data-id="${esc(a.id)}">📦🖥️ Zip + worker.js</button>
-      <button class="tb" style="background:#0f172a;color:#fff;border-color:#0f172a" data-act="zipSrvUp" data-id="${esc(a.id)}">⬆️🖥️ Upload new worker.js</button>
-      <button class="tb zpRf" data-act="zipRf" data-id="${esc(a.id)}">🔄 Refresh</button>
+      <div class="zpTop">
+        <div class="zpMv"><button type="button" data-act="zUp" data-id="${esc(a.id)}" aria-label="Up"${ix === 0 ? ' disabled' : ''}>▲</button><button type="button" data-act="zDn" data-id="${esc(a.id)}" aria-label="Down"${ix === L.length - 1 ? ' disabled' : ''}>▼</button></div>
+        <div class="zpIc">${appIcon(a, 'appMini')}</div>
+        <div class="zpNm"><b>${esc(ZN(a))}</b><small class="num">${c && c.err ? '⚠️ ' + esc(c.err) : c && c.busy ? '⏳ ' + esc(c.busy) : zipLbl(a.id, c).replace('⬇️ Download latest zip', '📦 Latest zip')}</small></div>
+        <button class="tb zpRf" data-act="zipRf" data-id="${esc(a.id)}">🔄</button>
+      </div>
+      <div class="zpCols">
+        <div class="zpCol zpDl"><div class="zpH">⬇️ DOWNLOAD</div>
+          <button class="tb" data-act="zipGo" data-id="${esc(a.id)}">⬇️ Only zip</button>
+          <button class="tb" data-act="zipSrv" data-id="${esc(a.id)}">📦🖥️ Zip + worker.js</button>
+          ${c && c.blob ? `<button class="tb zpRdy" data-act="zipDl" data-id="${esc(a.id)}">✅ Save ${esc(c.ver)}.zip</button>` : ''}
+        </div>
+        <div class="zpCol zpUl"><div class="zpH">⬆️ UPLOAD</div>
+          <button class="tb" data-act="zipUp" data-id="${esc(a.id)}">⬆️ Zip</button>
+          <button class="tb" data-act="zipSrvUp" data-id="${esc(a.id)}">⬆️🖥️ Only worker.js</button>
+        </div>
+      </div>
       ${zpgHtml(a.id)}
       ${ZUP[a.id] ? `<div class="zpU" dir="auto">${esc(ZUP[a.id])}</div>` : ''}
     </div>`; }).join('')}</div></div>`, true);
