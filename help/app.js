@@ -2,7 +2,7 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1711TU108';
+const APP_VERSION = 'HD1711TU110';
 const UPDATE_NOTE = '📦 زپ پینل نیا: بڑا آئیکن + ▲▼ بائیں؛ ڈاؤن لوڈ (سبز) اور اپلوڈ (نیلا) الگ الگ کالم';  const UPDATE_NOTE_OLD = '';
 const DEV_PHONE = '03206793793';
 
@@ -399,7 +399,7 @@ function vHome() {
   const tiles = (own ? orderedApps(APPS.filter(a => own || !a.hide)) : APPS.filter(a => !a.hide)).map(a => {
     const nn = own ? ISSUES.filter(i => !i.arch && i.app === a.id && i.status === 'new').length : 0;
     const n = open.filter(i => i.app === a.id).length - nn; // نیلا = جن پر کام چل رہا ہے (نئے الگ سرخ میں)
-    return `<button class="ap" data-act="${own ? 'oapp' : 'app'}" data-id="${esc(a.id)}">${nn ? `<span class="bd2">${nn} ${LANG === 'en' ? 'new' : (nn === 1 ? 'نیا' : 'نئے')}</span>` : ''}${appIcon(a)}<span class="n ${/[a-z]/i.test(AN(a)) && LANG !== 'en' ? 'en' : ''}">${esc(AN(a))}</span>${n ? `<span class="bd">${n}</span>` : ''}</button>`;
+    return `<button class="ap" data-act="${own ? 'oapp' : 'app'}" data-id="${esc(a.id)}">${nn ? `<span class="bd2">${nn} ${LANG === 'en' ? 'new' : (nn === 1 ? 'نیا' : 'نئے')}</span>` : ''}${appIcon(a)}<span class="n ${/[a-z]/i.test(AN(a)) && LANG !== 'en' ? 'en' : ''}">${esc(AN(a))}</span>${n ? `<span class="bd">${n}</span>` : ''}${own && a.id === 'AIO' ? `<span class="licKey" data-act="lic" title="Generate Activation Codes">🔑</span>` : ''}</button>`;
   }).join('');
   return `
   ${own ? apprStrip() : ''}
@@ -1569,6 +1569,7 @@ function vOwner() {
     <div class="card" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
       <b style="font-size:19px;flex:1">🛠️ ${LANG === 'en' ? 'Developer panel' : 'ڈویلپر پینل'}</b>
       <button class="tb ${pushOn() ? 'grn' : 'pri'}" data-act="push" title="Notifications">🔔${pushOn() ? ' ✓' : ` ${LANG === 'en' ? 'Turn on alerts' : 'اطلاعات چالو کریں'}`}</button><button class="tb" data-act="settings">⚙️</button><button class="tb" data-act="logout">🚪</button></div>
+    ${O.app === 'AIO' ? `<button class="bigBtn" data-act="lic" style="margin:0 0 10px">🔑 ${LANG === 'en' ? 'Generate Activation Codes — AIO POS' : 'AIO POS — ایکٹیویشن کوڈ بنائیں (Generate Activation Codes)'}</button>` : ''}
     <div class="card stats" style="grid-template-columns:repeat(4,1fr)">
       ${countsHTML(hdCounts(ISSUES.filter(i => !O.app || i.app === O.app)))}
       <div class="st g"><span class="v">${weekSolved(ISSUES.filter(i => !O.app || i.app === O.app))}</span><span class="l">✅ ${T('solvedWeek')}</span></div></div>
@@ -2025,6 +2026,7 @@ document.addEventListener('click', async e => {
   const t = e.target.closest('[data-act]'); if (!t) { if (e.target.id === 'ov') closeSheet(); return; }
   const act = t.dataset.act, id = t.dataset.id;
   switch (act) {
+    case 'lic': if (window.licOpen) licOpen(); break;   // 🔑 HD1711TU110: لائسنس کیز (ایکٹیویشن کوڈ)
     case 'lang': setLang(LANG === 'en' ? 'ur' : 'en'); break;
     case 'back': if (EMBED || history.length <= 1) go(R.v === 'app' ? '#/' : (R.v === 'new' ? '#/app/' + encodeURIComponent(R.a) : '#/')); else history.back(); break;
     case 'rank': rankSheet(id); break;
