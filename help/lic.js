@@ -28,7 +28,7 @@
     try { if (window.Store && Store.setCfg) Store.setCfg({ licPrices: PRICE }); } catch (e) {}
   }
   /* HD1711TU115 (مالک کا حکم): گاہک کو صرف کوڈ — پیکج کا نام / مدت / قیمت پیغام میں کبھی نہیں (قیمت صرف مالک کی یادداشت، اسی صفحے پر) */
-  const sendText = c => 'Activation code: ' + c;
+  const sendText = c => String(c || '').trim();   /* HD1711TU120 (مالک کا حکم): کاپی / واٹس ایپ میں صرف کوڈ — آگے پیچھے کوئی لفظ نہیں */
 
   function css() {
     if (document.getElementById('licCss')) return;
@@ -43,6 +43,7 @@
 #licOv .lcBtn.pri{background:#2563eb;color:#fff}#licOv .lcBtn.grn{background:#16a34a;color:#fff}#licOv .lcBtn.red{background:#fee2e2;color:#b91c1c}
 #licOv .lcBtn[disabled]{opacity:.5}#licOv .lcRow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 #licOv .lcCode{font-family:monospace;font-size:17px;font-weight:900;letter-spacing:1px;direction:ltr;unicode-bidi:plaintext;word-break:break-all}
+#licOv .lcBig{font-size:21px;background:#fff;border:2px dashed #16a34a;border-radius:12px;padding:12px 10px;text-align:center;user-select:all;-webkit-user-select:all;cursor:pointer}
 #licOv .lcItem{border:1px solid #e5e9f0;border-radius:12px;padding:10px;margin-top:8px}
 #licOv .lcSub{font-size:12px;color:#64748b;margin-top:3px}
 #licOv .lcTag{display:inline-block;font-size:11px;font-weight:800;border-radius:20px;padding:2px 9px}
@@ -99,7 +100,7 @@
     const act = PK.filter(p => p.active !== false);
     const list = CODES.filter(x => FILTER === 'all' || (FILTER === 'unused' && !x.redeemed && !x.revoked) || (FILTER === 'used' && x.redeemed));
     const cnt = f => CODES.filter(x => f === 'all' || (f === 'unused' && !x.redeemed && !x.revoked) || (f === 'used' && x.redeemed)).length;
-    o.innerHTML = `<div class="lcTop"><b>🔑 ${L('Generate Activation Code', 'ایکٹیویشن کوڈ بنائیں')} — ${APP === 'MCS' ? 'My City Shines' : 'AIO POS'}</b><button class="lcX" data-l="close">✕</button></div>
+    o.innerHTML = `<div class="lcTop"><b>🔑 ${L('Generate Activation Key', 'ایکٹیویشن کی (Activation Key) بنائیں')} — ${APP === 'MCS' ? 'My City Shines' : 'AIO POS'}</b><button class="lcX" data-l="close">✕</button></div>
 <div class="lcBox" style="padding:8px"><div class="lcTabs" style="margin:0">${APPS.map(([k, t]) => `<button class="${APP === k ? 'on' : ''}" data-l="app" data-v="${k}">${t}</button>`).join('')}</div>${APP === 'MCS' ? `<div class="lcSub" style="margin-top:6px">${L('1-year code — works only for that person; entered in the registration form, the business goes live for 1 year at once.', 'ایک سال کا کوڈ — صرف اسی بندے کا؛ رجسٹریشن فارم میں لکھیں، کاروبار فوراً ایک سال کے لیے لائیو۔')}</div>` : ''}</div>
 ${MSG ? `<div class="lcMsg ${OK ? 'ok' : 'bad'}">${esc(MSG)}</div>` : ''}
 ${APP === 'MCS' ? mcsHTML() : ''}<div class="lcBox" style="${APP === 'MCS' ? 'display:none' : ''}"><h3>🔑 ${L('Packages — price & code', 'پیکج — قیمت اور کوڈ')}</h3>
@@ -108,7 +109,7 @@ ${APP === 'MCS' ? mcsHTML() : ''}<div class="lcBox" style="${APP === 'MCS' ? 'di
 ${act.map(p => `<div class="lcItem"><div class="lcRow" style="flex-wrap:nowrap"><div style="flex:1;min-width:0"><b>${esc(p.name)}</b><div class="lcSub">${esc(p.prefix)} · ${p.life ? L('lifetime', 'لائف ٹائم') : p.days + L(' days', ' دن')} · ${p.devices} ${L('phone(s)', 'فون')}</div></div>
 <input type="text" inputmode="numeric" data-pr="${esc(p.id)}" value="${esc(PRICE[p.id] || '')}" placeholder="${L('Price', 'قیمت')}" style="width:96px;flex:0 0 96px;text-align:center;font-weight:800">
 <button class="lcBtn pri" data-l="gen" data-id="${esc(p.id)}" ${BUSY ? 'disabled' : ''}>🔑</button></div>
-${NEW.filter(c => c.pkgId === p.id).slice(0, 1).map(c => `<div style="margin-top:8px;background:#f0fdf4;border-radius:10px;padding:8px"><div class="lcCode">${esc(c.code)}</div><div class="lcRow" style="margin-top:6px"><button class="lcBtn grn" data-l="copy" data-v="${esc(sendText(c.code, p))}">📋 ${L('Copy', 'کاپی')}</button><button class="lcBtn pri" data-l="send" data-v="${esc(sendText(c.code, p))}">📤 ${L('Send', 'بھیجیں')}</button></div></div>`).join('')}</div>`).join('') || `<div class="lcSub">—</div>`}
+${NEW.filter(c => c.pkgId === p.id).slice(0, 1).map(c => `<div style="margin-top:8px;background:#f0fdf4;border-radius:10px;padding:8px"><div class="lcCode lcBig" data-l="copy" data-v="${esc(sendText(c.code))}">${esc(c.code)}</div><div class="lcRow" style="margin-top:6px"><button class="lcBtn grn" data-l="copy" data-v="${esc(sendText(c.code, p))}">📋 ${L('Copy', 'کاپی')}</button><button class="lcBtn pri" data-l="send" data-v="${esc(sendText(c.code, p))}">📤 ${L('Send', 'بھیجیں')}</button></div></div>`).join('')}</div>`).join('') || `<div class="lcSub">—</div>`}
 </div>
 <div class="lcBox"><h3>📋 ${L('All keys', 'تمام کوڈ')}</h3>
 <div class="lcTabs">${[['all', L('All', 'سب')], ['unused', L('Unused', 'نئے')], ['used', L('Used', 'استعمال شدہ')]].map(([k, t]) => `<button class="${FILTER === k ? 'on' : ''}" data-l="flt" data-v="${k}">${t} (${cnt(k)})</button>`).join('')}</div>
@@ -129,7 +130,7 @@ ${list.map(x => { const s = status(x); return `<div class="lcItem"><div class="l
 ${x ? `<div class="lcItem" style="background:#f8fafc"><b>👤 ${esc(x.name || '—')}</b><div class="lcSub" style="direction:ltr;text-align:right">🆔 ${esc(x.sub)} · 📱 ${esc(String(x.mob || '').replace(/^92/, '0'))}${x.until > Date.now() ? ' · ✅ ' + L('active till ', 'فعال: ') + dmy(x.until) : ''}</div>
 <label>${L('Name in the code (English)', 'کوڈ میں نام (انگلش)')}</label><input type="text" id="lcNm" maxlength="8" value="${esc(nameTag(x.name))}" placeholder="HABIB" style="text-transform:uppercase;font-family:monospace;font-weight:800;direction:ltr">
 <div class="lcRow" style="margin-top:8px"><button class="lcBtn pri" data-l="mgen" ${BUSY ? 'disabled' : ''}>🔑 ${L('Generate code', 'کوڈ بنائیں')}</button></div></div>` : ''}
-${nc ? `<div style="margin-top:8px;background:#f0fdf4;border-radius:10px;padding:8px"><div class="lcCode">${esc(nc.code)}</div><div class="lcSub">${L('Works only on this person\'s business — 1 year from the day it is entered', 'صرف اسی بندے کے کاروبار پر چلے گا — لکھنے کے دن سے ایک سال')}</div><div class="lcRow" style="margin-top:6px"><button class="lcBtn grn" data-l="copy" data-v="${esc(sendText(nc.code))}">📋 ${L('Copy', 'کاپی')}</button><button class="lcBtn pri" data-l="send" data-v="${esc(sendText(nc.code))}">📤 ${L('Send', 'بھیجیں')}</button></div></div>` : ''}</div>`;
+${nc ? `<div style="margin-top:8px;background:#f0fdf4;border-radius:10px;padding:8px"><div class="lcCode lcBig" data-l="copy" data-v="${esc(sendText(nc.code))}">${esc(nc.code)}</div><div class="lcSub">${L('Works only on this person\'s business — 1 year from the day it is entered', 'صرف اسی بندے کے کاروبار پر چلے گا — لکھنے کے دن سے ایک سال')}</div><div class="lcRow" style="margin-top:6px"><button class="lcBtn grn" data-l="copy" data-v="${esc(sendText(nc.code))}">📋 ${L('Copy', 'کاپی')}</button><button class="lcBtn pri" data-l="send" data-v="${esc(sendText(nc.code))}">📤 ${L('Send', 'بھیجیں')}</button></div></div>` : ''}</div>`;
   }
   function pkgHTML() {
     const e = EDIT || {};
@@ -163,7 +164,7 @@ ${nc ? `<div style="margin-top:8px;background:#f0fdf4;border-radius:10px;padding
       return;
     }
     if (a === 'app') { if (v === APP) return; APP = v; try { localStorage.setItem('lic_app', v); } catch (e) {} NEW = []; CODES = []; MSG = ''; EDIT = null; LOOK = null; SHOWPK = false; loadLocal(); draw(); loadAll(); return; }
-    if (a === 'copy') { try { await navigator.clipboard.writeText(v); say('📋 ' + v, true); } catch (e) { say('⚠️ ' + v, false); } return; }
+    if (a === 'copy') { let ok = false; try { await navigator.clipboard.writeText(v); ok = true; } catch (e) { try { const ta = document.createElement('textarea'); ta.value = v; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(ta); ta.select(); ok = document.execCommand('copy'); ta.remove(); } catch (e2) {} } say((ok ? '📋 ' + L('Copied', 'کاپی ہو گیا') + ': ' : '⚠️ ') + v, ok); return; }
     if (a === 'send') { try { if (navigator.share) { await navigator.share({ text: v }); } else { window.open('https://wa.me/?text=' + encodeURIComponent(v), '_blank'); } } catch (e) {} return; }
     if (a === 'copyall') { try { await navigator.clipboard.writeText(NEW.map(c => c.code).join('\n')); say('📋 ' + NEW.length, true); } catch (e) { say('⚠️', false); } return; }
     if (a === 'pkToggle') { SHOWPK = !SHOWPK; draw(); return; }
