@@ -2,7 +2,7 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1711TU112';
+const APP_VERSION = 'HD1711TU113';
 const UPDATE_NOTE = '📦 زپ پینل نیا: بڑا آئیکن + ▲▼ بائیں؛ ڈاؤن لوڈ (سبز) اور اپلوڈ (نیلا) الگ الگ کالم';  const UPDATE_NOTE_OLD = '';
 const DEV_PHONE = '03206793793';
 
@@ -649,8 +649,9 @@ function zipSheet() {
         <div class="zpMv"><button type="button" data-act="zUp" data-id="${esc(a.id)}" aria-label="Up"${ix === 0 ? ' disabled' : ''}>▲</button><button type="button" data-act="zDn" data-id="${esc(a.id)}" aria-label="Down"${ix === L.length - 1 ? ' disabled' : ''}>▼</button></div>
         <div class="zpIc">${appIcon(a, 'appMini')}</div>
         <div class="zpNm"><b>${esc(ZN(a))}</b><small class="num">${c && c.err ? '⚠️ ' + esc(c.err) : c && c.busy ? '⏳ ' + esc(c.busy) : zipLbl(a.id, c).replace('⬇️ Download latest zip', '📦 Latest zip')}</small></div>
-        ${a.id === 'AIO' ? `<div class="zpLic"><button class="tb zpLicB" data-act="lic">🔑 Generate Package Activation Code</button><button class="tb zpRf" data-act="zipRf" data-id="${esc(a.id)}">🔄</button></div>` : `<button class="tb zpRf" data-act="zipRf" data-id="${esc(a.id)}">🔄</button>`}
+        <button class="tb zpRf" data-act="zipRf" data-id="${esc(a.id)}">🔄</button>
       </div>
+      ${a.id === 'AIO' ? `<div class="zpLic"><button class="zpLicB" data-act="lic">🔑 Generate Activation Code</button></div>` : ''}
       <div class="zpCols">
         <div class="zpCol zpDl"><div class="zpH">⬇️ DOWNLOAD</div>
           <button class="tb" data-act="zipGo" data-id="${esc(a.id)}">⬇️ Only zip</button>
@@ -2025,7 +2026,7 @@ document.addEventListener('click', async e => {
   const t = e.target.closest('[data-act]'); if (!t) { if (e.target.id === 'ov') closeSheet(); return; }
   const act = t.dataset.act, id = t.dataset.id;
   switch (act) {
-    case 'lic': if (window.licOpen) licOpen(); break;   // 🔑 HD1711TU112: لائسنس کیز (ایکٹیویشن کوڈ)
+    case 'lic': if (window.licOpen) licOpen(); break;   // 🔑 HD1711TU113: لائسنس کیز (ایکٹیویشن کوڈ)
     case 'lang': setLang(LANG === 'en' ? 'ur' : 'en'); break;
     case 'back': if (EMBED || history.length <= 1) go(R.v === 'app' ? '#/' : (R.v === 'new' ? '#/app/' + encodeURIComponent(R.a) : '#/')); else history.back(); break;
     case 'rank': rankSheet(id); break;
