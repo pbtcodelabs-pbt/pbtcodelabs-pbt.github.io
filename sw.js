@@ -1,5 +1,5 @@
 // صرف مرکزی صفحے کا SW (scope: /index.html) — باقی ایپس کے فولڈر کو نہیں چھوتا
-const CACHE_NAME = 'pbt-home-PBT0811SU004';
+const CACHE_NAME = 'pbt-home-PBT1711TU005';
 self.addEventListener('install', e => self.skipWaiting());
 self.addEventListener('activate', e => e.waitUntil(
   caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith('pbt-home-') && k !== CACHE_NAME).map(k => caches.delete(k))))
