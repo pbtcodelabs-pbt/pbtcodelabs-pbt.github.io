@@ -3,7 +3,11 @@
    ہر کوڈ ایک ہی بار چلتا ہے؛ استعمال کے بعد «Used» نظر آتا ہے۔ ایپ (AIO POS) کے اندر کوڈ بنانے کا کوئی حصہ نہیں۔ */
 (function () {
   'use strict';
-  const API = 'https://aio-pos-verify.pbtcodelabs.workers.dev/entadmin', APP = 'AIO';
+  const API = 'https://aio-pos-verify.pbtcodelabs.workers.dev/entadmin';
+  /* HD1711TU116 (مالک کا حکم): دو ایپس — AIO POS اور My City Shines (ایک سال کا رجسٹریشن کوڈ، MCS-1Y-…)؛ چنی ایپ فون میں یاد */
+  const APPS = [['AIO', 'AIO POS'], ['MCS', 'My City Shines']];
+  let APP = 'AIO'; try { APP = localStorage.getItem('lic_app') === 'MCS' ? 'MCS' : 'AIO'; } catch (e) {}
+  const pkKey = () => APP === 'AIO' ? 'lic_pk' : 'lic_pk_' + APP;
   const en = () => { try { return LANG === 'en'; } catch (e) { return false; } };
   const L = (e, u) => (en() ? e : u);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -16,7 +20,7 @@
   function loadLocal() {
     try { PRICE = JSON.parse(localStorage.getItem('lic_price') || '{}') || {}; } catch (e) { PRICE = {}; }
     try { const c = window.CFG || (typeof CFG !== 'undefined' ? CFG : null); if (c && c.licPrices) PRICE = Object.assign({}, c.licPrices, PRICE); } catch (e) {}
-    try { PK = JSON.parse(localStorage.getItem('lic_pk') || '[]') || []; } catch (e) { PK = []; }
+    try { PK = JSON.parse(localStorage.getItem(pkKey()) || '[]') || []; } catch (e) { PK = []; }
   }
   function savePrice(id, v) {
     PRICE[id] = pn(v).trim();
@@ -76,7 +80,7 @@
     try {
       const p = await call({ op: 'pkglist' });
       const arr = p.list || p.packages || p.pkgs || p.items || [];
-      PK = arr; try { localStorage.setItem('lic_pk', JSON.stringify(arr)); } catch (e) {}
+      PK = arr; try { localStorage.setItem(pkKey(), JSON.stringify(arr)); } catch (e) {}
       if (!arr.length) pkErr = L('Server returned 0 packages. Create a package below (📦 Packages).', 'سرور سے ایک بھی پیکج نہیں آیا۔ نیچے «📦 پیکج» میں نیا پیکج بنائیں۔');
     } catch (e) { pkErr = '⚠️ ' + e.message + (PK.length ? L(' (showing saved list)', ' (فون میں محفوظ فہرست دکھا رہا ہوں)') : ''); }
     try {
@@ -95,7 +99,8 @@
     const act = PK.filter(p => p.active !== false);
     const list = CODES.filter(x => FILTER === 'all' || (FILTER === 'unused' && !x.redeemed && !x.revoked) || (FILTER === 'used' && x.redeemed));
     const cnt = f => CODES.filter(x => f === 'all' || (f === 'unused' && !x.redeemed && !x.revoked) || (f === 'used' && x.redeemed)).length;
-    o.innerHTML = `<div class="lcTop"><b>🔑 ${L('Generate Activation Codes — AIO POS', 'AIO POS — ایکٹیویشن کوڈ بنائیں')}</b><button class="lcX" data-l="close">✕</button></div>
+    o.innerHTML = `<div class="lcTop"><b>🔑 ${L('Generate Activation Codes', 'ایکٹیویشن کوڈ بنائیں')}</b><button class="lcX" data-l="close">✕</button></div>
+<div class="lcBox" style="padding:8px"><div class="lcTabs" style="margin:0">${APPS.map(([k, t]) => `<button class="${APP === k ? 'on' : ''}" data-l="app" data-v="${k}">${t}</button>`).join('')}</div>${APP === 'MCS' ? `<div class="lcSub" style="margin-top:6px">${L('1-year registration code — enter it in the registration form; the business goes live for 1 year at once.', 'ایک سال کا رجسٹریشن کوڈ — رجسٹریشن فارم میں لکھیں، کاروبار فوراً ایک سال کے لیے لائیو۔')}</div>` : ''}</div>
 ${MSG ? `<div class="lcMsg ${OK ? 'ok' : 'bad'}">${esc(MSG)}</div>` : ''}
 <div class="lcBox"><h3>🔑 ${L('Packages — price & code', 'پیکج — قیمت اور کوڈ')}</h3>
 <div class="lcSub" style="margin:0 0 6px">${L('Type the price once — it stays saved. Tap 🔑 to make a code.', 'قیمت ایک بار لکھیں — پکی محفوظ رہتی ہے۔ کوڈ بنانے کے لیے 🔑 دبائیں۔')}</div>
@@ -132,6 +137,7 @@ ${list.map(x => { const s = status(x); return `<div class="lcItem"><div class="l
     const a = t.dataset.l, v = t.dataset.v, id = t.dataset.id;
     if (a === 'close') { const o = document.getElementById('licOv'); if (o) o.remove(); document.body.style.overflow = ''; return; }
     if (a === 'flt') { FILTER = v; draw(); return; }
+    if (a === 'app') { if (v === APP) return; APP = v; try { localStorage.setItem('lic_app', v); } catch (e) {} NEW = []; CODES = []; MSG = ''; EDIT = null; SHOWPK = false; loadLocal(); draw(); loadAll(); return; }
     if (a === 'copy') { try { await navigator.clipboard.writeText(v); say('📋 ' + v, true); } catch (e) { say('⚠️ ' + v, false); } return; }
     if (a === 'send') { try { if (navigator.share) { await navigator.share({ text: v }); } else { window.open('https://wa.me/?text=' + encodeURIComponent(v), '_blank'); } } catch (e) {} return; }
     if (a === 'copyall') { try { await navigator.clipboard.writeText(NEW.map(c => c.code).join('\n')); say('📋 ' + NEW.length, true); } catch (e) { say('⚠️', false); } return; }
