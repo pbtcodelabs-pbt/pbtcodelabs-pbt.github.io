@@ -144,7 +144,7 @@ ${list.map(x => { const s = status(x); return `<div class="lcItem"><div class="l
       const g = x.reg || {}, live = (x.recs || []).some(r => r.until > now), till = Math.max(0, ...(x.recs || []).map(r => r.until || 0));
       det = `<div class="lcItem" style="background:#f8fafc;border:2px solid #16a34a">
 <div class="lcRow" style="flex-wrap:nowrap;align-items:flex-start">${x.img ? `<img src="${esc(x.img)}" alt="" style="width:86px;height:86px;border-radius:12px;object-fit:cover;border:2px solid #16a34a;flex:0 0 86px">` : `<div style="width:86px;height:86px;border-radius:12px;background:#e2e8f0;display:flex;align-items:center;justify-content:center;font-size:36px;flex:0 0 86px">👤</div>`}
-<div style="flex:1;min-width:0"><div style="font:900 19px/1.3 inherit">${esc(x.name || g.owner || '—')}</div><div class="lcCode" style="font-size:18px;color:#166534">${esc(x.sid)}</div>
+<div style="flex:1;min-width:0"><div style="font:900 19px/1.3 inherit">${esc(x.name || g.owner || '—')}</div><div class="lcCode" style="font-size:18px;color:#166534">${x.test ? '🧪 ' : ''}${esc(x.sid)}${x.test ? ' <span class="lcTag d">' + L('Test mode', 'ٹیسٹ موڈ') + '</span>' : ''}</div>
 <span class="lcTag ${live ? 'u' : 'd'}" style="margin-top:4px">${live ? '✅ ' + L('Active till ', 'ایکٹیو: ') + dmy(till) : '⏳ ' + L('Not active yet', 'ابھی ایکٹیو نہیں')}</span></div></div>
 ${row('📱', L('Mobile', 'موبائل'), ph(x.mob), 1)}${row('📧', 'Gmail', x.gmail, 1)}${row('🪪', L('CNIC', 'شناختی کارڈ'), cnicF(g.cnic), 1)}
 ${row('🏪', L('Business', 'کاروبار'), g.biz)}${row('🏷️', L('Category', 'قسم'), g.cat)}${row('📍', L('Address', 'پتہ'), [g.addr, g.area, g.city || g.dist].filter(Boolean).join('، '))}
@@ -157,7 +157,8 @@ ${!g.biz && !(x.recs || []).length ? `<div class="lcMsg bad" style="margin:8px 0
     return `<div class="lcBox"><h3>📋 ${L('New MCS accounts', 'نئے MCS اکاؤنٹ')} (${MLIST.length})</h3>
 <div class="lcRow" style="flex-wrap:nowrap"><input type="text" id="lcSid" maxlength="40" value="${esc(MQ)}" placeholder="${L('MCS ID / name / mobile', 'MCS نمبر / نام / موبائل')}" style="direction:ltr"><button class="lcBtn" data-l="look" ${BUSY ? 'disabled' : ''}>🔍</button><button class="lcBtn" data-l="mref" ${BUSY ? 'disabled' : ''}>🔄</button></div>
 ${det}
-${L2.slice(0, MSHOW).map(m => `<div class="lcItem" data-l="mpick" data-v="${esc(m.sid)}" style="cursor:pointer${x && x.sid === m.sid ? ';background:#dcfce7' : ''}"><div class="lcRow" style="flex-wrap:nowrap"><span class="lcCode" style="flex:0 0 auto;color:#166534">${esc(m.sid)}</span><b style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(m.name || '—')}</b><span class="lcTag ${m.until > now ? 'u' : 'd'}">${m.until > now ? '✅ ' + dmy(m.until) : (m.nBiz || m.biz ? '⏳ ' + L('Waiting', 'انتظار') : '🆕')}</span></div>
+${L2.some(m => m.test) ? `<button class="lcBtn red" data-l="twipe" style="width:100%;margin-top:8px" ${BUSY ? 'disabled' : ''}>🗑️ ${L('Clear all test accounts', 'سب ٹیسٹ صاف کریں')} (🧪 ${L2.filter(m => m.test).length})</button>` : ''}
+${L2.slice(0, MSHOW).map(m => `<div class="lcItem" data-l="${m.test ? 'mtpick' : 'mpick'}" data-v="${esc(m.test ? m.k : m.sid)}" style="cursor:pointer${m.test ? ';border:2px dashed #f59e0b;background:#fffbeb' : ''}${x && x.sid === m.sid && !!x.test === !!m.test ? ';background:#dcfce7' : ''}"><div class="lcRow" style="flex-wrap:nowrap"><span class="lcCode" style="flex:0 0 auto;color:#166534">${m.test ? '🧪 ' : ''}${esc(m.sid)}</span><b style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(m.name || '—')}</b><span class="lcTag ${m.until > now ? 'u' : 'd'}">${m.until > now ? '✅ ' + dmy(m.until) : (m.nBiz || m.biz ? '⏳ ' + L('Waiting', 'انتظار') : '🆕')}</span></div>
 <div class="lcSub">${[m.biz, m.city, ph(m.mob)].filter(Boolean).map(esc).join(' · ')}${m.hasImg ? ' · 📷' : ''}${m.at ? ' · ' + dmy(m.at) : ''}</div></div>`).join('') || `<div class="lcSub" style="margin-top:8px">${BUSY ? '⏳' : L('No MCS accounts found', 'کوئی MCS اکاؤنٹ نہیں ملا')}</div>`}
 ${L2.length > MSHOW ? `<button class="lcBtn" data-l="mmore" style="width:100%;margin-top:8px">⬇️ ${L('Show more', 'مزید دکھائیں')} (${L2.length - MSHOW})</button>` : ''}</div>`;
   }
@@ -289,6 +290,17 @@ ${list.length > ASHOW ? `<button class="lcBtn" data-l="amore" style="width:100%;
       SID = sid; BUSY = true; draw();
       try { LOOK = await call({ op: 'mcslook', sid }); MSG = ''; } catch (e) { LOOK = null; say('⚠️ ' + e.message, false); }
       finally { BUSY = false; draw(); const o = document.querySelector('#licOv .lcItem[style*="16a34a"]'); if (o) o.scrollIntoView({ block: 'start', behavior: 'smooth' }); }
+      return;
+    }
+    /* HD1811WE130 (مالک کا حکم): 🧪 ٹیسٹ موڈ کے اکاؤنٹ — دیکھیں، ایک سال ایکٹیو (صرف ٹیسٹ خانے میں)، سب ٹیسٹ صاف */
+    if (a === 'mtpick') { BUSY = true; draw(); try { LOOK = await call({ op: 'tlook', k: v }); MSG = ''; } catch (e) { LOOK = null; say('⚠️ ' + e.message, false); } finally { BUSY = false; draw(); const o = document.querySelector('#licOv .lcItem[style*="16a34a"]'); if (o) o.scrollIntoView({ block: 'start', behavior: 'smooth' }); } return; }
+    if (a === 'twipe') { if (!confirm(L('Delete ALL test-mode accounts from the server?', 'سرور سے سب ٹیسٹ اکاؤنٹ مٹا دیں؟'))) return; BUSY = true; draw(); try { await call({ op: 'twipe' }); LOOK = LOOK && LOOK.test ? null : LOOK; await loadAll(); say('🗑️ ' + L('Test accounts cleared', 'ٹیسٹ اکاؤنٹ صاف ہو گئے'), true); } catch (e) { say('⚠️ ' + e.message, false); } finally { BUSY = false; draw(); } return; }
+    if (a === 'mact' && LOOK && LOOK.test) {
+      if (!confirm(L('🧪 Test account ' + LOOK.sid + ': activate for 1 year?', '🧪 ٹیسٹ اکاؤنٹ ' + LOOK.sid + ' کو ایک سال کے لیے ایکٹیو کریں؟'))) return;
+      BUSY = true; draw();
+      try { LOOK = await call({ op: 'tact', k: LOOK.k }); await loadAll(); say('🧪✅ ' + LOOK.sid + ' — ' + L('active till ', 'ایکٹیو: ') + dmy(LOOK.until) + L(' · the test phone turns on within 20 seconds', ' · ٹیسٹ والا فون 20 سیکنڈ میں چالو'), true); }
+      catch (e) { say('⚠️ ' + e.message, false); }
+      finally { BUSY = false; draw(); }
       return;
     }
     if (a === 'mact') {   /* HD1811WE124: کوڈ کے بغیر ایک سال ایکٹیو */
