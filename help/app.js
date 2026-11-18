@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1711TU122';
-const UPDATE_NOTE = '🔄 اپڈیٹ اب پیچھے خاموشی سے لگتی ہے — کوئی کارڈ یا رکاوٹ نہیں؛ صرف مالک کے فون پر اوپر باریک پٹی';  const UPDATE_NOTE_OLD = '';
+const APP_VERSION = 'HD1811WE123';
+const UPDATE_NOTE = '🚪 لاگ آؤٹ کے بعد سیدھا پاس ورڈ کا خانہ (لاگ اِن) کھلتا ہے';  const UPDATE_NOTE_OLD = '';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -2164,7 +2164,7 @@ document.addEventListener('click', async e => {
       if (await Store.ownerLogin(pw)) { try { const rm = $('#remPw'); if (!rm || rm.checked) localStorage.setItem('pbthd_pw', btoa(unescape(encodeURIComponent(pw)))); else localStorage.removeItem('pbthd_pw'); } catch (e) {} closeSheet(); go('#/owner'); } else toast(LANG === 'en' ? '❌ Wrong password' : '❌ غلط پاس ورڈ');
       break;
     }
-    case 'logout': try { localStorage.removeItem('pbthd_pw'); } catch (e) {} Store.ownerLogout(); go('#/'); break;
+    case 'logout': try { localStorage.removeItem('pbthd_pw'); } catch (e) {} try { Store.ownerLogout(); } catch (e) {} go('#/'); toast(LANG === 'en' ? '🚪 Logged out — enter the password to log in again' : '🚪 لاگ آؤٹ ہو گیا — دوبارہ لاگ اِن کے لیے پاس ورڈ لکھیں'); setTimeout(() => { try { loginSheet(); } catch (e) {} }, 350); break;   /* HD1811WE123 (مالک کا حکم): لاگ آؤٹ کے بعد سیدھا لاگ اِن کا خانہ */
     case 'goHome': closeSheet(); if (R.v === 'home') { try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {} } else go('#/'); break;
     case 'navBack': if ($('#ov').classList.contains('on')) { closeSheet(); break; } if (R.v === 'home') { toast(LANG === 'en' ? '🏠 This is Home' : '🏠 یہی ہوم ہے', 1200); break; } if (EMBED || history.length <= 1) go('#/'); else history.back(); break;
     case 'navFwd': try { history.forward(); } catch (e) {} break;
