@@ -247,8 +247,8 @@ ${list.length > ASHOW ? `<button class="lcBtn" data-l="amore" style="width:100%;
     if (a === 'aref') { AQ = val('lcAio'); BUSY = true; draw(); try { await loadAll(); } finally { BUSY = false; draw(); } return; }
     if (a === 'apk') { APK = v; ASHARE = ''; draw(); return; }
     if (a === 'alook' || a === 'apick') {
-      let id = (a === 'apick' ? v : val('lcAio')).toUpperCase().replace(/[^A-Z0-9]/g, ''); if (/^\d{5}$/.test(id)) id = 'AIO' + id;
-      if (a === 'alook') AQ = id; if (!/^AIO\d{5}$/.test(id)) { say(L('Write an AIO ID like AIO12345', 'AIO ID لکھیں، مثلاً AIO12345'), false); return; }
+      let id = (a === 'apick' ? v : val('lcAio')).toUpperCase().replace(/[^A-Z0-9]/g, ''); if (/^\d{5}$/.test(id)) id = (APP === 'DR' ? 'AIODR' : 'AIO') + id;
+      if (a === 'alook') AQ = id; if (!/^AIO(DR)?\d{5}$/.test(id)) { say(L('Write an AIO ID like AIO12345 / AIODR12345', 'AIO ID لکھیں، مثلاً AIO12345 / AIODR12345'), false); return; }
       BUSY = true; ASHARE = ''; APK = ''; draw();
       try { ALOOK = await call({ op: 'aiolook', aio: id }); MSG = ''; } catch (e) { ALOOK = null; say('⚠️ ' + e.message, false); }
       finally { BUSY = false; draw(); const o = document.getElementById('licOv'); if (o) o.scrollTo({ top: 0, behavior: 'smooth' }); }
@@ -345,7 +345,7 @@ ${list.length > ASHOW ? `<button class="lcBtn" data-l="amore" style="width:100%;
     if (!window.Store || !Store.isOwner || !Store.isOwner()) { try { toast('🔒'); } catch (e) {} return; }
     css();
     let o = document.getElementById('licOv'); if (o) o.remove();
-    o = document.createElement('div'); o.id = 'licOv'; o.addEventListener('click', onClick); o.addEventListener('keydown', ev => { if (ev.key === 'Enter' && ev.target && ev.target.id === 'lcSid') { const b = o.querySelector('[data-l=look]'); if (b) b.click(); } if (ev.key === 'Enter' && ev.target && ev.target.id === 'lcAio') { AQ = ev.target.value; const id = AQ.toUpperCase().replace(/[^A-Z0-9]/g, ''); if (/^AIO\d{5}$/.test(id)) { const it = document.createElement('i'); it.dataset.l = 'apick'; it.dataset.v = id; o.appendChild(it); it.click(); it.remove(); } else { draw(); const n = document.getElementById('lcAio'); if (n) { n.focus(); n.setSelectionRange(n.value.length, n.value.length); } } } }); o.addEventListener('input', ev => { const t = ev.target; if (t && t.dataset && t.dataset.pr) savePrice(t.dataset.pr, t.value); if (t && t.id === 'lcLb') LBL = t.value; if (t && t.id === 'lcSid') SID = t.value; });
+    o = document.createElement('div'); o.id = 'licOv'; o.addEventListener('click', onClick); o.addEventListener('keydown', ev => { if (ev.key === 'Enter' && ev.target && ev.target.id === 'lcSid') { const b = o.querySelector('[data-l=look]'); if (b) b.click(); } if (ev.key === 'Enter' && ev.target && ev.target.id === 'lcAio') { AQ = ev.target.value; const id = AQ.toUpperCase().replace(/[^A-Z0-9]/g, ''); if (/^AIO(DR)?\d{5}$/.test(id)) { const it = document.createElement('i'); it.dataset.l = 'apick'; it.dataset.v = id; o.appendChild(it); it.click(); it.remove(); } else { draw(); const n = document.getElementById('lcAio'); if (n) { n.focus(); n.setSelectionRange(n.value.length, n.value.length); } } } }); o.addEventListener('input', ev => { const t = ev.target; if (t && t.dataset && t.dataset.pr) savePrice(t.dataset.pr, t.value); if (t && t.id === 'lcLb') LBL = t.value; if (t && t.id === 'lcSid') SID = t.value; });
     document.body.appendChild(o); document.body.style.overflow = 'hidden';
     NEW = []; MSG = ''; loadLocal(); draw(); loadAll();
   };
