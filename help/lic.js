@@ -5,8 +5,8 @@
   'use strict';
   const API = 'https://aio-pos-verify.pbtcodelabs.workers.dev/entadmin';
   /* HD1711TU116 (مالک کا حکم): دو ایپس — AIO POS اور My City Shines (ایک سال کا رجسٹریشن کوڈ، MCS-1Y-…)؛ چنی ایپ فون میں یاد */
-  const APPS = [['AIO', 'AIO POS'], ['MCS', 'My City Shines']];
-  let APP = 'AIO'; try { APP = localStorage.getItem('lic_app') === 'MCS' ? 'MCS' : 'AIO'; } catch (e) {}
+  const APPS = [['AIO', 'AIO POS'], ['DR', 'AIO Direct'], ['MCS', 'My City Shines']];   /* HD1811WE126: AIO Direct بھی AIO ID پر */
+  let APP = 'AIO'; try { APP = ['MCS', 'DR'].includes(localStorage.getItem('lic_app')) ? localStorage.getItem('lic_app') : 'AIO'; } catch (e) {}
   const pkKey = () => APP === 'AIO' ? 'lic_pk' : 'lic_pk_' + APP;
   const en = () => { try { return LANG === 'en'; } catch (e) { return false; } };
   const L = (e, u) => (en() ? e : u);
@@ -108,7 +108,7 @@
     const act = PK.filter(p => p.active !== false);
     const list = CODES.filter(x => FILTER === 'all' || (FILTER === 'unused' && !x.redeemed && !x.revoked) || (FILTER === 'used' && x.redeemed));
     const cnt = f => CODES.filter(x => f === 'all' || (f === 'unused' && !x.redeemed && !x.revoked) || (f === 'used' && x.redeemed)).length;
-    o.innerHTML = `<div class="lcTop"><b>${APP === 'MCS' ? '✅ ' + L('Activate business', 'کاروبار ایکٹیو کریں') : '✅ ' + L('Activate package on AIO ID', 'AIO ID پر پیکج ایکٹیو کریں')} — ${APP === 'MCS' ? 'My City Shines' : 'AIO POS'}</b><button class="lcX" data-l="close">✕</button></div>
+    o.innerHTML = `<div class="lcTop"><b>${APP === 'MCS' ? '✅ ' + L('Activate business', 'کاروبار ایکٹیو کریں') : '✅ ' + L('Activate package on AIO ID', 'AIO ID پر پیکج ایکٹیو کریں')} — ${APP === 'MCS' ? 'My City Shines' : APP === 'DR' ? 'AIO Direct' : 'AIO POS'}</b><button class="lcX" data-l="close">✕</button></div>
 <div class="lcBox" style="padding:8px"><div class="lcTabs" style="margin:0">${APPS.map(([k, t]) => `<button class="${APP === k ? 'on' : ''}" data-l="app" data-v="${k}">${t}</button>`).join('')}</div>${APP === 'MCS' ? `<div class="lcSub" style="margin-top:6px">${L('No codes: choose the MCS ID, check the details, tap «Activate 1 year» — the business goes live at once and the owner gets a congratulations message in the app.', 'کوئی کوڈ نہیں: MCS نمبر چنیں، تفصیل دیکھیں، «ایک سال ایکٹیو» دبائیں — کاروبار فوراً لائیو اور گاہک کو ایپ میں مبارکباد۔')}</div>` : ''}</div>
 ${MSG ? `<div class="lcMsg ${OK ? 'ok' : 'bad'}">${esc(MSG)}</div>` : ''}
 ${APP === 'MCS' ? mcsHTML() : aioHTML()}<div class="lcBox" style="display:none"><h3>🔑 ${L('Packages — price & code', 'پیکج — قیمت اور کوڈ')}</h3>
@@ -165,7 +165,7 @@ ${L2.length > MSHOW ? `<button class="lcBtn" data-l="mmore" style="width:100%;ma
   function aioMsg(who, ent) {
     if (!who || !ent) return '';
     const h = (ent.hist || [])[ (ent.hist || []).length - 1 ] || {};
-    const L1 = ['✅ AIO POS — package activated', '', '👤 Name: ' + (who.name || ent.name || ''), '🆔 AIO ID: ' + who.aio];
+    const L1 = ['✅ ' + (APP === 'DR' ? 'AIO POS Direct' : 'AIO POS') + ' — package activated', '', '👤 Name: ' + (who.name || ent.name || ''), '🆔 AIO ID: ' + who.aio];
     if (who.mobile) L1.push('📱 Mobile: ' + aPh(who.mobile)); if (who.gmail) L1.push('✉️ Gmail: ' + who.gmail);
     L1.push('📦 Package: ' + (h.pkg || ent.pkgName || ''), '📅 Activated on: ' + dmy(h.at || Date.now()), ent.life ? '♾️ Valid: Lifetime' : '⏳ Valid till: ' + dmy(ent.exp), '📱 Total phones: ' + (ent.devices || 1));
     if (ent.revoked) L1.push('⛔ Status: Suspended');
@@ -234,7 +234,7 @@ ${list.map(a => `<div class="lcItem" data-l="apick" data-v="${esc(a.aio)}" style
     }
     if (a === 'apay') {
       const p = PK.find(x => x.id === APK); if (!p || !ALOOK) return;
-      ASHARE = ['AIO POS — ' + p.name, '🆔 AIO ID: ' + ALOOK.who.aio, '👤 ' + (ALOOK.who.name || ''), (p.life ? '♾️ Lifetime' : '⏳ ' + p.days + ' days') + ' · 📱 ' + p.devices + ' phone(s)', PRICE[p.id] ? '💰 Amount: Rs ' + PRICE[p.id] : '', '', 'Please send the payment and a screenshot. Your package will be switched on right after — no code needed.'].filter((x, i) => x || i === 5).join('\n');
+      ASHARE = [(APP === 'DR' ? 'AIO POS Direct — ' : 'AIO POS — ') + p.name, '🆔 AIO ID: ' + ALOOK.who.aio, '👤 ' + (ALOOK.who.name || ''), (p.life ? '♾️ Lifetime' : '⏳ ' + p.days + ' days') + ' · 📱 ' + p.devices + ' phone(s)', PRICE[p.id] ? '💰 Amount: Rs ' + PRICE[p.id] : '', '', 'Please send the payment and a screenshot. Your package will be switched on right after — no code needed.'].filter((x, i) => x || i === 5).join('\n');
       draw(); return;
     }
     if (a === 'aact') {
@@ -318,7 +318,7 @@ ${list.map(a => `<div class="lcItem" data-l="apick" data-v="${esc(a.aio)}" style
   }
 
   window.licOpen = function (app) {
-    if (app === 'MCS' || app === 'AIO') { APP = app; try { localStorage.setItem('lic_app', app); } catch (e) {} }
+    if (app === 'MCS' || app === 'AIO' || app === 'DR') { APP = app; try { localStorage.setItem('lic_app', app); } catch (e) {} }
     LOOK = null;
     if (!window.Store || !Store.isOwner || !Store.isOwner()) { try { toast('🔒'); } catch (e) {} return; }
     css();
