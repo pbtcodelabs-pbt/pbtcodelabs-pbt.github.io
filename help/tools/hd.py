@@ -21,7 +21,7 @@ import base64, json, os, subprocess, sys, time
 
 API_KEY = 'AIzaSyDZ9ONTLYsRB_MS6n5hH-IUtquiPbqsO0A'
 PROJECT = 'pbt-help-desk'
-OWNER_EMAIL = 'piarybhai@gmail.com'
+OWNER_EMAIL = os.environ.get('HD_OWNER_EMAIL', '')  # ای میل بھی فائل میں نہیں — ماحول کا متغیر HD_OWNER_EMAIL
 OWNER_UID = 's6L0FAs6krVDRAHKf70ggM3LamH2'
 EMU = os.environ.get('HD_EMU') == '1'
 AUTH = ('http://127.0.0.1:9099/identitytoolkit.googleapis.com' if EMU else 'https://identitytoolkit.googleapis.com')
@@ -48,6 +48,8 @@ def curl(method, url, body=None, token=None):
 
 
 def login():
+    if not OWNER_EMAIL and not EMU:
+        sys.exit('HD_OWNER_EMAIL نہیں ملا — مالک environment کی سیٹنگ میں رکھے')
     pw = os.environ.get('HD_OWNER_PASSWORD') or ('secret123' if EMU else '')
     if not pw:
         sys.exit('HD_OWNER_PASSWORD نہیں ملا — مالک environment کی سیٹنگ میں رکھے')
