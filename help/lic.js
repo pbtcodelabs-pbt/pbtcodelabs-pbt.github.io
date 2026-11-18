@@ -14,6 +14,7 @@
   const dmy = ts => { if (!ts) return ''; const d = new Date(ts); return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear(); };
   let MLIST = [], MQ = '', MSHOW = 30;   /* HD1811WE124: نئے MCS نمبر */
   let ALIST = [], AQ = '', ALOOK = null, APK = '', ASHARE = '';   /* HD1811WE125: AIO ID پر پیکج */
+  let AIDS = [], ASHOW = 40;   /* HD1811WE127: سرور سے سب AIO IDs */
   let SID = '', LOOK = null, PRICE = {}, LBL = '', PK = [], CODES = [], FILTER = 'all', NEW = [], BUSY = false, EDIT = null, SHOWPK = false, MSG = '', OK = true;
 
 
@@ -95,6 +96,7 @@
       const l = await call({ op: 'list' });
       CODES = (l.list || []).filter(x => (x.keys || []).some(k => k.startsWith('c:')));
       ALIST = (l.list || []).filter(x => x.aio);   /* HD1811WE125: AIO ID پر دی گئی ایکٹیویشنز */
+      try { const n = await call({ op: 'aionew' }); AIDS = n.list || []; } catch (e) { if (!pkErr) pkErr = '⚠️ ' + e.message; }
     } catch (e) { if (!pkErr) pkErr = '⚠️ ' + e.message; }
     if (pkErr) { MSG = pkErr; OK = false; if (!PK.length) SHOWPK = true; } else MSG = '';
     draw();
@@ -191,15 +193,17 @@ ${e ? `<div class="lcRow" style="margin-top:10px"><button class="lcBtn pri" data
 ${ASHARE ? `<textarea readonly style="width:100%;box-sizing:border-box;margin-top:8px;min-height:170px;border:1.5px solid #dbe1ea;border-radius:10px;padding:8px;font-size:13px;direction:ltr">${esc(ASHARE)}</textarea><div class="lcRow" style="margin-top:6px"><button class="lcBtn grn" data-l="copy" data-v="${esc(ASHARE)}">📋 ${L('Copy', 'کاپی')}</button><button class="lcBtn pri" data-l="send" data-v="${esc(ASHARE)}">📤 ${L('Share', 'شیئر')}</button></div>` : ''}
 <button class="lcBtn" data-l="aclose" style="width:100%;margin-top:8px">↩️ ${L('Close', 'بند')}</button></div>`;
     }
-    const q = AQ.trim().toUpperCase();
-    const list = ALIST.filter(a => !q || (a.aio + ' ' + (a.name || '') + ' ' + (a.note || '')).toUpperCase().indexOf(q) >= 0);
-    return `<div class="lcBox"><h3>🆔 ${L('AIO ID of the customer', 'گاہک کی AIO ID')}</h3>
-<div class="lcSub" style="margin:0 0 6px">${L('The customer sees the AIO ID on the login screen. Write it, choose the package, take the payment, then press Activate — their phone turns on by itself (no code).', 'گاہک کو AIO ID لاگ اِن صفحے پر نظر آتی ہے۔ ID لکھیں، پیکج چنیں، ادائیگی لیں، پھر «ایکٹیو» — گاہک کا فون خود چالو (کوئی کوڈ نہیں)۔')}</div>
-<div class="lcRow" style="flex-wrap:nowrap"><input type="text" id="lcAio" maxlength="10" value="${esc(AQ)}" placeholder="AIO12345" style="text-transform:uppercase;font-family:monospace;font-weight:800;direction:ltr"><button class="lcBtn" data-l="alook" ${BUSY ? 'disabled' : ''}>🔍</button></div>
-${det}</div>
-<div class="lcBox"><h3>📋 ${L('Activations on AIO ID', 'AIO ID پر ایکٹیویشنز')} (${ALIST.length})</h3>
-${list.map(a => `<div class="lcItem" data-l="apick" data-v="${esc(a.aio)}" style="cursor:pointer"><div class="lcRow" style="flex-wrap:nowrap"><span class="lcCode" style="color:#0e7490">${esc(a.aio)}</span><b style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(a.name || '—')}</b><span class="lcTag ${a.revoked ? 'r' : a.active ? 'u' : 'd'}">${a.revoked ? '⛔' : a.active ? '✅ ' + (a.life ? '♾️' : dmy(a.exp)) : '⌛ ' + dmy(a.exp)}</span></div>
-<div class="lcSub">${esc(a.pkgName || '')} · 📱 ${(a.claims || []).length}/${a.devices || 1}${(a.hist || []).length ? ' · ' + L('last', 'آخری') + ' ' + dmy(a.hist[a.hist.length - 1].at) : ''}</div></div>`).join('') || `<div class="lcSub">${L('None yet', 'ابھی کوئی نہیں')}</div>`}</div>`;
+    /* HD1811WE127 (مالک کا حکم — ID بھیجنے / منگوانے کا نظام نہیں): سرور پر بنی ہر AIO ID خود یہاں (نام کے ساتھ)؛ ID دبائیں → تفصیل → پیکج */
+    const q = AQ.trim().toUpperCase(), ph = m => String(m || '').replace(/^92/, '0');
+    const list = AIDS.filter(a => !q || (a.aio + ' ' + (a.name || '') + ' ' + ph(a.mobile) + ' ' + (a.gmail || '')).toUpperCase().indexOf(q) >= 0);
+    const nAct = AIDS.filter(a => a.ent && a.ent.active).length;
+    return `${det ? `<div class="lcBox">${det}</div>` : ''}
+<div class="lcBox"><h3>📋 ${L('All AIO IDs', 'سب AIO IDs')} (${AIDS.length}) <span class="lcTag u">✅ ${nAct}</span></h3>
+<div class="lcSub" style="margin:0 0 6px">${L('Every AIO ID made on a phone comes here by itself. Tap an ID → details → choose the package → Activate. The phone switches on by itself.', 'ہر فون پر بنی AIO ID خود یہاں آتی ہے۔ ID دبائیں → تفصیل → پیکج چنیں → ایکٹیو۔ فون خود چالو ہو جاتا ہے۔')}</div>
+<div class="lcRow" style="flex-wrap:nowrap"><input type="text" id="lcAio" maxlength="40" value="${esc(AQ)}" placeholder="${L('Search: name / AIO ID / mobile', 'تلاش: نام / AIO ID / موبائل')}" style="direction:ltr"><button class="lcBtn" data-l="aref" ${BUSY ? 'disabled' : ''}>🔄</button></div>
+${list.slice(0, ASHOW).map(a => { const e = a.ent; return `<div class="lcItem" data-l="apick" data-v="${esc(a.aio)}" style="cursor:pointer${ALOOK && ALOOK.who && ALOOK.who.aio === a.aio ? ';background:#ecfeff' : ''}"><div class="lcRow" style="flex-wrap:nowrap"><span class="lcCode" style="color:#0e7490">${esc(a.aio)}</span><b style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(a.name || '—')}</b><span class="lcTag ${e ? (e.revoked ? 'r' : e.active ? 'u' : 'd') : 'd'}">${e ? (e.revoked ? '⛔' : e.active ? '✅ ' + (e.life ? '♾️' : dmy(e.exp)) : '⌛ ' + dmy(e.exp)) : '🆕'}</span></div>
+<div class="lcSub">${[ph(a.mobile), a.gmail, e && e.pkg].filter(Boolean).map(esc).join(' · ')}${a.made ? ' · ' + dmy(a.made) : ''}</div></div>`; }).join('') || `<div class="lcSub" style="margin-top:8px">${BUSY ? '⏳' : L('No AIO IDs found', 'کوئی AIO ID نہیں ملی')}</div>`}
+${list.length > ASHOW ? `<button class="lcBtn" data-l="amore" style="width:100%;margin-top:8px">⬇️ ${L('Show more', 'مزید دکھائیں')} (${list.length - ASHOW})</button>` : ''}</div>`;
   }
   function pkgHTML() {
     const e = EDIT || {};
@@ -223,13 +227,15 @@ ${list.map(a => `<div class="lcItem" data-l="apick" data-v="${esc(a.aio)}" style
     if (a === 'flt') { FILTER = v; draw(); return; }
     /* HD1811WE125: AIO ID پر پیکج */
     if (a === 'aclose') { ALOOK = null; APK = ''; ASHARE = ''; draw(); return; }
+    if (a === 'amore') { ASHOW += 40; draw(); return; }
+    if (a === 'aref') { AQ = val('lcAio'); BUSY = true; draw(); try { await loadAll(); } finally { BUSY = false; draw(); } return; }
     if (a === 'apk') { APK = v; ASHARE = ''; draw(); return; }
     if (a === 'alook' || a === 'apick') {
       let id = (a === 'apick' ? v : val('lcAio')).toUpperCase().replace(/[^A-Z0-9]/g, ''); if (/^\d{5}$/.test(id)) id = 'AIO' + id;
-      AQ = id; if (!/^AIO\d{5}$/.test(id)) { say(L('Write an AIO ID like AIO12345', 'AIO ID لکھیں، مثلاً AIO12345'), false); return; }
+      if (a === 'alook') AQ = id; if (!/^AIO\d{5}$/.test(id)) { say(L('Write an AIO ID like AIO12345', 'AIO ID لکھیں، مثلاً AIO12345'), false); return; }
       BUSY = true; ASHARE = ''; APK = ''; draw();
       try { ALOOK = await call({ op: 'aiolook', aio: id }); MSG = ''; } catch (e) { ALOOK = null; say('⚠️ ' + e.message, false); }
-      finally { BUSY = false; draw(); const o = document.getElementById('lcAio'); if (o) o.scrollIntoView({ block: 'start', behavior: 'smooth' }); }
+      finally { BUSY = false; draw(); const o = document.getElementById('licOv'); if (o) o.scrollTo({ top: 0, behavior: 'smooth' }); }
       return;
     }
     if (a === 'apay') {
@@ -323,7 +329,7 @@ ${list.map(a => `<div class="lcItem" data-l="apick" data-v="${esc(a.aio)}" style
     if (!window.Store || !Store.isOwner || !Store.isOwner()) { try { toast('🔒'); } catch (e) {} return; }
     css();
     let o = document.getElementById('licOv'); if (o) o.remove();
-    o = document.createElement('div'); o.id = 'licOv'; o.addEventListener('click', onClick); o.addEventListener('keydown', ev => { if (ev.key === 'Enter' && ev.target && ev.target.id === 'lcSid') { const b = o.querySelector('[data-l=look]'); if (b) b.click(); } if (ev.key === 'Enter' && ev.target && ev.target.id === 'lcAio') { const b = o.querySelector('[data-l=alook]'); if (b) b.click(); } }); o.addEventListener('input', ev => { const t = ev.target; if (t && t.dataset && t.dataset.pr) savePrice(t.dataset.pr, t.value); if (t && t.id === 'lcLb') LBL = t.value; if (t && t.id === 'lcSid') SID = t.value; });
+    o = document.createElement('div'); o.id = 'licOv'; o.addEventListener('click', onClick); o.addEventListener('keydown', ev => { if (ev.key === 'Enter' && ev.target && ev.target.id === 'lcSid') { const b = o.querySelector('[data-l=look]'); if (b) b.click(); } if (ev.key === 'Enter' && ev.target && ev.target.id === 'lcAio') { AQ = ev.target.value; const id = AQ.toUpperCase().replace(/[^A-Z0-9]/g, ''); if (/^AIO\d{5}$/.test(id)) { const it = document.createElement('i'); it.dataset.l = 'apick'; it.dataset.v = id; o.appendChild(it); it.click(); it.remove(); } else { draw(); const n = document.getElementById('lcAio'); if (n) { n.focus(); n.setSelectionRange(n.value.length, n.value.length); } } } }); o.addEventListener('input', ev => { const t = ev.target; if (t && t.dataset && t.dataset.pr) savePrice(t.dataset.pr, t.value); if (t && t.id === 'lcLb') LBL = t.value; if (t && t.id === 'lcSid') SID = t.value; });
     document.body.appendChild(o); document.body.style.overflow = 'hidden';
     NEW = []; MSG = ''; loadLocal(); draw(); loadAll();
   };
