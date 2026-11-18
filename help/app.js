@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1811WE126';
-const UPDATE_NOTE = '✅ AIO Direct بھی: کوڈ نہیں — AIO ID لکھیں، پیکج (3 ماہ / 6 ماہ / سال / لائف ٹائم) چنیں، ایکٹیو کریں';  const UPDATE_NOTE_OLD = '';
+const APP_VERSION = 'HD1811WE127';
+const UPDATE_NOTE = '📋 AIO POS / AIO Direct: سرور سے سب AIO IDs کی فہرست (نام کے ساتھ) — ID دبائیں، تفصیل دیکھیں، پیکج ایکٹیو کریں؛ گاہک کو ID بھیجنی نہیں پڑتی';  const UPDATE_NOTE_OLD = '';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
