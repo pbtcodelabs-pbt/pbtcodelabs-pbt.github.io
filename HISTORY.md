@@ -167,3 +167,4 @@
 - **HD1811WE129 (مالک کا حکم):** «✅ Activate package» میں AIO Direct کی IDs `AIODR12345` (تلاش / Enter / صرف ہندسے لکھیں تو Direct ٹیب میں AIODR خود)۔
 - **HD1811WE130 (مالک کا حکم):** «✅ Activate business» کی MCS فہرست میں 🧪 ٹیسٹ موڈ کے اکاؤنٹ (سب سے اوپر، پیلی دھاری) — `tlook` تفصیل، «ایک سال ایکٹیو» = `tact` (صرف ٹیسٹ خانہ)، «🗑️ سب ٹیسٹ صاف کریں» = `twipe`۔
 - HD1911TH131 (19 Nov 2026, #301): MCS new-account details hide 'cat_unassigned' (phone now sends real type from MCS1911TH550).
+- 19 Nov 2026: CLAUDE.md — every reply to the owner starts with «قبلہ عالی جاہ میں آپ کی نرم گوئی اور اچھے اخلاق کا مشکور ہوں، صورتحال یہ ہے…» (owner's order).
