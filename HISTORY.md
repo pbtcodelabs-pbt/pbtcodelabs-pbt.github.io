@@ -169,3 +169,4 @@
 - HD1911TH131 (19 Nov 2026, #301): MCS new-account details hide 'cat_unassigned' (phone now sends real type from MCS1911TH550).
 - 19 Nov 2026: CLAUDE.md — every reply to the owner starts with «قبلہ عالی جاہ میں آپ کی نرم گوئی اور اچھے اخلاق کا مشکور ہوں، صورتحال یہ ہے…» (owner's order).
 - 19 Nov 2026: CLAUDE.md — reply opening line changed to the owner's new sentence.
+- **HD1911TH132 (مالک کا حکم، ہیلپ ڈیسک #313):** ویڈیوز ایپ وار ٹیبز (`VTABS`، `vtab`، `pbthd_vtab`) — My City Shines / AIO POS / AIO Direct / میرا مکتبہ / Help Desk؛ ہر ویڈیو پر چلائیں / ڈاؤن لوڈ / شیئر۔ My City Shines کی نئی اردو ویڈیوز: `media/mcs-intro-ur.mp4` (2:01، لاگ اِن پیج والی — Google Play پیکج 1000 سالانہ، ایجنٹ کمیشن نہیں) سب کو؛ `promo/MCS-Tafseeli-ur.mp4` (2:19، + ایجنٹ بنیں، «💬 سوال پوچھیں») اور `promo/MCS-Status-ur.mp4` (57 سیکنڈ) صرف مالک کو (`own:1` — ایجنٹ کمیشن پلے اسٹور ایپ کے اندر نہیں)۔

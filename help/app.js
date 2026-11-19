@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1911TH131';
-const UPDATE_NOTE = 'MCS نئے اکاؤنٹ: قسم میں «cat_unassigned» کی بجائے اصل کاروباری قسم';  const UPDATE_NOTE_OLD = '';
+const APP_VERSION = 'HD1911TH132';
+const UPDATE_NOTE = '🎬 ویڈیوز اب ایپ وار ٹیبز میں (My City Shines، AIO، مکتبہ…) + My City Shines کی نئی اردو ویڈیوز';  const UPDATE_NOTE_OLD = '';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -324,6 +324,10 @@ function foot() {
 /* ---------- ہوم ---------- */
 /* 🎬 تعارفی ویڈیوز — چلائیں، فون میں محفوظ (گیلری)، یا سیدھا شیئر (واٹس ایپ اسٹیٹس وغیرہ) */
 const VIDEOS = [
+  /* HD1911TH132 (مالک کا حکم): My City Shines کی نئی اردو ویڈیوز — قیمت = Google Play کا اپنا پیکج؛ ایجنٹ کمیشن والی (own) صرف مالک کو (پلے اسٹور ایپس میں ہیلپ ڈیسک کھلتا ہے) */
+  { id: 'mcs-intro', app: 'MCS', file: 'media/mcs-intro-ur.mp4', poster: 'media/mcs-intro-ur.jpg', ur: 'My City Shines — مکمل تعارف (فائدے، اشتہار، Google Play پیکج)', en: 'My City Shines — full introduction (Urdu)', dur: '2:01', dl: 'My-City-Shines-Intro-Urdu', share: '🌟 My City Shines — آپ کا شہر، آپ کا کاروبار، آپ کی پہچان\n🔍 گاہک آپ کو ڈھونڈ رہے ہیں — اپنا کاروبار آج ہی رجسٹر کریں\n📢 ہوم پیج پر اپنا اشتہار · 🇵🇰 پورے پاکستان تک نمایاں\nhttps://play.google.com/store/apps/details?id=com.pbtcodelabs.mycityshines' },
+  { id: 'mcs-full', app: 'MCS', own: 1, file: 'media/promo/MCS-Tafseeli-ur.mp4', poster: 'media/mcs-intro-ur.jpg', ur: 'My City Shines — تفصیلی ویڈیو + ایجنٹ بنیں (شیئر کے لیے، 2:19)', en: 'My City Shines — detailed + become an agent (2:19)', dur: '2:19', dl: 'My-City-Shines-Tafseeli', share: '🌟 My City Shines — اپنا کاروبار پورے پاکستان میں نمایاں کریں\n💳 Google Play پیکج: صرف 1000 روپے سالانہ — روزانہ 2 روپے 73 پیسے\n🤝 ایجنٹ بنیں — گھر بیٹھے، پاکستان کے کسی بھی شہر سے\n💬 سوال؟ ایپ میں «Ask us»\nhttps://play.google.com/store/apps/details?id=com.pbtcodelabs.mycityshines' },
+  { id: 'mcs-status', app: 'MCS', own: 1, file: 'media/promo/MCS-Status-ur.mp4', poster: 'media/mcs-status-ur.jpg', ur: 'My City Shines — واٹس ایپ اسٹیٹس (57 سیکنڈ)', en: 'My City Shines — WhatsApp Status (57s)', dur: '0:57', dl: 'My-City-Shines-Status', share: '🌟 My City Shines — گاہک آپ کو ڈھونڈ رہے ہیں!\n💳 صرف 1000 روپے سالانہ (Google Play)\nhttps://play.google.com/store/apps/details?id=com.pbtcodelabs.mycityshines' },
   { id: 'mcs-signup', file: 'media/mcs-signup-ur.mp4', poster: 'media/mcs-signup-ur.jpg', ur: 'My City Shines — نیا کاروبار کیسے رجسٹر کریں (سائن اپ سے لائیو تک)', en: 'My City Shines — register a new business (sign up to live)', dur: '1:11', dl: 'My-City-Shines-Register-Business', share: '🏪 My City Shines — اپنا کاروبار پورے شہر کے سامنے لائیں\n✅ سائن اپ ← مفت بزنس کارڈ ← ممبرشپ — بس اتنا ہی!\nhttps://play.google.com/store/apps/details?id=com.pbtcodelabs.mycityshines' },
   { id: 'helpdesk', file: 'media/pbt-help-desk.mp4', poster: 'media/helpdesk.jpg', ur: 'Help Desk — مسئلہ کیسے بتائیں؟ مکمل طریقہ', en: 'Help Desk — how to report a problem', dur: '1:06', dl: 'PBT-Help-Desk' },
   { id: 'maktaba', file: 'media/maktaba-ur.mp4', poster: 'media/maktaba-ur.jpg', ur: 'میرا مکتبہ — پورا مکتبہ ایک ایپ میں (علماء و طلباء کے لیے)', en: 'Mera Maktaba — your whole library in one app (Urdu)', dur: '1:40', dl: 'Mera-Maktaba-Urdu', share: '📚 میرا مکتبہ — ہزاروں کتابیں ایک ایپ میں\nفن وار الماریاں، کتاب کا مکمل ریکارڈ، فہرستیں / PDF، موضوعات، ڈائری، میری مصروفیات اور جلسے کا پوسٹر\n🎁 علماء و طلباء کے لیے بہترین تحفہ\nhttps://pbtcodelabs-pbt.github.io/MA/get.html' },
@@ -335,16 +339,25 @@ const VIDEOS = [
 ];
 const vName = v => (v.dl || 'PBT-Help-Desk-' + v.id) + '.mp4';
 const POST_TEXT = "❓ *نئی سہولت — PBT Help Desk*\n\nالسلام علیکم! 🌹\nاب آپ کو کوئی مسئلہ بتانے کے لیے واٹس ایپ یا کسی اور ذریعے کی ضرورت نہیں۔\n\n📱 ہماری ہر ایپ کے اندر اب ایک پیلا *Help Desk* بٹن ہے۔\nایپ میں کوئی بھی مسئلہ نظر آئے تو:\n1️⃣ *Help Desk* دبائیں\n2️⃣ اپنا مسئلہ اردو یا انگلش میں *لکھیں* (لکھنا ضروری ہے) — اسکرین شاٹ لگائیں تو اور اچھا، آواز اختیاری\n3️⃣ بھیج دیں ✅\n\n🔔 پھر ہر قدم کی خبر آپ کو ایپ ہی میں ملتی رہے گی:\n📥 موصول ← 👀 دیکھ لیا ← 🔧 کام جاری ← ✅ حل ہو گیا\n\n🗂️ آپ کا ہر مسئلہ ریکارڈ میں محفوظ رہے گا، اور بہترین طریقے سے جلد حل ہوگا۔\n💡 اگر کوئی اور بھی یہی مسئلہ بتا چکا ہو تو بس «👋 میرا بھی یہی مسئلہ ہے» دبا دیں۔\n\n🔗 https://pbtcodelabs-pbt.github.io/help/\n\n*PBT Code Labs* — آپ کی رائے سے ہماری ایپس بہتر ہوتی ہیں\n📞 0320-6793793";
+/* HD1911TH132 (مالک کا حکم): ویڈیوز ایپ وار ٹیبز میں — MCS / AIO / AIO Direct / میرا مکتبہ / Help Desk */
+const VTABS = [['MCS', 'My City Shines', 'My City Shines'], ['AIO', 'AIO POS', 'AIO POS'], ['DR', 'AIO Direct', 'AIO Direct'], ['MA', 'میرا مکتبہ', 'Mera Maktaba'], ['HD', 'Help Desk', 'Help Desk']];
+const VAPP = { 'mcs-signup': 'MCS', helpdesk: 'HD', maktaba: 'MA', 'maktaba-st': 'MA', 'aio-staff': ['AIO', 'DR'], 'aio-staff-en': ['AIO', 'DR'], 'aio-ur': 'AIO', 'aio-en': 'AIO' };
+const vApps = v => [].concat(v.app || VAPP[v.id] || 'HD');
+let VTAB = (() => { try { return localStorage.getItem('pbthd_vtab') || 'MCS'; } catch (_) { return 'MCS'; } })();
 function videosHTML() {
-  const E = LANG === 'en';
-  return `<div class="secT">🎬 ${E ? 'Intro videos' : 'تعارفی ویڈیوز'} <small>— ${E ? 'watch, save or share' : 'دیکھیں، محفوظ کریں یا شیئر کریں'}</small></div>
-  <div class="vids">${VIDEOS.map(v => `<div class="vid card">
+  const E = LANG === 'en', own = Store.isOwner(), ALL = VIDEOS.filter(v => !v.own || own);
+  const tabs = VTABS.filter(t => ALL.some(v => vApps(v).includes(t[0])));
+  if (!tabs.some(t => t[0] === VTAB)) VTAB = (tabs[0] || ['HD'])[0];
+  const L = ALL.filter(v => vApps(v).includes(VTAB));
+  return `<div id="vbox"><div class="secT">🎬 ${E ? 'Videos' : 'ویڈیوز'} <small>— ${E ? 'play, download or share' : 'چلائیں، ڈاؤن لوڈ یا شیئر کریں'}</small></div>
+  <div class="vtabs">${tabs.map(t => `<button class="vtab${t[0] === VTAB ? ' on' : ''}" data-act="vtab" data-id="${t[0]}">${esc(E ? t[2] : t[1])} <i>${ALL.filter(v => vApps(v).includes(t[0])).length}</i></button>`).join('')}</div>
+  <div class="vids">${L.map(v => `<div class="vid card">
     <button class="vth" data-act="vplay" data-id="${v.id}"><img src="${v.poster}" alt="" loading="lazy"><span class="vpl">▶</span><span class="vdur num">${v.dur}</span></button>
-    <b class="vt">${esc(E ? v.en : v.ur)}</b>
+    <b class="vt">${v.own ? '🔒 ' : ''}${esc(E ? v.en : v.ur)}</b>
     <div class="tools"><button class="tb pri" data-act="vplay" data-id="${v.id}">▶️ ${E ? 'Play' : 'چلائیں'}</button>
       <a class="tb" href="${v.file}" download="${vName(v)}">⬇️ ${E ? 'Download' : 'ڈاؤن لوڈ'}</a>
       <button class="tb grn" data-act="vshare" data-id="${v.id}">📤 ${E ? 'Share' : 'شیئر'}</button></div></div>`).join('')}</div>
-  <button class="tb" style="margin:2px 0 6px" data-act="copyPost">📋 ${E ? 'Copy the post message' : 'ساتھ والا پیغام کاپی کریں'}</button>`;
+  ${VTAB === 'HD' ? `<button class="tb" style="margin:2px 0 6px" data-act="copyPost">📋 ${E ? 'Copy the post message' : 'ساتھ والا پیغام کاپی کریں'}</button>` : ''}</div>`;
 }
 /* HD0811SU060 (مالک کی جانچ): ویڈیو (≈8MB) پہلے لانی پڑتی ہے — اتنی دیر میں فون شیئر کی اجازت (user gesture) ختم کر دیتا اور
    «Failed to execute 'share'… Must be handling a user gesture» آتا۔ اب: فائل ایک بار لا کر یاد (VFILE)، پھر «📤 ابھی شیئر کریں» بٹن —
@@ -2077,6 +2090,7 @@ document.addEventListener('click', async e => {
       toast(LANG === 'en' ? '📋 Copied — paste it in the Claude chat and send' : '📋 کاپی ہو گیا — Claude کی چیٹ میں پیسٹ کر کے بھیج دیں', 6000);
       setTimeout(() => window.open(CLAUDE_CHAT, '_blank'), 700);
       break; }
+    case 'vtab': { VTAB = id; try { localStorage.setItem('pbthd_vtab', id); } catch (_) {} const vb = document.getElementById('vbox'); if (vb) vb.outerHTML = videosHTML(); break; }
     case 'vplay': playVideo(id); break;
     case 'vshare': shareVideo(id); break;
     case 'copyPost': try { await navigator.clipboard.writeText(POST_TEXT); toast('📋 ✅'); } catch (_) { toast('⚠️'); } break;
