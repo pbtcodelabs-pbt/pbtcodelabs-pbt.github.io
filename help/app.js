@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1811WE130';
-const UPDATE_NOTE = '🧪 MCS ٹیسٹ موڈ کے اکاؤنٹ اب «نئے MCS اکاؤنٹ» میں — ایک سال ایکٹیو کر کے پوری رجسٹریشن جانچیں؛ «🗑️ سب ٹیسٹ صاف»';  const UPDATE_NOTE_OLD = '';
+const APP_VERSION = 'HD1911TH131';
+const UPDATE_NOTE = 'MCS نئے اکاؤنٹ: قسم میں «cat_unassigned» کی بجائے اصل کاروباری قسم';  const UPDATE_NOTE_OLD = '';
 const DEV_PHONE = '03206793793';
 
 const APPS = [

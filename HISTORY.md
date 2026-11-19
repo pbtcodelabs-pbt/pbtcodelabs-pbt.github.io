@@ -166,3 +166,4 @@
 - **HD1811WE128 (مالک کا حکم):** AIO ID کی تفصیل میں «➕ اس ID میں دن جوڑیں» (+1 دن / +1 مہینہ (30) / +1 سال (365) / اپنے دن / ♾️ لائف ٹائم، `aioadd`)؛ «📱 اسی موبائل / Gmail کی دوسری IDs» (باقی دن، 🔁 نئی ID)؛ پرانی ID پر «🔁 نیا فون — باقی دن تھے»؛ فہرست میں 🔁 نشان۔
 - **HD1811WE129 (مالک کا حکم):** «✅ Activate package» میں AIO Direct کی IDs `AIODR12345` (تلاش / Enter / صرف ہندسے لکھیں تو Direct ٹیب میں AIODR خود)۔
 - **HD1811WE130 (مالک کا حکم):** «✅ Activate business» کی MCS فہرست میں 🧪 ٹیسٹ موڈ کے اکاؤنٹ (سب سے اوپر، پیلی دھاری) — `tlook` تفصیل، «ایک سال ایکٹیو» = `tact` (صرف ٹیسٹ خانہ)، «🗑️ سب ٹیسٹ صاف کریں» = `twipe`۔
+- HD1911TH131 (19 Nov 2026, #301): MCS new-account details hide 'cat_unassigned' (phone now sends real type from MCS1911TH550).

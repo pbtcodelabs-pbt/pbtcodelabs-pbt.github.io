@@ -147,7 +147,7 @@ ${list.map(x => { const s = status(x); return `<div class="lcItem"><div class="l
 <div style="flex:1;min-width:0"><div style="font:900 19px/1.3 inherit">${esc(x.name || g.owner || '—')}</div><div class="lcCode" style="font-size:18px;color:#166534">${x.test ? '🧪 ' : ''}${esc(x.sid)}${x.test ? ' <span class="lcTag d">' + L('Test mode', 'ٹیسٹ موڈ') + '</span>' : ''}</div>
 <span class="lcTag ${live ? 'u' : 'd'}" style="margin-top:4px">${live ? '✅ ' + L('Active till ', 'ایکٹیو: ') + dmy(till) : '⏳ ' + L('Not active yet', 'ابھی ایکٹیو نہیں')}</span></div></div>
 ${row('📱', L('Mobile', 'موبائل'), ph(x.mob), 1)}${row('📧', 'Gmail', x.gmail, 1)}${row('🪪', L('CNIC', 'شناختی کارڈ'), cnicF(g.cnic), 1)}
-${row('🏪', L('Business', 'کاروبار'), g.biz)}${row('🏷️', L('Category', 'قسم'), g.cat)}${row('📍', L('Address', 'پتہ'), [g.addr, g.area, g.city || g.dist].filter(Boolean).join('، '))}
+${row('🏪', L('Business', 'کاروبار'), g.biz)}${row('🏷️', L('Category', 'قسم'), g.cat === 'cat_unassigned' ? '' : g.cat)}${row('📍', L('Address', 'پتہ'), [g.addr, g.area, g.city || g.dist].filter(Boolean).join('، '))}
 ${row('🏙️', L('District', 'ضلع'), x.district || g.dist)}${row('💬', 'WhatsApp', ph(g.wa), 1)}${row('📲', L('Phone UID', 'فون کی UID'), x.dev, 1)}
 ${row('🗓️', L('Account made', 'اکاؤنٹ بنا'), x.created ? dmy(x.created) : '')}${row('🆔', L('Membership', 'ممبرشپ'), (x.recs || []).map(r => r.sub).filter(Boolean).join(', ') || x.sub, 1)}
 ${!g.biz && !(x.recs || []).length ? `<div class="lcMsg bad" style="margin:8px 0 0">${L('No business card yet — ask the person to finish the business form in the app first.', 'ابھی کاروبار کا کارڈ نہیں بنا — بندہ پہلے ایپ میں کاروبار کا فارم مکمل کرے۔')}</div>` : ''}
