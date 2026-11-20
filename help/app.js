@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD1911TH132';
-const UPDATE_NOTE = '🎬 ویڈیوز اب ایپ وار ٹیبز میں (My City Shines، AIO، مکتبہ…) + My City Shines کی نئی اردو ویڈیوز';  const UPDATE_NOTE_OLD = '';
+const APP_VERSION = 'HD2011FR133';
+const UPDATE_NOTE = '🆔 AIO ID: ہر ID کی حالت (پیکج / ٹرائل / ختم)، ID کیسے بنی، پیکج چھپا ہوا چیک باکس سے، ایکٹیویٹ پر پاس ورڈ';  const UPDATE_NOTE_OLD = '';
 const DEV_PHONE = '03206793793';
 
 const APPS = [

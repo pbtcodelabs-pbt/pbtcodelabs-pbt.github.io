@@ -13,7 +13,7 @@
     'MS': { v: 'MS\\d{4}[A-Z]{2}\\d{3}' }, 'Stylish-listing-': { v: 'SL\\d{3}[a-zA-Z]{2}\\d{4}' }, 'MT': { v: 'mt\\d{4}[a-zA-Z]{2}\\d{3}' },
     'MCS': { v: 'MCS\\d{4}[A-Z]{2}\\d{3}' }, 'urdu-fonts-studio': { v: 'UF\\d{3,4}[A-Za-z]{2}\\d{3,4}(?:AM|PM)?' },
     'PBT-Portal': { v: 'AGP\\d{4}[A-Z]{2}\\d{3}', dir: 'agent', files: ['index.html', 'ui2.js', 'ui2.css', 'manifest.json'], vf: 'index.html' },
-    'HD': { v: 'HD\\d{4}[A-Z]{2}\\d{3}', dir: 'help', repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io', files: ['index.html', 'sw.js', 'app.js', 'store.js', 'upd.js', 'widget.js', 'zips.js'], vf: 'app.js' }
+    'HD': { v: 'HD\\d{4}[A-Z]{2}\\d{3}', dir: 'help', repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io', files: ['index.html', 'sw.js', 'app.js', 'store.js', 'upd.js', 'widget.js', 'zips.js', 'lic.js', 'aioid.js'], vf: 'app.js' }
   };
   const CODE = /\.(html|js|css|json)$/i, SKIP = /^(package(-lock)?\.json|firebase\.json|twa-manifest\.json|.*\.min\.js|block\.json)$/i;
   // ---- چھوٹا زپ بنانے والا ----
