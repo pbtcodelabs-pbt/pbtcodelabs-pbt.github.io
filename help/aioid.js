@@ -1,4 +1,5 @@
-/* HD2011FR135 (مالک کا حکم — الجھن ختم): فہرست اور تفصیل ایک ہی حساب سے — ہر ID کی ایک لائن «ID + کیفیت»؛ جس ID پر پیکج وہ ✅ + دن باقی؛ ٹرائل والی 🎁 + دن باقی؛ ٹرائل ختم 🚫؛ اسی بندے کی فالتو ID پر ہٹانے کا بٹن؛ ٹرائل ختم بندے کو واٹس ایپ پیغام؛ سرخ ڈبہ صرف تب جب بندے کا کوئی پیکج ہی نہ ہو۔
+/* HD2011FR138 (مالک کا حکم): فہرست کے اوپر چار بٹن — ✅ پیکج والی IDs (دن باقی)، 🎁 ٹرائل پر (دن باقی)، 🗂️ ٹرائل ختم / فالتو (ڈیلیٹ + پیغام)، 📥 کل ڈاؤن لوڈ؛ پیغام کا بٹن صرف اکیلی ID پر، فالتو (ڈپلیکیٹ) پر صرف ڈیلیٹ۔
+   HD2011FR135 (مالک کا حکم — الجھن ختم): فہرست اور تفصیل ایک ہی حساب سے — ہر ID کی ایک لائن «ID + کیفیت»؛ جس ID پر پیکج وہ ✅ + دن باقی؛ ٹرائل والی 🎁 + دن باقی؛ ٹرائل ختم 🚫؛ اسی بندے کی فالتو ID پر ہٹانے کا بٹن؛ ٹرائل ختم بندے کو واٹس ایپ پیغام؛ سرخ ڈبہ صرف تب جب بندے کا کوئی پیکج ہی نہ ہو۔
    PBT Help Desk — HD2011FR133 (مالک کا حکم): AIO ID کی نئی سکرین — ہر ID کی حالت (پیکج / ٹرائل / ختم)، ID کیسے بنی، اسی بندے کی باقی IDs،
    سرور میں اس بندے کے سب پیکج (کون سی ID کے فون پر چل رہا ہے)، پیکج کی فہرست چھپی ہوئی (چیک باکس)، ہر تبدیلی پر ڈویلپر پاس ورڈ، ایکٹیویٹ پر اینیمیشن۔
    lic.js کے بعد لگتی ہے؛ My City Shines کی سکرین اور پیکج بنانے / بدلنے کی پرانی سکرین جوں کی توں۔ لاگ اِن کا طریقہ، سرور اور قیمتوں کی کلیدیں وہی۔ */
@@ -9,7 +10,7 @@
   const API = 'https://aio-pos-verify.pbtcodelabs.workers.dev/entadmin';
   const TRIAL_DAYS = 7;   /* ⚠️ AIO POS کے مفت ٹرائل کے دن — ID بننے کی تاریخ سے گنے جاتے ہیں */
   const TABS = [['MCS', 'My City Shines'], ['DR', 'AIO Direct'], ['AIO', 'AIO POS']];
-  let APP = 'AIO', AIDS = [], ENTS = [], PK = [], PRICE = {}, AQ = '', SHOW = 40, SEL = null, APK = '', SHOWPK = false, BUSY = false, MSG = '', OK = true, RES = null, SHARE = '', GRP = {};
+  let APP = 'AIO', AIDS = [], ENTS = [], PK = [], PRICE = {}, AQ = '', SHOW = 40, SEL = null, APK = '', SHOWPK = false, BUSY = false, MSG = '', OK = true, RES = null, SHARE = '', GRP = {}, FIL = 'all', ST = {};
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const p2 = n => String(n).padStart(2, '0');
   const dmy = ts => { if (!ts) return '—'; const d = new Date(ts); return p2(d.getDate()) + '/' + p2(d.getMonth() + 1) + '/' + d.getFullYear(); };
@@ -52,6 +53,7 @@
 #aiOv .aMsg.ok{background:#dcfce7;color:#166534}#aiOv .aMsg.bad{background:#fee2e2;color:#991b1b}
 #aiOv .aTabs{display:flex;gap:6px}#aiOv .aTabs button{flex:1;border:0;border-radius:10px;padding:10px 4px;font-weight:800;background:#e2e8f0}
 #aiOv .aTabs button.on{background:#1e293b;color:#fff}
+#aiOv .aFil{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:0 0 6px}#aiOv .aFil button{border:2px solid transparent;border-radius:12px;padding:9px 6px;font-weight:800;font-size:13px;background:#e2e8f0;color:#0f172a;line-height:1.5}#aiOv .aFil button b{display:block;font-size:19px}#aiOv .aFil button.on{background:#1e293b;color:#fff}
 #aiOv .aBan{border-radius:14px;padding:12px;margin-bottom:10px;font-size:14px;line-height:1.8}
 #aiOv .aBan b.big{display:block;font-size:17px}
 #aiOv .aBan.u{background:#dcfce7;color:#14532d;border:2px solid #16a34a}#aiOv .aBan.t{background:#e0f2fe;color:#0c4a6e;border:2px solid #0284c7}
@@ -231,7 +233,7 @@
     } else {
       cls = 'r'; head = '🚫 ٹرائل ختم — پیکج نہیں';
       rows.push('📥 ڈاؤن لوڈ: <b>' + dmy(w.made) + '</b> · ٹرائل ختم ہوا: <b>' + dmy(s.exp) + '</b>');
-      btn = '<div class="aRow" style="margin-top:8px"><button class="aBtn grn" data-a="trialmsg" data-v="' + esc(w.aio) + '">💬 واٹس ایپ پر پیکج کا پیغام بھیجیں</button></div>';
+      btn = '<div class="aRow" style="margin-top:8px"><button class="aBtn grn" data-a="trialmsg" data-v="' + esc(w.aio) + '">💬 واٹس ایپ پر پیغام</button><button class="aBtn red" data-a="adel" data-v="' + esc(w.aio) + '">🗑️ ہٹائیں</button></div>';
     }
     return '<div class="aBan ' + cls + '"><b class="big">' + head + '</b>' + rows.join('<br>') + btn + '</div>';
   }
@@ -294,26 +296,37 @@
       '<button class="aBtn" data-a="aclose" style="width:100%;margin-top:10px">↩️ بند</button></div>';
   }
 
+  const bucket = st => live(st) ? 'act' : st.k === 'trial' ? 'trial' : 'dead';
+  function calc() { ST = {}; AIDS.forEach(a => { ST[a.aio] = idState(a); }); }
+  function filHTML() {
+    calc(); const c = { act: 0, trial: 0, dead: 0 };
+    AIDS.forEach(a => { c[bucket(ST[a.aio])]++; });
+    const ppl = new Set(AIDS.map(a => (GRP[a.aio] || [a])[0].aio)).size;
+    const B = [['act', '✅ پیکج والی IDs', c.act], ['trial', '🎁 ٹرائل پر', c.trial], ['dead', '🗂️ ٹرائل ختم / فالتو', c.dead], ['all', '📥 کل ڈاؤن لوڈ', AIDS.length]];
+    const hint = { act: 'جن IDs پر پیکج چل رہا ہے — دن کم والی اوپر', trial: 'جن IDs پر ٹرائل چل رہا ہے — دن کم والی اوپر', dead: 'ٹرائل ختم / فالتو IDs — 🗑️ ہٹائیں؛ 💬 پیغام صرف اکیلی ID پر', all: 'کل ' + AIDS.length + ' IDs · ' + ppl + ' الگ بندے (اسی موبائل / جی میل کی کئی IDs ساتھ ساتھ، ⚠️×N)' }[FIL];
+    return '<div class="aFil">' + B.map(x => '<button class="' + (FIL === x[0] ? 'on' : '') + '" data-a="fil" data-v="' + x[0] + '"><b>' + x[2] + '</b>' + x[1] + '</button>').join('') + '</div><div class="aSub" style="margin:0 0 6px">' + hint + '</div>';
+  }
   function listHTML() {
-    const q = AQ.trim().toUpperCase();
-    const list = AIDS.filter(a => !q || (a.aio + ' ' + (a.name || '') + ' ' + aPh(a.mobile) + ' ' + (a.gmail || '')).toUpperCase().indexOf(q) >= 0);
+    const q = AQ.trim().toUpperCase(); calc();
+    let list = AIDS.filter(a => (FIL === 'all' || bucket(ST[a.aio]) === FIL) && (!q || (a.aio + ' ' + (a.name || '') + ' ' + aPh(a.mobile) + ' ' + (a.gmail || '')).toUpperCase().indexOf(q) >= 0));
+    if (FIL === 'act') list = list.slice().sort((p, r) => (ST[p.aio].k === 'life' ? 1e9 : ST[p.aio].left) - (ST[r.aio].k === 'life' ? 1e9 : ST[r.aio].left));
+    if (FIL === 'trial') list = list.slice().sort((p, r) => ST[p.aio].left - ST[r.aio].left);
     return list.slice(0, SHOW).map(a => {
-      const st = idState(a), ch = chip(st), dup = (GRP[a.aio] || []).length;
+      const st = ST[a.aio], ch = chip(st), dup = (GRP[a.aio] || []).length;
       let btn = '';
-      if (st.k === 'tend') btn = st.extra ? '<button class="aBtn red" data-a="adel" data-v="' + esc(a.aio) + '" style="padding:4px 9px;font-size:12px">🗑️ ہٹائیں</button>' : '<button class="aBtn grn" data-a="trialmsg" data-v="' + esc(a.aio) + '" style="padding:4px 9px;font-size:12px">💬 پیغام</button>';
+      if (st.k === 'tend') btn = (st.extra ? '' : '<button class="aBtn grn" data-a="trialmsg" data-v="' + esc(a.aio) + '" style="padding:4px 9px;font-size:12px">💬 پیغام</button>') + '<button class="aBtn red" data-a="adel" data-v="' + esc(a.aio) + '" style="padding:4px 9px;font-size:12px">🗑️ ہٹائیں</button>';
       const tl = (st.k === 'trial' || st.k === 'tend') ? ' · ڈاؤن لوڈ ' + dmy(a.made) + ' · ٹرائل ' + (st.k === 'trial' ? 'ختم ہو گا ' : 'ختم ہوا ') + dmy(st.exp) : (a.made ? ' · ' + dmy(a.made) : '');
-      return '<div class="aItem" data-a="pick" data-v="' + esc(a.aio) + '" style="cursor:pointer' + (dup > 1 ? ';border-right:4px solid #f59e0b' : '') + (SEL && SEL.who.aio === a.aio ? ';background:#ecfeff' : '') + '"><div class="aRow" style="flex-wrap:nowrap"><span class="aCode" style="color:#0e7490">' + esc(a.aio) + '</span><b style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(a.name || '—') + (dup > 1 ? ' <small>⚠️×' + dup + '</small>' : '') + '</b><span class="aTag ' + ch[0] + '">' + esc(ch[1]) + '</span></div><div class="aRow" style="flex-wrap:nowrap;justify-content:space-between"><div class="aSub" style="flex:1;min-width:0">' + [aPh(a.mobile), a.gmail].filter(Boolean).map(esc).join(' · ') + tl + '</div>' + btn + '</div></div>';
-    }).join('') + (list.length > SHOW ? '<button class="aBtn" data-a="amore" style="width:100%;margin-top:8px">⬇️ مزید دکھائیں (' + (list.length - SHOW) + ')</button>' : '') || '<div class="aSub" style="margin-top:8px">' + (BUSY ? '⏳' : 'کوئی AIO ID نہیں ملی') + '</div>';
+      return '<div class="aItem" data-a="pick" data-v="' + esc(a.aio) + '" style="cursor:pointer' + (dup > 1 ? ';border-right:4px solid #f59e0b' : '') + (SEL && SEL.who.aio === a.aio ? ';background:#ecfeff' : '') + '"><div class="aRow" style="flex-wrap:nowrap"><span class="aCode" style="color:#0e7490">' + esc(a.aio) + '</span><b style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(a.name || '—') + (dup > 1 ? ' <small>⚠️×' + dup + '</small>' : '') + '</b><span class="aTag ' + ch[0] + '">' + esc(ch[1]) + '</span></div><div class="aRow" style="flex-wrap:nowrap;justify-content:space-between"><div class="aSub" style="flex:1;min-width:0">' + [aPh(a.mobile), a.gmail].filter(Boolean).map(esc).join(' · ') + tl + '</div><div style="display:flex;gap:6px;flex:0 0 auto">' + btn + '</div></div></div>';
+    }).join('') + (list.length > SHOW ? '<button class="aBtn" data-a="amore" style="width:100%;margin-top:8px">⬇️ مزید دکھائیں (' + (list.length - SHOW) + ')</button>' : '') || '<div class="aSub" style="margin-top:8px">' + (BUSY ? '⏳' : 'اس خانے میں کوئی ID نہیں') + '</div>';
   }
   function drawList() { const n = document.getElementById('aiList'); if (n) n.innerHTML = listHTML(); }
 
   function draw() {
     const o = document.getElementById('aiOv'); if (!o) return;
-    const nAct = AIDS.filter(a => { const s = idState(a); return s.k === 'act' || s.k === 'life'; }).length;
     o.innerHTML = '<div class="aTop"><b>✅ AIO ID — پیکج ایکٹیو کریں</b><button class="aX" data-a="close">✕</button></div>' +
       '<div class="aBox" style="padding:8px"><div class="aTabs">' + TABS.map(([k, t]) => '<button class="' + (APP === k ? 'on' : '') + '" data-a="tab" data-v="' + k + '">' + t + '</button>').join('') + '</div></div>' +
       (MSG ? '<div class="aMsg ' + (OK ? 'ok' : 'bad') + '">' + esc(MSG) + '</div>' : '') + detailHTML() +
-      '<div class="aBox"><h3>📋 سب AIO IDs (' + AIDS.length + ') <span class="aTag u">✅ ' + nAct + '</span></h3><div class="aSub" style="margin:0 0 6px">ہر لائن: ID + کیفیت (✅ پیکج / 🎁 ٹرائل / 🚫 ٹرائل ختم)۔ ⚠️×N = اسی موبائل / جی میل کی کئی IDs (ساتھ ساتھ دکھتی ہیں)۔ ID دبائیں ← تفصیل ← پیکج چنیں ← ایکٹیویٹ۔</div>' +
+      '<div class="aBox"><h3>📋 AIO IDs</h3>' + filHTML() +
       '<div class="aRow" style="flex-wrap:nowrap"><input type="text" id="aiQ" maxlength="40" value="' + esc(AQ) + '" placeholder="تلاش: نام / AIO ID / موبائل" style="direction:ltr"><button class="aBtn" data-a="aref" ' + (BUSY ? 'disabled' : '') + '>🔄</button></div><div id="aiList">' + listHTML() + '</div></div>' +
       '<div class="aBox"><button class="aBtn" data-a="oldscr" style="width:100%">🛠️ پیکج بنانا / بدلنا (پرانی سکرین)</button></div>';
   }
@@ -360,6 +373,7 @@
     }
     if (a === 'oldscr') { const o = document.getElementById('aiOv'); if (o) o.remove(); document.body.style.overflow = ''; window.__licBypass = true; OLD(APP); return; }
     if (a === 'aclose') { SEL = null; APK = ''; SHOWPK = false; RES = null; SHARE = ''; draw(); return; }
+    if (a === 'fil') { FIL = v; SHOW = 40; draw(); return; }
     if (a === 'amore') { SHOW += 40; draw(); return; }
     if (a === 'aref') { AQ = val('aiQ'); BUSY = true; draw(); try { await loadAll(); if (SEL) await loadDetail(SEL.who.aio); } catch (e) { MSG = '⚠️ ' + e.message; OK = false; } finally { BUSY = false; draw(); } return; }
     if (a === 'pick') { pick(v); return; }
