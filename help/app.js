@@ -2,7 +2,7 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2011FR138';
+const APP_VERSION = 'HD2011FR139';
 const UPDATE_NOTE = '🗑️ AIO ID: فالتو IDs ہٹانے کا بٹن (پاس ورڈ کے ساتھ) — پیکج والی ID رہے گی';  const UPDATE_NOTE_OLD = '';
 const DEV_PHONE = '03206793793';
 
@@ -653,9 +653,7 @@ function zipSheet() {
   if (!window.HDZips) { toast('⚠️'); return; }
   const L = zipOrdered(zipAll());
   sheet(`<div class="zipEn" dir="ltr"><h2>📦 Latest zip<button class="x" data-act="close">✕</button></h2>
-    <p style="color:var(--mut);font-size:13px;margin:0 0 8px">Each tap reads the app straight from its repo right now — even if another Claude changed it. You will be asked to confirm before anything is downloaded or uploaded.</p>
     ${ghTok() ? '' : `<div class="zpTok"><button class="tb" data-act="ghTok">🔑 Add GitHub permission (once) — for Upload</button></div>`}
-    <div style="margin:0 0 10px"><button class="tb" style="width:100%;padding:12px;font-size:15px;background:#0f172a;color:#fff;border-color:#0f172a" data-act="srv">🖥️ Server file — worker.js (download / upload, no zip)</button></div>
     <div class="zpBar"><button class="tb" data-act="zAZ">A → Z</button><button class="tb" data-act="zZA">Z → A</button><button class="tb zSv${ZDRAFT ? ' dirty' : ''}" data-act="zSave">${ZDRAFT ? '💾 Save order' : ZSAVED ? '✅ Saved' : '💾 Save order'}</button></div>
     <div class="zpL">${L.map((a, ix) => { const c = ZIPC[a.id]; return `<div class="zpR${ZMOVED === a.id ? ' mvd' : ''}" data-zi="${esc(a.id)}">
       <div class="zpTop">

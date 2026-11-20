@@ -177,6 +177,13 @@
   }
   const waNum = m => { const d = String(m || '').replace(/\D/g, ''); return d.startsWith('92') ? d : d.startsWith('0') ? '92' + d.slice(1) : d.length === 10 ? '92' + d : d; };
   function trialMsg(a) {
+    const t = a && a.made ? trial(a) : null;
+    if (t && t.k === 'trial') {   /* ٹرائل چل رہا ہے — فیڈبیک + پیکج کی دعوت */
+      return ['Hello' + (a.name ? ' ' + a.name : '') + '! 👋', '', 'We hope you are enjoying AIO POS.',
+        'Please let us know if you have any new ideas or suggestions — we would love to hear from you.', '',
+        'Your free trial has ' + t.left + ' day' + (t.left === 1 ? '' : 's') + ' left.',
+        'If you would like to activate a subscription package to use AIO POS seamlessly and continuously, we are happy to help.', '', 'Thank you! 🙏'].join('\n');
+    }
     return ['Hello' + (a && a.name ? ' ' + a.name : '') + '! 👋', '', 'Welcome to the new horizon of digital business with AIO POS.',
       'Your free trial has ended. To continue your smooth AIO POS experience, please select a package from the Google Play Store and keep using it continuously.', '', 'Thank you! 🙏'].join('\n');
   }
@@ -226,6 +233,7 @@
     } else if (s.k === 'trial') {
       cls = 't'; head = '🎁 ٹرائل چل رہا ہے — ' + s.left + ' دن باقی';
       rows.push('📥 ڈاؤن لوڈ (ID بنی): <b>' + dmy(w.made) + '</b> · ٹرائل ختم ہو گا: <b>' + dmy(s.exp) + '</b> <small>(ٹرائل ' + TRIAL_DAYS + ' دن)</small>');
+      btn = '<div class="aRow" style="margin-top:8px"><button class="aBtn grn" data-a="trialmsg" data-v="' + esc(w.aio) + '">💬 ٹرائل کا پیغام بنائیں</button></div>';
     } else if (s.extra) {
       cls = 'd'; head = '🗂️ فالتو ID — اس بندے کا پیکج دوسری ID پر چل رہا ہے';
       rows.push('📥 ڈاؤن لوڈ: <b>' + dmy(w.made) + '</b> · ٹرائل ختم ہوا: <b>' + dmy(s.exp) + '</b>');
@@ -314,6 +322,7 @@
     return list.slice(0, SHOW).map(a => {
       const st = ST[a.aio], ch = chip(st), dup = (GRP[a.aio] || []).length;
       let btn = '';
+      if (st.k === 'trial') btn = '<button class="aBtn grn" data-a="trialmsg" data-v="' + esc(a.aio) + '" style="padding:4px 9px;font-size:12px">💬 پیغام</button>';
       if (st.k === 'tend') btn = (st.extra ? '' : '<button class="aBtn grn" data-a="trialmsg" data-v="' + esc(a.aio) + '" style="padding:4px 9px;font-size:12px">💬 پیغام</button>') + '<button class="aBtn red" data-a="adel" data-v="' + esc(a.aio) + '" style="padding:4px 9px;font-size:12px">🗑️ ہٹائیں</button>';
       const tl = (st.k === 'trial' || st.k === 'tend') ? ' · ڈاؤن لوڈ ' + dmy(a.made) + ' · ٹرائل ' + (st.k === 'trial' ? 'ختم ہو گا ' : 'ختم ہوا ') + dmy(st.exp) : (a.made ? ' · ' + dmy(a.made) : '');
       return '<div class="aItem" data-a="pick" data-v="' + esc(a.aio) + '" style="cursor:pointer' + (dup > 1 ? ';border-right:4px solid #f59e0b' : '') + (SEL && SEL.who.aio === a.aio ? ';background:#ecfeff' : '') + '"><div class="aRow" style="flex-wrap:nowrap"><span class="aCode" style="color:#0e7490">' + esc(a.aio) + '</span><b style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(a.name || '—') + (dup > 1 ? ' <small>⚠️×' + dup + '</small>' : '') + '</b><span class="aTag ' + ch[0] + '">' + esc(ch[1]) + '</span></div><div class="aRow" style="flex-wrap:nowrap;justify-content:space-between"><div class="aSub" style="flex:1;min-width:0">' + [aPh(a.mobile), a.gmail].filter(Boolean).map(esc).join(' · ') + tl + '</div><div style="display:flex;gap:6px;flex:0 0 auto">' + btn + '</div></div></div>';
