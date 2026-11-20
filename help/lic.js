@@ -12,7 +12,7 @@
   const L = (e, u) => (en() ? e : u);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const dmy = ts => { if (!ts) return ''; const d = new Date(ts); return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear(); };
-  let MLIST = [], MQ = '', MSHOW = 30;   /* HD1811WE124: نئے MCS نمبر */
+  let MLIST = [], MQ = '', MSHOW = 30, MTAB = 'signup';   /* HD1811WE124: نئے MCS نمبر */
   let ALIST = [], AQ = '', ALOOK = null, APK = '', ASHARE = '';   /* HD1811WE125: AIO ID پر پیکج */
   let AIDS = [], ASHOW = 40;   /* HD1811WE127: سرور سے سب AIO IDs */
   let SID = '', LOOK = null, PRICE = {}, LBL = '', PK = [], CODES = [], FILTER = 'all', NEW = [], BUSY = false, EDIT = null, SHOWPK = false, MSG = '', OK = true;
@@ -139,6 +139,12 @@ ${list.map(x => { const s = status(x); return `<div class="lcItem"><div class="l
     const row = (ic, k, v, ltr) => v ? `<div class="lcSub" style="font-size:14px;color:#0f172a;margin-top:5px">${ic} <span style="color:#64748b">${k}:</span> <b${ltr ? ' style="direction:ltr;unicode-bidi:plaintext"' : ''}>${esc(v)}</b></div>` : '';
     const q = MQ.trim().toUpperCase();
     const L2 = MLIST.filter(m => !q || (m.sid + ' ' + (m.name || '') + ' ' + (m.biz || '') + ' ' + ph(m.mob) + ' ' + (m.city || '')).toUpperCase().indexOf(q) >= 0);
+    /* HD2011FR140 (مالک کا حکم): دو بٹن — «سائن اپ» (ایپ ڈاؤن لوڈ کر کے سائن اپ کیا، ابھی سال کی رجسٹریشن نہیں) اور «رجسٹرڈ» (سال کے لیے رجسٹر؛ سب سے کم دن والا سب سے اوپر) */
+    const isReg = m => m.until > now;
+    const SU = L2.filter(m => !isReg(m)).sort((a, b) => (b.at || 0) - (a.at || 0));
+    const RG = L2.filter(isReg).sort((a, b) => a.until - b.until);
+    const SHOWL = MTAB === 'reg' ? RG : SU;
+    const dLeft = m => Math.max(0, Math.ceil((m.until - now) / 86400000));
     let det = '';
     if (x) {
       const g = x.reg || {}, live = (x.recs || []).some(r => r.until > now), till = Math.max(0, ...(x.recs || []).map(r => r.until || 0));
@@ -156,11 +162,12 @@ ${!g.biz && !(x.recs || []).length ? `<div class="lcMsg bad" style="margin:8px 0
     }
     return `<div class="lcBox"><h3>📋 ${L('New MCS accounts', 'نئے MCS اکاؤنٹ')} (${MLIST.length})</h3>
 <div class="lcRow" style="flex-wrap:nowrap"><input type="text" id="lcSid" maxlength="40" value="${esc(MQ)}" placeholder="${L('MCS ID / name / mobile', 'MCS نمبر / نام / موبائل')}" style="direction:ltr"><button class="lcBtn" data-l="look" ${BUSY ? 'disabled' : ''}>🔍</button><button class="lcBtn" data-l="mref" ${BUSY ? 'disabled' : ''}>🔄</button></div>
+<div class="lcTabs" style="margin:8px 0 4px"><button class="${MTAB === 'signup' ? 'on' : ''}" data-l="mtab" data-v="signup">📲 ${L('Sign Up', 'سائن اپ')} (${SU.length})</button><button class="${MTAB === 'reg' ? 'on' : ''}" data-l="mtab" data-v="reg">⭐ ${L('Registered', 'رجسٹرڈ')} (${RG.length})</button></div>
 ${det}
 ${L2.some(m => m.test) ? `<button class="lcBtn red" data-l="twipe" style="width:100%;margin-top:8px" ${BUSY ? 'disabled' : ''}>🗑️ ${L('Clear all test accounts', 'سب ٹیسٹ صاف کریں')} (🧪 ${L2.filter(m => m.test).length})</button>` : ''}
-${L2.slice(0, MSHOW).map(m => `<div class="lcItem" data-l="${m.test ? 'mtpick' : 'mpick'}" data-v="${esc(m.test ? m.k : m.sid)}" style="cursor:pointer${m.test ? ';border:2px dashed #f59e0b;background:#fffbeb' : ''}${x && x.sid === m.sid && !!x.test === !!m.test ? ';background:#dcfce7' : ''}"><div class="lcRow" style="flex-wrap:nowrap"><span class="lcCode" style="flex:0 0 auto;color:#166534">${m.test ? '🧪 ' : ''}${esc(m.sid)}</span><b style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(m.name || '—')}</b><span class="lcTag ${m.until > now ? 'u' : 'd'}">${m.until > now ? '✅ ' + dmy(m.until) : (m.nBiz || m.biz ? '⏳ ' + L('Waiting', 'انتظار') : '🆕')}</span></div>
-<div class="lcSub">${[m.biz, m.city, ph(m.mob)].filter(Boolean).map(esc).join(' · ')}${m.hasImg ? ' · 📷' : ''}${m.at ? ' · ' + dmy(m.at) : ''}</div></div>`).join('') || `<div class="lcSub" style="margin-top:8px">${BUSY ? '⏳' : L('No MCS accounts found', 'کوئی MCS اکاؤنٹ نہیں ملا')}</div>`}
-${L2.length > MSHOW ? `<button class="lcBtn" data-l="mmore" style="width:100%;margin-top:8px">⬇️ ${L('Show more', 'مزید دکھائیں')} (${L2.length - MSHOW})</button>` : ''}</div>`;
+${SHOWL.slice(0, MSHOW).map(m => `<div class="lcItem" data-l="${m.test ? 'mtpick' : 'mpick'}" data-v="${esc(m.test ? m.k : m.sid)}" style="cursor:pointer${m.test ? ';border:2px dashed #f59e0b;background:#fffbeb' : ''}${x && x.sid === m.sid && !!x.test === !!m.test ? ';background:#dcfce7' : ''}"><div class="lcRow" style="flex-wrap:nowrap"><span class="lcCode" style="flex:0 0 auto;color:#166534">${m.test ? '🧪 ' : ''}${esc(m.sid)}</span><b style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(m.name || '—')}</b><span class="lcTag ${isReg(m) ? (dLeft(m) <= 15 ? 'r' : 'u') : 'd'}">${isReg(m) ? '⏳ ' + dLeft(m) + L(' days left', ' دن باقی') : '🆕'}</span></div>
+<div class="lcSub">${[m.biz, m.city, ph(m.mob)].filter(Boolean).map(esc).join(' · ')}${m.hasImg ? ' · 📷' : ''}${isReg(m) ? ' · ✅ ' + dmy(m.until) : (m.at ? ' · ' + dmy(m.at) : '')}</div></div>`).join('') || `<div class="lcSub" style="margin-top:8px">${BUSY ? '⏳' : L('Nothing here', 'یہاں کوئی نہیں')}</div>`}
+${SHOWL.length > MSHOW ? `<button class="lcBtn" data-l="mmore" style="width:100%;margin-top:8px">⬇️ ${L('Show more', 'مزید دکھائیں')} (${SHOWL.length - MSHOW})</button>` : ''}</div>`;
   }
   /* HD1811WE125 (مالک کا حکم — AIO میں کوڈ ختم): AIO ID لکھیں → بندے کی تفصیل → Play والے پیکج (قیمت) چنیں → ادائیگی کا پیغام → ✅ ایکٹیو
      (سرور aiogrant — اسی ID والا فون خود چالو)؛ معطل / بحال / حذف؛ سب ایکٹیویشنز کی فہرست؛ ہر ایک کا تیار پیغام (کاپی / شیئر) */
@@ -280,6 +287,7 @@ ${list.length > ASHOW ? `<button class="lcBtn" data-l="amore" style="width:100%;
       finally { BUSY = false; draw(); }
       return;
     }
+    if (a === 'mtab') { MTAB = v === 'reg' ? 'reg' : 'signup'; MSHOW = 30; draw(); return; }
     if (a === 'mmore') { MSHOW += 30; draw(); return; }
     if (a === 'mclose') { LOOK = null; MSG = ''; draw(); return; }
     if (a === 'mref') { MQ = val('lcSid'); BUSY = true; draw(); try { await loadAll(); } finally { BUSY = false; draw(); } return; }
