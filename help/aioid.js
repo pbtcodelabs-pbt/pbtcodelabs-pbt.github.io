@@ -89,7 +89,7 @@
     return j;
   }
   function errText(c) {
-    const m = { no_aio: 'یہ AIO ID نہیں ملی', bad_id: 'AIO ID لکھیں، مثلاً AIO12345', no_pkg: 'پیکج نہیں ملا / بند ہے', no_days: 'دن لکھیں یا لائف ٹائم چنیں', not_ready: 'سرور تیار نہیں', bad_op: 'سرور پرانا ہے — نیا worker.js اپلوڈ کریں' };
+    const m = { no_aio: 'یہ AIO ID نہیں ملی', bad_id: 'AIO ID لکھیں، مثلاً AIO12345', no_pkg: 'پیکج نہیں ملا / بند ہے', no_days: 'دن لکھیں یا لائف ٹائم چنیں', has_pkg: 'اس ID پر پیکج چل رہا ہے — پہلے معطل کریں، پھر ہٹائیں', not_ready: 'سرور تیار نہیں', bad_op: 'سرور پرانا ہے — نیا worker.js اپلوڈ کریں' };
     return m[c] || String(c || 'error');
   }
   function say(t, ok) { MSG = t; OK = ok !== false; draw(); }
@@ -201,7 +201,7 @@
     } else if (s.k === 'trial') {
       cls = 't'; head = '🎁 ٹرائل چل رہا ہے — ابھی کوئی پیکج نہیں';
       rows.push('📥 ID بنی (ڈاؤن لوڈ): <b>' + dmy(w.made) + '</b>');
-      rows.push('⏳ ٹرائل ختم: <b>' + dmy(s.exp) + '</b> · باقی <b>' + s.left + ' دن</b>');
+      rows.push('⏳ ٹرائل ختم: <b>' + dmy(s.exp) + '</b> · باقی <b>' + s.left + ' دن</b> <small>(اندازہ: ٹرائل ' + TRIAL_DAYS + ' دن مانا ہے)</small>');
     } else {
       cls = 'r'; head = '🚫 ٹرائل ختم — اس وقت کوئی پیکج ایکٹیو نہیں (صرف ڈاؤن لوڈ)';
       rows.push('📥 ID بنی: <b>' + dmy(w.made) + '</b> · ٹرائل ختم ہوا: <b>' + dmy(s.exp) + '</b>');
@@ -251,7 +251,7 @@
     }).join('') : '<div class="aSub">سرور میں اس بندے کا کوئی پیکج نہیں ملا</div>';
     const othHTML = others.length ? '<div class="aItem" style="background:#fff7ed;border-color:#fdba74"><b>⚠️ اس بندے کی ' + (others.length + 1) + ' IDs ہیں</b><div class="aSub">ٹرائل بار بار لینے کے لیے نئی ID بن سکتی ہے — پیکج صرف اسی ID پر ہوتا ہے جس کے آگے ✅ ہو</div>' + others.map(o => {
       const st = idState({ aio: o.aio, gmail: w.gmail, mobile: o.mobile, made: o.made }, o.dev), ch = chip(st);
-      return '<div class="aRow" style="margin-top:7px;flex-wrap:nowrap"><b data-a="pick" data-v="' + esc(o.aio) + '" style="color:#0e7490;text-decoration:underline;cursor:pointer" class="aCode">' + esc(o.aio) + '</b><span class="aSub" style="flex:1;margin:0">' + dmy(o.made) + (o.dev ? (o.dev === w.dev ? ' · اسی فون' : ' · دوسرا فون') : '') + (o.replacedBy ? ' · 🔁' + esc(o.replacedBy) : '') + '</span><span class="aTag ' + ch[0] + '">' + esc(ch[1]) + '</span></div>';
+      return '<div class="aRow" style="margin-top:7px;flex-wrap:nowrap"><b data-a="pick" data-v="' + esc(o.aio) + '" style="color:#0e7490;text-decoration:underline;cursor:pointer" class="aCode">' + esc(o.aio) + '</b><span class="aSub" style="flex:1;margin:0">' + dmy(o.made) + (o.dev ? (o.dev === w.dev ? ' · اسی فون' : ' · دوسرا فون') : '') + (o.replacedBy ? ' · 🔁' + esc(o.replacedBy) : '') + '</span><span class="aTag ' + ch[0] + '">' + esc(ch[1]) + '</span>' + ((['act', 'life'].includes(st.k) || (st.k === 'person' && !o.dev)) ? '' : '<button class="aBtn red" data-a="adel" data-v="' + esc(o.aio) + '" style="padding:5px 9px">🗑️ ہٹائیں</button>') + '</div>';
     }).join('') + '</div>' : '';
     const hist = e && (e.hist || []).length ? '<div class="aSub" style="margin-top:6px">' + e.hist.slice().reverse().slice(0, 6).map(h => '• ' + dmy(h.at) + ' — ' + esc(h.pkg) + (h.price ? ' · Rs ' + esc(h.price) : '') + (h.life ? ' · ♾️' : h.exp ? ' → ' + dmy(h.exp) : '')).join('<br>') + '</div>' : '';
     return '<div class="aBox" style="border:2px solid #0e7490">' + resHTML() + bannerHTML(w, own, rel, devMap) +
@@ -364,6 +364,14 @@
       guarded('<b>' + esc(w.aio) + '</b> (' + esc(name) + ') پر <b>«' + esc(p.name) + '»</b>' + (PRICE[p.id] ? ' (Rs ' + esc(PRICE[p.id]) + ')' : '') + ' ایکٹیو ہو گا۔ پاس ورڈ لکھیں:', async () => {
         const r = await call({ op: 'aiogrant', aio: w.aio, pkgId: p.id, price: PRICE[p.id] || '' });
         APK = ''; SHOWPK = false; SHARE = aioMsg(r.who, r.ent); await refresh(w.aio); makeRes('✅ پیکج ایکٹیو ہو گیا', SEL && SEL.ent ? SEL : r); MSG = '';
+      });
+      return;
+    }
+    if (a === 'adel') {
+      guarded('<b>' + esc(v) + '</b> فالتو ID ہٹانی ہے — فہرست سے غائب ہو جائے گی۔ اس کا ریکارڈ اندر رہتا ہے تاکہ اسی فون کو نئی ID / نیا مفت ٹرائل نہ ملے۔ پاس ورڈ لکھیں:', async () => {
+        await call({ op: 'aiodel', aio: v });
+        await loadAll(); if (v === w.aio) { SEL = null; } else { await loadDetail(w.aio); }
+        RES = null; MSG = '✅ ' + v + ' ہٹا دی گئی'; OK = true;
       });
       return;
     }
