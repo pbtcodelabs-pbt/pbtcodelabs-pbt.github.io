@@ -341,7 +341,8 @@
   }
   async function guarded(text, fn) {
     if (BUSY) return;
-    if (!(await askPw(text))) return;
+    /* HD2011FR136 (مالک کا حکم): الگ پاس ورڈ ختم — ڈویلپر لاگ اِن ہی کافی؛ سرور پہلے ہی مالک کے ٹوکن سے پہچانتا ہے۔ صرف «ٹھیک ہے؟» کی تصدیق */
+    if (!window.confirm(String(text).replace(/<[^>]+>/g, '').replace(/\s*پاس ورڈ لکھیں:?\s*$/, '') + '\n\nٹھیک ہے؟')) return;
     BUSY = true; draw();
     try { await fn(); } catch (e) { MSG = '⚠️ ' + e.message; OK = false; }
     finally { BUSY = false; draw(); const o = document.getElementById('aiOv'); if (o) o.scrollTo({ top: 0, behavior: 'smooth' }); }
@@ -372,11 +373,17 @@
       try { window.open('https://wa.me/' + (n ? n : '') + '?text=' + encodeURIComponent(msg), '_blank'); } catch (e) {}
       return;
     }
-    if (a === 'adel') {
-      guarded('<b>' + esc(v) + '</b> فالتو ID ہٹانی ہے — فہرست سے غائب ہو جائے گی۔ اس کا ریکارڈ اندر رہتا ہے تاکہ اسی فون کو نئی ID / نیا مفت ٹرائل نہ ملے۔ پاس ورڈ لکھیں:', async () => {
+    if (a === 'adel') {   /* HD2011FR137 (مالک کا حکم): ڈیلیٹ سے پہلے نام + موبائل + وجہ کے ساتھ تصدیق؛ پیکج / چالو ٹرائل والی ID پر ڈیلیٹ ہی نہیں */
+      const x = AIDS.find(z => z.aio === v) || ((SEL && SEL.others) || []).find(z => z.aio === v) || (SEL && SEL.who.aio === v ? SEL.who : null) || { aio: v };
+      const nm = x.name || '—', ph = aPh(x.mobile) || '—', st = idState({ aio: v, gmail: x.gmail || (SEL && SEL.who.gmail) || '', mobile: x.mobile, made: x.made, name: x.name });
+      const who = '«' + nm + '» (ID: ' + v + ' · موبائل: ' + ph + ')';
+      if (live(st)) { window.alert('🚫 یہ ID ڈیلیٹ نہیں کی جا سکتی\n\n' + who + '\nاس پر پیکج چل رہا ہے' + (st.k === 'life' ? ' — لائف ٹائم۔' : ' — ' + st.left + ' دن باقی ہیں۔') + '\n\nپیکج والی ID ڈیلیٹ نہیں ہو سکتی۔'); return; }
+      if (st.k === 'trial') { window.alert('🚫 یہ ID ڈیلیٹ نہیں کی جا سکتی\n\n' + who + '\nاس پر ابھی ٹرائل چل رہا ہے — ' + st.left + ' دن باقی ہیں (ٹرائل ختم ہو گا: ' + dmy(st.exp) + ')۔\n\nٹرائل ختم ہونے کے بعد ڈیلیٹ کر سکتے ہیں۔'); return; }
+      const why = st.k === 'tend' ? 'اس ID پر کوئی پیکج نہیں ہے۔\nاس کا ٹرائل ختم ہو چکا ہے (ختم ہوا: ' + dmy(st.exp) + ')۔' : st.k === 'rev' ? 'اس ID کا پیکج معطل ہے۔' : 'اس ID کا پیکج ختم ہو چکا ہے (' + dmy(st.exp) + ')۔';
+      guarded('⚠️ کیا آپ واقعی ' + who + ' ڈیلیٹ کرنا چاہتے ہیں؟\n\n' + why + (st.extra ? '\nاس بندے کا پیکج دوسری ID پر چل رہا ہے۔' : '') + '\n\nڈیلیٹ کے بعد یہ فہرست سے غائب ہو جائے گی (ریکارڈ اندر رہے گا تاکہ اسی فون کو نیا مفت ٹرائل نہ ملے)۔', async () => {
         await call({ op: 'aiodel', aio: v });
         await loadAll(); if (SEL) { if (v === SEL.who.aio) { SEL = null; } else { await loadDetail(SEL.who.aio); } }
-        RES = null; MSG = '✅ ' + v + ' ہٹا دی گئی'; OK = true;
+        RES = null; MSG = '✅ ' + nm + ' کی ID ' + v + ' ڈیلیٹ ہو گئی'; OK = true;
       });
       return;
     }
