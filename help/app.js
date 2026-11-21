@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2111SA145';
-const UPDATE_NOTE = '📋 My City Shines اکاؤنٹس: باریک بٹن (AIO جیسے) + ضلع کا چھوٹا ڈراپ ڈاؤن (A–Z) — چنے ضلع کے ہی اکاؤنٹ دکھیں';  const UPDATE_NOTE_OLD = '';
+const APP_VERSION = 'HD2111SA146';
+const UPDATE_NOTE = '📲 My City Shines سائن اپ فہرست: ہر بندے کے آگے 📞 کال اور 💬 دعوتی پیغام (نام خود لکھا آتا ہے)؛ ٹرائل ختم والے سب سے اوپر، سب سے زیادہ دن والے سب سے نیچے';  const UPDATE_NOTE_OLD = '';
 const DEV_PHONE = '03206793793';
 
 const APPS = [

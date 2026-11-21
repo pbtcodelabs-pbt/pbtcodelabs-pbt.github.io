@@ -13,7 +13,7 @@
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const dmy = ts => { if (!ts) return ''; const d = new Date(ts); return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear(); };
   let MLIST = [], MQ = '', MSHOW = 30, MTAB = 'signup', MDIST = '';
-  /* HD2111SA145: ضلع کا ڈراپ ڈاؤن — MCS ایپ کی پکی فہرست (انگریزی نام، A–Z): [English, اردو] */
+  /* HD2111SA146: ضلع کا ڈراپ ڈاؤن — MCS ایپ کی پکی فہرست (انگریزی نام، A–Z): [English, اردو] */
   const DISTS = [["Abbottabad","ایبٹ آباد"],["Astore","استور"],["Attock","اٹک"],["Awaran","آواران"],["Badin","بدین"],["Bagh","باغ"],["Bahawalnagar","بہاولنگر"],["Bahawalpur","بہاولپور"],["Bajaur","باجوڑ"],["Bannu","بنوں"],["Barkhan","بارکھان"],["Battagram","بٹگرام"],["Bhakkar","بھکر"],["Bhimber","بھمبر"],["Buner","بونیر"],["Chagai","چاغی"],["Chakwal","چکوال"],["Chaman","چمن"],["Charsadda","چارسدہ"],["Chiniot","چنیوٹ"],["Dadu","دادو"],["Darel","داریل"],["Dera Bugti","ڈیرہ بگٹی"],["Dera Ghazi Khan","ڈیرہ غازی خان"],["Dera Ismail Khan","ڈیرہ اسماعیل خان"],["Diamer","دیامر"],["Duki","دکی"],["Faisalabad","فیصل آباد"],["Ghanche","گانچھے"],["Ghizer","غذر"],["Ghotki","گھوٹکی"],["Gilgit","گلگت"],["Gujranwala","گوجرانوالہ"],["Gujrat","گجرات"],["Gupis Yasin","گوپس یاسین"],["Gwadar","گوادر"],["Hafizabad","حافظ آباد"],["Hangu","ہنگو"],["Haripur","ہری پور"],["Harnai","ہرنائی"],["Haveli","حویلی"],["Hub","حب"],["Hunza","ہنزہ"],["Hyderabad","حیدرآباد"],["Islamabad","اسلام آباد"],["Jacobabad","جیکب آباد"],["Jafarabad","جعفرآباد"],["Jamshoro","جامشورو"],["Jhal Magsi","جھل مگسی"],["Jhang","جھنگ"],["Jhelum","جہلم"],["Jhelum Valley (Hattian Bala)","جہلم ویلی (ہٹیاں بالا)"],["Kachhi (Bolan)","کچھی (بولان)"],["Kalat","قلات"],["Karachi","کراچی"],["Karachi Central","کراچی وسطی"],["Karachi East","کراچی شرقی"],["Karachi South","کراچی جنوبی"],["Karachi West","کراچی غربی"],["Karak","کرک"],["Kashmore","کشمور"],["Kasur","قصور"],["Keamari","کیماڑی"],["Kech (Turbat)","کیچ (تربت)"],["Khairpur","خیرپور"],["Khanewal","خانیوال"],["Kharan","خاران"],["Kharmang","کھرمنگ"],["Khushab","خوشاب"],["Khuzdar","خضدار"],["Khyber","خیبر"],["Kohat","کوہاٹ"],["Kohistan","کوہستان"],["Kohlu","کوہلو"],["Kolai Palas","کولائی پالس"],["Korangi","کورنگی"],["Kot Addu","کوٹ ادو"],["Kotli","کوٹلی"],["Kurram","کرم"],["Lahore","لاہور"],["Lakki Marwat","لکی مروت"],["Larkana","لاڑکانہ"],["Lasbela","لسبیلہ"],["Layyah","لیہ"],["Lehri","لہڑی"],["Lodhran","لودھراں"],["Loralai","لورالائی"],["Lower Chitral","لوئر چترال"],["Lower Dir","لوئر دیر"],["Lower Kohistan","لوئر کوہستان"],["Lower South Waziristan","لوئر جنوبی وزیرستان"],["Malakand","ملاکنڈ"],["Malir","ملیر"],["Mandi Bahauddin","منڈی بہاؤالدین"],["Mansehra","مانسہرہ"],["Mardan","مردان"],["Mastung","مستونگ"],["Matiari","مٹیاری"],["Mianwali","میانوالی"],["Mirpur","میرپور"],["Mirpur Khas","میرپورخاص"],["Mohmand","مہمند"],["Multan","ملتان"],["Murree","مری"],["Musakhel","موسیٰ خیل"],["Muzaffarabad","مظفر آباد"],["Muzaffargarh","مظفر گڑھ"],["Nagar","نگر"],["Nankana Sahib","ننکانہ صاحب"],["Narowal","نارووال"],["Nasirabad","نصیرآباد"],["Naushahro Feroze","نوشہرو فیروز"],["Nawabshah (Shaheed Benazirabad)","نواب شاہ (شہید بینظیر آباد)"],["Neelum","نیلم"],["North Waziristan","شمالی وزیرستان"],["Noshki","نوشکی"],["Nowshera","نوشہرہ"],["Okara","اوکاڑہ"],["Orakzai","اورکزئی"],["Pakpattan","پاکپتن"],["Panjgur","پنجگور"],["Peshawar","پشاور"],["Pishin","پشین"],["Qambar Shahdadkot","قمبر شہدادکوٹ"],["Qila Abdullah","قلعہ عبداللہ"],["Qila Saifullah","قلعہ سیف اللہ"],["Quetta","کوئٹہ"],["Rahim Yar Khan","رحیم یار خان"],["Rajanpur","راجن پور"],["Rawalakot","راولاکوٹ"],["Rawalakot (Poonch)","راولاکوٹ (پونچھ)"],["Rawalpindi","راولپنڈی"],["Roundu","روندو"],["Sahiwal","ساہیوال"],["Sanghar","سانگھڑ"],["Sargodha","سرگودھا"],["Shangla","شانگلہ"],["Sheikhupura","شیخوپورہ"],["Sherani","شیرانی"],["Shigar","شگر"],["Shikarpur","شکارپور"],["Sialkot","سیالکوٹ"],["Sibi","سبی"],["Skardu","سکردو"],["Sohbatpur","صحبت پور"],["South Waziristan","جنوبی وزیرستان"],["Sudhnoti","سدھنوتی"],["Sujawal","سجاول"],["Sukkur","سکھر"],["Surab","سوراب"],["Swabi","صوابی"],["Swat","سوات"],["Talagang","تلہ گنگ"],["Tando Allahyar","ٹنڈو الہ یار"],["Tando Muhammad Khan","ٹنڈو محمد خان"],["Tangir","تانگیر"],["Tank","ٹانک"],["Taunsa Sharif","تونسہ شریف"],["Tharparkar","تھرپارکر"],["Thatta","ٹھٹھہ"],["Toba Tek Singh","ٹوبہ ٹیک سنگھ"],["Torghar","تورغر"],["Turbat","تربت"],["Umerkot","عمرکوٹ"],["Upper Chitral","اپر چترال"],["Upper Dir","اپر دیر"],["Upper Kohistan","اپر کوہستان"],["Upper South Waziristan","اپر جنوبی وزیرستان"],["Usta Muhammad","استا محمد"],["Uthal","اوتھل"],["Vehari","وہاڑی"],["Washuk","واشک"],["Wazirabad","وزیرآباد"],["Zhob","ژوب"],["Ziarat","زیارت"]];
   const dnorm = t => String(t || '').replace(/[\s\u200c\u200e\u200f]+/g, '').toLowerCase();
   const distOk = m => { if (!MDIST || m.test) return true; const d = DISTS.find(x => x[0] === MDIST); if (!d) return true; const v = dnorm(m.dist || m.city); return v === dnorm(d[1]) || v === dnorm(d[0]); };   /* HD1811WE124: نئے MCS نمبر */
@@ -59,7 +59,7 @@
 #licOv .lcMsg.ok{background:#dcfce7;color:#166534}#licOv .lcMsg.bad{background:#fee2e2;color:#991b1b}
 #licOv .lcTabs{display:flex;gap:6px;margin-bottom:6px}#licOv .lcTabs button{flex:1;border:0;border-radius:10px;padding:9px 4px;font-weight:800;background:#e2e8f0}
 #licOv .lcTabs button.on{background:#1e293b;color:#fff}
-/* HD2111SA145 (مالک کا حکم): MCS اسکرین — AIO POS / AIO Direct جیسے باریک بٹن اور چھوٹے خانے */
+/* HD2111SA146 (مالک کا حکم): MCS اسکرین — AIO POS / AIO Direct جیسے باریک بٹن اور چھوٹے خانے */
 #licOv.lcCmp .lcTop{padding:7px 12px;font-size:14px}#licOv.lcCmp .lcBox{margin:5px;padding:7px;border-radius:10px}#licOv.lcCmp .lcMsg{margin:5px;padding:6px 9px;font-size:12px}
 #licOv.lcCmp .lcTabs{gap:4px;margin-bottom:4px}#licOv.lcCmp .lcTabs button{padding:5px 2px;font-size:12px;border-radius:8px;line-height:1.3;white-space:nowrap}
 #licOv.lcCmp .lcItem{padding:5px 8px;margin-top:4px;border-radius:9px}#licOv.lcCmp .lcSub{margin-top:1px;line-height:1.45}
@@ -115,6 +115,37 @@
   const pkLabel = p => p.prefix + ' — ' + p.name + ' (' + (p.life ? L('lifetime', 'لائف ٹائم') : p.days + L(' days', ' دن')) + ', ' + p.devices + L(' phone(s)', ' فون') + ')';
   const status = x => x.revoked ? ['r', '⛔ ' + L('Revoked', 'بند')] : x.redeemed ? ['d', '✅ ' + L('Used', 'استعمال شدہ') + ' ' + dmy(x.usedAt || x.redeemed)] : ['u', '🆕 ' + L('Unused', 'نیا')];
 
+  /* HD2111SA146 (مالک کا حکم): سائن اپ والے کو کال + واٹس ایپ دعوت — بندے کا نام خود پیغام میں؛ پیغام ہمیشہ بڑا، سجے ہوئے بلاک کے اندر */
+  function inviteMsg(m, left) {
+    const nm = String(m.name || '').trim() || 'صارف', ph = String(m.mob || '').replace(/^92/, '0');
+    const help = 'https://pbtcodelabs-pbt.github.io/help/?app=MCS&phone=' + encodeURIComponent(ph) + '&name=' + encodeURIComponent(nm);
+    const bar = '❖ ━━━━━━ ✦ ━━━━━━ ❖';
+    return [
+      bar, '       🌟 *My City Shines* 🌟', '   ❁ *ایم سی ایس* — آپ کا شہر، آپ کا کاروبار ❁', bar, '',
+      'السلام علیکم و رحمۃ اللہ و برکاتہ! 🌹', '',
+      'محترم *' + nm + '* صاحب! 🤝', '',
+      'آپ نے ہماری ایپ *My City Shines (ایم سی ایس)* ڈاؤن لوڈ کر کے سائن اپ کیا — ہم دل سے آپ کے شکر گزار ہیں۔ 🙏', '',
+      left > 0 ? '⏳ اس وقت آپ ہماری ایپ کو *ٹرائل* پر استعمال کر رہے ہیں اور ٹرائل کے *' + left + ' دن* باقی ہیں۔'
+               : '⏳ آپ کا *ٹرائل ختم* ہو چکا ہے اور ابھی تک آپ نے سبسکرائب نہیں کیا۔', '',
+      '💬 بتائیے! آپ کو ہماری ایپ کیسی لگی؟ کوئی کمی، مشورہ یا سوال ہو تو ضرور بتائیں — ہم آپ کی بات سن کر ایپ کو بہتر بنائیں گے۔', '',
+      '✨ *ایک سال کے لیے سبسکرائب کریں اور پائیں:*',
+      '🇵🇰 آپ کا کاروبار *پورے پاکستان* میں رجسٹر ہو کر ہر شہر کے لوگوں کو نظر آئے گا',
+      '📈 نئے گاہک خود آپ تک پہنچیں گے اور آپ کا *بزنس گروو* کرے گا',
+      '🏪 آپ کا کاروباری کارڈ، رابطہ نمبر اور پتہ ہر وقت لوگوں کے سامنے', '',
+      bar, '📲 *سبسکرائب کرنے کے لیے رابطہ کیسے کریں؟*', bar,
+      '1️⃣ اپنے موبائل میں *ایم سی ایس* ایپ کھولیں',
+      '2️⃣ ایپ کے *چیٹ باکس* میں آ کر اپنا پیغام لکھیں: «میں ایک سال کے لیے سبسکرائب کرنا چاہتا ہوں»',
+      '3️⃣ یا نیچے دیے *ہیلپ ڈیسک* کے لنک پر جا کر اپنا پیغام لکھ دیں — ہماری ٹیم فوراً آپ سے رابطہ کرے گی ✅', '',
+      '👇 *ہیلپ ڈیسک:*', help, '',
+      '📞 براہِ راست رابطہ: 0320 6793793', '',
+      'جزاک اللہ خیراً 🌹', '*ٹیم My City Shines*', bar
+    ].join('\n');
+  }
+  function inviteBtns(m, left) {
+    const ph = String(m.mob || '').replace(/^92/, '0'), wa = /^0\d{10}$/.test(ph) ? '92' + ph.slice(1) : String(m.mob || '').replace(/\D/g, '');
+    return `<div class="lcCw lcRow" style="margin-top:6px;gap:6px"><a class="lcBtn grn" href="tel:${esc(ph)}" style="flex:1;text-align:center;text-decoration:none">📞 ${L('Call', 'کال')}</a><a class="lcBtn pri" href="https://wa.me/${esc(wa)}?text=${encodeURIComponent(inviteMsg(m, left))}" target="_blank" rel="noopener" style="flex:1;text-align:center;text-decoration:none">💬 ${L('Message', 'پیغام')}</a></div>`;
+  }
+
   function draw() {
     const o = document.getElementById('licOv'); if (!o) return;
     o.classList.toggle('lcCmp', APP === 'MCS');
@@ -153,7 +184,9 @@ ${list.map(x => { const s = status(x); return `<div class="lcItem"><div class="l
     const L2 = MLIST.filter(m => !q || (m.sid + ' ' + (m.name || '') + ' ' + (m.biz || '') + ' ' + ph(m.mob) + ' ' + (m.city || '')).toUpperCase().indexOf(q) >= 0).filter(distOk);
     /* HD2011FR140 (مالک کا حکم): دو بٹن — «سائن اپ» (ایپ ڈاؤن لوڈ کر کے سائن اپ کیا، ابھی سال کی رجسٹریشن نہیں) اور «رجسٹرڈ» (سال کے لیے رجسٹر؛ سب سے کم دن والا سب سے اوپر) */
     const isReg = m => m.until > now;
-    const SU = L2.filter(m => !isReg(m)).sort((a, b) => (b.at || 0) - (a.at || 0));
+    /* HD2111SA146 (مالک کا حکم): سائن اپ والوں کا 7 دن کا ٹرائل — جن کا ختم ہو چکا وہ سب سے اوپر، پھر کم دن والے، سب سے زیادہ دن (7 تک) والے سب سے نیچے؛ ٹیسٹ اکاؤنٹ ہمیشہ اوپر */
+    const TRIAL_MS = 7 * 86400000, tEnd = m => (m.at || 0) + TRIAL_MS, tOver = m => tEnd(m) <= now, tLeft = m => Math.max(1, Math.ceil((tEnd(m) - now) / 86400000));
+    const SU = L2.filter(m => !isReg(m)).sort((a, b) => (b.test ? 1 : 0) - (a.test ? 1 : 0) || tEnd(a) - tEnd(b));
     const RG = L2.filter(isReg).sort((a, b) => a.until - b.until);
     const SHOWL = MTAB === 'reg' ? RG : SU;
     const dLeft = m => Math.max(0, Math.ceil((m.until - now) / 86400000));
@@ -177,8 +210,8 @@ ${!g.biz && !(x.recs || []).length ? `<div class="lcMsg bad" style="margin:8px 0
 <div class="lcTabs" style="margin:8px 0 4px"><button class="${MTAB === 'signup' ? 'on' : ''}" data-l="mtab" data-v="signup">📲 ${L('Sign Up', 'سائن اپ')} (${SU.length})</button><button class="${MTAB === 'reg' ? 'on' : ''}" data-l="mtab" data-v="reg">⭐ ${L('Registered', 'رجسٹرڈ')} (${RG.length})</button></div>
 ${det}
 ${L2.some(m => m.test) ? `<button class="lcBtn red" data-l="twipe" style="width:100%;margin-top:8px" ${BUSY ? 'disabled' : ''}>🗑️ ${L('Clear all test accounts', 'سب ٹیسٹ صاف کریں')} (🧪 ${L2.filter(m => m.test).length})</button>` : ''}
-${SHOWL.slice(0, MSHOW).map(m => `<div class="lcItem" data-l="${m.test ? 'mtpick' : 'mpick'}" data-v="${esc(m.test ? m.k : m.sid)}" style="cursor:pointer${m.test ? ';border:2px dashed #f59e0b;background:#fffbeb' : ''}${x && x.sid === m.sid && !!x.test === !!m.test ? ';background:#dcfce7' : ''}"><div class="lcRow" style="flex-wrap:nowrap"><span class="lcCode" style="flex:0 0 auto;color:#166534">${m.test ? '🧪 ' : ''}${esc(m.sid)}</span><b style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(m.name || '—')}</b><span class="lcTag ${isReg(m) ? (dLeft(m) <= 15 ? 'r' : 'u') : 'd'}">${isReg(m) ? '⏳ ' + dLeft(m) + L(' days left', ' دن باقی') : '🆕'}</span></div>
-<div class="lcSub">${[m.biz, m.city, ph(m.mob)].filter(Boolean).map(esc).join(' · ')}${m.hasImg ? ' · 📷' : ''}${isReg(m) ? ' · ✅ ' + dmy(m.until) : (m.at ? ' · ' + dmy(m.at) : '')}</div></div>`).join('') || `<div class="lcSub" style="margin-top:8px">${BUSY ? '⏳' : L('Nothing here', 'یہاں کوئی نہیں')}</div>`}
+${SHOWL.slice(0, MSHOW).map(m => `<div class="lcItem" data-l="${m.test ? 'mtpick' : 'mpick'}" data-v="${esc(m.test ? m.k : m.sid)}" style="cursor:pointer${m.test ? ';border:2px dashed #f59e0b;background:#fffbeb' : ''}${x && x.sid === m.sid && !!x.test === !!m.test ? ';background:#dcfce7' : ''}"><div class="lcRow" style="flex-wrap:nowrap"><span class="lcCode" style="flex:0 0 auto;color:#166534">${m.test ? '🧪 ' : ''}${esc(m.sid)}</span><b style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(m.name || '—')}</b><span class="lcTag ${isReg(m) ? (dLeft(m) <= 15 ? 'r' : 'u') : (m.test ? 'd' : tOver(m) ? 'r' : 'd')}">${isReg(m) ? '⏳ ' + dLeft(m) + L(' days left', ' دن باقی') : m.test ? '🆕' : tOver(m) ? '⛔ ' + L('Trial over', 'ٹرائل ختم') : '⏳ ' + tLeft(m) + L(' days left', ' دن باقی')}</span></div>
+<div class="lcSub">${[m.biz, m.city, ph(m.mob)].filter(Boolean).map(esc).join(' · ')}${m.hasImg ? ' · 📷' : ''}${isReg(m) ? ' · ✅ ' + dmy(m.until) : (m.at ? ' · ' + dmy(m.at) : '')}</div>${!m.test && !isReg(m) && ph(m.mob) ? inviteBtns(m, tOver(m) ? 0 : tLeft(m)) : ''}</div>`).join('') || `<div class="lcSub" style="margin-top:8px">${BUSY ? '⏳' : L('Nothing here', 'یہاں کوئی نہیں')}</div>`}
 ${SHOWL.length > MSHOW ? `<button class="lcBtn" data-l="mmore" style="width:100%;margin-top:8px">⬇️ ${L('Show more', 'مزید دکھائیں')} (${SHOWL.length - MSHOW})</button>` : ''}</div>`;
   }
   /* HD1811WE125 (مالک کا حکم — AIO میں کوڈ ختم): AIO ID لکھیں → بندے کی تفصیل → Play والے پیکج (قیمت) چنیں → ادائیگی کا پیغام → ✅ ایکٹیو
@@ -246,6 +279,7 @@ ${list.length > ASHOW ? `<button class="lcBtn" data-l="amore" style="width:100%;
   const val = id => { const n = document.getElementById(id); return n ? n.value : ''; };
 
   async function onClick(ev) {
+    if (ev.target.closest('.lcCw')) return;   /* HD2111SA146: کال / پیغام کے بٹن — فہرست کی تفصیل نہ کھلے، بس لنک چلے */
     const t = ev.target.closest('[data-l]'); if (!t) return;
     const a = t.dataset.l, v = t.dataset.v, id = t.dataset.id;
     if (a === 'close') { const o = document.getElementById('licOv'); if (o) o.remove(); document.body.style.overflow = ''; return; }
