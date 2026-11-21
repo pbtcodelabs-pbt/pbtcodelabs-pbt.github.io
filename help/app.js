@@ -2,7 +2,7 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2111SA147';
+const APP_VERSION = 'HD2111SA148';
 const UPDATE_NOTE = '📨 پیغام کی گنتی: MCS / AIO POS / AIO Direct — ہر بندے کے آگے کل کتنی بار اور آخری بار کب پیغام بھیجا؛ آج ہی بھیجا ہو تو دوبارہ بھیجنے سے پہلے پوچھے گا; سائن اپ میں 📞 کال + 💬 دعوتی پیغام';  const UPDATE_NOTE_OLD = '';
 const DEV_PHONE = '03206793793';
 

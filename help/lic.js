@@ -13,7 +13,7 @@
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const dmy = ts => { if (!ts) return ''; const d = new Date(ts); return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear(); };
   let MLIST = [], MQ = '', MSHOW = 30, MTAB = 'signup', MDIST = '';
-  /* HD2111SA147: ضلع کا ڈراپ ڈاؤن — MCS ایپ کی پکی فہرست (انگریزی نام، A–Z): [English, اردو] */
+  /* HD2111SA148: ضلع کا ڈراپ ڈاؤن — MCS ایپ کی پکی فہرست (انگریزی نام، A–Z): [English, اردو] */
   const DISTS = [["Abbottabad","ایبٹ آباد"],["Astore","استور"],["Attock","اٹک"],["Awaran","آواران"],["Badin","بدین"],["Bagh","باغ"],["Bahawalnagar","بہاولنگر"],["Bahawalpur","بہاولپور"],["Bajaur","باجوڑ"],["Bannu","بنوں"],["Barkhan","بارکھان"],["Battagram","بٹگرام"],["Bhakkar","بھکر"],["Bhimber","بھمبر"],["Buner","بونیر"],["Chagai","چاغی"],["Chakwal","چکوال"],["Chaman","چمن"],["Charsadda","چارسدہ"],["Chiniot","چنیوٹ"],["Dadu","دادو"],["Darel","داریل"],["Dera Bugti","ڈیرہ بگٹی"],["Dera Ghazi Khan","ڈیرہ غازی خان"],["Dera Ismail Khan","ڈیرہ اسماعیل خان"],["Diamer","دیامر"],["Duki","دکی"],["Faisalabad","فیصل آباد"],["Ghanche","گانچھے"],["Ghizer","غذر"],["Ghotki","گھوٹکی"],["Gilgit","گلگت"],["Gujranwala","گوجرانوالہ"],["Gujrat","گجرات"],["Gupis Yasin","گوپس یاسین"],["Gwadar","گوادر"],["Hafizabad","حافظ آباد"],["Hangu","ہنگو"],["Haripur","ہری پور"],["Harnai","ہرنائی"],["Haveli","حویلی"],["Hub","حب"],["Hunza","ہنزہ"],["Hyderabad","حیدرآباد"],["Islamabad","اسلام آباد"],["Jacobabad","جیکب آباد"],["Jafarabad","جعفرآباد"],["Jamshoro","جامشورو"],["Jhal Magsi","جھل مگسی"],["Jhang","جھنگ"],["Jhelum","جہلم"],["Jhelum Valley (Hattian Bala)","جہلم ویلی (ہٹیاں بالا)"],["Kachhi (Bolan)","کچھی (بولان)"],["Kalat","قلات"],["Karachi","کراچی"],["Karachi Central","کراچی وسطی"],["Karachi East","کراچی شرقی"],["Karachi South","کراچی جنوبی"],["Karachi West","کراچی غربی"],["Karak","کرک"],["Kashmore","کشمور"],["Kasur","قصور"],["Keamari","کیماڑی"],["Kech (Turbat)","کیچ (تربت)"],["Khairpur","خیرپور"],["Khanewal","خانیوال"],["Kharan","خاران"],["Kharmang","کھرمنگ"],["Khushab","خوشاب"],["Khuzdar","خضدار"],["Khyber","خیبر"],["Kohat","کوہاٹ"],["Kohistan","کوہستان"],["Kohlu","کوہلو"],["Kolai Palas","کولائی پالس"],["Korangi","کورنگی"],["Kot Addu","کوٹ ادو"],["Kotli","کوٹلی"],["Kurram","کرم"],["Lahore","لاہور"],["Lakki Marwat","لکی مروت"],["Larkana","لاڑکانہ"],["Lasbela","لسبیلہ"],["Layyah","لیہ"],["Lehri","لہڑی"],["Lodhran","لودھراں"],["Loralai","لورالائی"],["Lower Chitral","لوئر چترال"],["Lower Dir","لوئر دیر"],["Lower Kohistan","لوئر کوہستان"],["Lower South Waziristan","لوئر جنوبی وزیرستان"],["Malakand","ملاکنڈ"],["Malir","ملیر"],["Mandi Bahauddin","منڈی بہاؤالدین"],["Mansehra","مانسہرہ"],["Mardan","مردان"],["Mastung","مستونگ"],["Matiari","مٹیاری"],["Mianwali","میانوالی"],["Mirpur","میرپور"],["Mirpur Khas","میرپورخاص"],["Mohmand","مہمند"],["Multan","ملتان"],["Murree","مری"],["Musakhel","موسیٰ خیل"],["Muzaffarabad","مظفر آباد"],["Muzaffargarh","مظفر گڑھ"],["Nagar","نگر"],["Nankana Sahib","ننکانہ صاحب"],["Narowal","نارووال"],["Nasirabad","نصیرآباد"],["Naushahro Feroze","نوشہرو فیروز"],["Nawabshah (Shaheed Benazirabad)","نواب شاہ (شہید بینظیر آباد)"],["Neelum","نیلم"],["North Waziristan","شمالی وزیرستان"],["Noshki","نوشکی"],["Nowshera","نوشہرہ"],["Okara","اوکاڑہ"],["Orakzai","اورکزئی"],["Pakpattan","پاکپتن"],["Panjgur","پنجگور"],["Peshawar","پشاور"],["Pishin","پشین"],["Qambar Shahdadkot","قمبر شہدادکوٹ"],["Qila Abdullah","قلعہ عبداللہ"],["Qila Saifullah","قلعہ سیف اللہ"],["Quetta","کوئٹہ"],["Rahim Yar Khan","رحیم یار خان"],["Rajanpur","راجن پور"],["Rawalakot","راولاکوٹ"],["Rawalakot (Poonch)","راولاکوٹ (پونچھ)"],["Rawalpindi","راولپنڈی"],["Roundu","روندو"],["Sahiwal","ساہیوال"],["Sanghar","سانگھڑ"],["Sargodha","سرگودھا"],["Shangla","شانگلہ"],["Sheikhupura","شیخوپورہ"],["Sherani","شیرانی"],["Shigar","شگر"],["Shikarpur","شکارپور"],["Sialkot","سیالکوٹ"],["Sibi","سبی"],["Skardu","سکردو"],["Sohbatpur","صحبت پور"],["South Waziristan","جنوبی وزیرستان"],["Sudhnoti","سدھنوتی"],["Sujawal","سجاول"],["Sukkur","سکھر"],["Surab","سوراب"],["Swabi","صوابی"],["Swat","سوات"],["Talagang","تلہ گنگ"],["Tando Allahyar","ٹنڈو الہ یار"],["Tando Muhammad Khan","ٹنڈو محمد خان"],["Tangir","تانگیر"],["Tank","ٹانک"],["Taunsa Sharif","تونسہ شریف"],["Tharparkar","تھرپارکر"],["Thatta","ٹھٹھہ"],["Toba Tek Singh","ٹوبہ ٹیک سنگھ"],["Torghar","تورغر"],["Turbat","تربت"],["Umerkot","عمرکوٹ"],["Upper Chitral","اپر چترال"],["Upper Dir","اپر دیر"],["Upper Kohistan","اپر کوہستان"],["Upper South Waziristan","اپر جنوبی وزیرستان"],["Usta Muhammad","استا محمد"],["Uthal","اوتھل"],["Vehari","وہاڑی"],["Washuk","واشک"],["Wazirabad","وزیرآباد"],["Zhob","ژوب"],["Ziarat","زیارت"]];
   const dnorm = t => String(t || '').replace(/[\s\u200c\u200e\u200f]+/g, '').toLowerCase();
   const distOk = m => { if (!MDIST || m.test) return true; const d = DISTS.find(x => x[0] === MDIST); if (!d) return true; const v = dnorm(m.dist || m.city); return v === dnorm(d[1]) || v === dnorm(d[0]); };   /* HD1811WE124: نئے MCS نمبر */
@@ -24,7 +24,7 @@
 
   /* HD1711TU111: قیمتیں پکی محفوظ — فون میں + کلاؤڈ (Store.setCfg)؛ پیکج کی فہرست بھی فون میں کاپی رہتی ہے */
   const pn = v => String(v == null ? '' : v).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
-  /* HD2111SA147 (مالک کا حکم): پیغام کی گنتی — کس کو کتنی بار اور کب آخری بار پیغام بھیجا؛ تاکہ ایک ہی بندے کو بار بار تنگ نہ کیا جائے۔
+  /* HD2111SA148 (مالک کا حکم): پیغام کی گنتی — کس کو کتنی بار اور کب آخری بار پیغام بھیجا؛ تاکہ ایک ہی بندے کو بار بار تنگ نہ کیا جائے۔
      کنجی = ایپ|ID (MCS|MCS013، AIO|AIO…، DR|…)؛ فون میں بھی محفوظ اور کلاؤڈ (Store.setCfg) میں بھی — ہر بھیجنے کی تاریخ/وقت */
   let SLOG = {};
   function slMerge(o) { if (!o || typeof o !== 'object') return; for (const k in o) { const a = SLOG[k] || [], b = Array.isArray(o[k]) ? o[k] : []; SLOG[k] = [...new Set(a.concat(b))].sort((p, q) => p - q).slice(-60); } }
@@ -84,7 +84,7 @@
 #licOv .lcSl{margin-top:5px;font-size:12px;font-weight:800;line-height:1.7}#licOv .lcSl.n{color:#64748b}#licOv .lcSl.w{color:#b45309;background:#fef3c7;border-radius:8px;padding:1px 8px;display:inline-block}#licOv .lcSl.s{color:#1e40af;background:#dbeafe;border-radius:8px;padding:1px 8px;display:inline-block}
 #licOv .lcTabs{display:flex;gap:6px;margin-bottom:6px}#licOv .lcTabs button{flex:1;border:0;border-radius:10px;padding:9px 4px;font-weight:800;background:#e2e8f0}
 #licOv .lcTabs button.on{background:#1e293b;color:#fff}
-/* HD2111SA147 (مالک کا حکم): MCS اسکرین — AIO POS / AIO Direct جیسے باریک بٹن اور چھوٹے خانے */
+/* HD2111SA148 (مالک کا حکم): MCS اسکرین — AIO POS / AIO Direct جیسے باریک بٹن اور چھوٹے خانے */
 #licOv.lcCmp .lcTop{padding:7px 12px;font-size:14px}#licOv.lcCmp .lcBox{margin:5px;padding:7px;border-radius:10px}#licOv.lcCmp .lcMsg{margin:5px;padding:6px 9px;font-size:12px}
 #licOv.lcCmp .lcTabs{gap:4px;margin-bottom:4px}#licOv.lcCmp .lcTabs button{padding:5px 2px;font-size:12px;border-radius:8px;line-height:1.3;white-space:nowrap}
 #licOv.lcCmp .lcItem{padding:5px 8px;margin-top:4px;border-radius:9px}#licOv.lcCmp .lcSub{margin-top:1px;line-height:1.45}
@@ -141,10 +141,9 @@
   const pkLabel = p => p.prefix + ' — ' + p.name + ' (' + (p.life ? L('lifetime', 'لائف ٹائم') : p.days + L(' days', ' دن')) + ', ' + p.devices + L(' phone(s)', ' فون') + ')';
   const status = x => x.revoked ? ['r', '⛔ ' + L('Revoked', 'بند')] : x.redeemed ? ['d', '✅ ' + L('Used', 'استعمال شدہ') + ' ' + dmy(x.usedAt || x.redeemed)] : ['u', '🆕 ' + L('Unused', 'نیا')];
 
-  /* HD2111SA147 (مالک کا حکم): سائن اپ والے کو کال + واٹس ایپ دعوت — بندے کا نام خود پیغام میں؛ پیغام ہمیشہ بڑا، سجے ہوئے بلاک کے اندر */
+  /* HD2111SA148 (مالک کا حکم): سائن اپ والے کو کال + واٹس ایپ دعوت — بندے کا نام خود پیغام میں؛ پیغام ہمیشہ بڑا، سجے ہوئے بلاک کے اندر */
   function inviteMsg(m, left) {
-    const nm = String(m.name || '').trim() || 'صارف', ph = String(m.mob || '').replace(/^92/, '0');
-    const help = 'https://pbtcodelabs-pbt.github.io/help/?app=MCS&phone=' + encodeURIComponent(ph) + '&name=' + encodeURIComponent(nm);
+    const nm = String(m.name || '').trim() || 'صارف';
     const bar = '❖ ━━━━━━ ✦ ━━━━━━ ❖';
     return [
       bar, '       🌟 *My City Shines* 🌟', '   ❁ *ایم سی ایس* — آپ کا شہر، آپ کا کاروبار ❁', bar, '',
@@ -158,12 +157,11 @@
       '🇵🇰 آپ کا کاروبار *پورے پاکستان* میں رجسٹر ہو کر ہر شہر کے لوگوں کو نظر آئے گا',
       '📈 نئے گاہک خود آپ تک پہنچیں گے اور آپ کا *بزنس گروو* کرے گا',
       '🏪 آپ کا کاروباری کارڈ، رابطہ نمبر اور پتہ ہر وقت لوگوں کے سامنے', '',
-      bar, '📲 *سبسکرائب کرنے کے لیے رابطہ کیسے کریں؟*', bar,
-      '1️⃣ اپنے موبائل میں *ایم سی ایس* ایپ کھولیں',
-      '2️⃣ ایپ کے *چیٹ باکس* میں آ کر اپنا پیغام لکھیں: «میں ایک سال کے لیے سبسکرائب کرنا چاہتا ہوں»',
-      '3️⃣ یا نیچے دیے *ہیلپ ڈیسک* کے لنک پر جا کر اپنا پیغام لکھ دیں — ہماری ٹیم فوراً آپ سے رابطہ کرے گی ✅', '',
-      '👇 *ہیلپ ڈیسک:*', help, '',
-      '📞 براہِ راست رابطہ: 0320 6793793', '',
+      bar, '📲 *سبسکرپشن کا طریقہ*', bar,
+      '1️⃣ اپنے موبائل میں *ایم سی ایس* ایپ کھولیں اور نیچے *My Portal* پر جائیں',
+      '2️⃣ اپنے کاروبار کے کارڈ پر سبز بٹن *Get Play Store Subscription* دبائیں',
+      '3️⃣ *Google Play Store* سے ایک سال کی سبسکرپشن لیں — ادائیگی کے بعد آپ کا کاروبار خود *Approved Business* بن جاتا ہے ✅', '',
+      '❓ اگر کوئی مشکل آئے یا رہنمائی چاہیے تو ایپ کے *Help Desk* میں اپنا سوال لکھ دیں — ہم آپ کی مدد کریں گے۔', '',
       'جزاک اللہ خیراً 🌹', '*ٹیم My City Shines*', bar
     ].join('\n');
   }
@@ -210,7 +208,7 @@ ${list.map(x => { const s = status(x); return `<div class="lcItem"><div class="l
     const L2 = MLIST.filter(m => !q || (m.sid + ' ' + (m.name || '') + ' ' + (m.biz || '') + ' ' + ph(m.mob) + ' ' + (m.city || '')).toUpperCase().indexOf(q) >= 0).filter(distOk);
     /* HD2011FR140 (مالک کا حکم): دو بٹن — «سائن اپ» (ایپ ڈاؤن لوڈ کر کے سائن اپ کیا، ابھی سال کی رجسٹریشن نہیں) اور «رجسٹرڈ» (سال کے لیے رجسٹر؛ سب سے کم دن والا سب سے اوپر) */
     const isReg = m => m.until > now;
-    /* HD2111SA147 (مالک کا حکم): سائن اپ والوں کا 7 دن کا ٹرائل — جن کا ختم ہو چکا وہ سب سے اوپر، پھر کم دن والے، سب سے زیادہ دن (7 تک) والے سب سے نیچے؛ ٹیسٹ اکاؤنٹ ہمیشہ اوپر */
+    /* HD2111SA148 (مالک کا حکم): سائن اپ والوں کا 7 دن کا ٹرائل — جن کا ختم ہو چکا وہ سب سے اوپر، پھر کم دن والے، سب سے زیادہ دن (7 تک) والے سب سے نیچے؛ ٹیسٹ اکاؤنٹ ہمیشہ اوپر */
     const TRIAL_MS = 7 * 86400000, tEnd = m => (m.at || 0) + TRIAL_MS, tOver = m => tEnd(m) <= now, tLeft = m => Math.max(1, Math.ceil((tEnd(m) - now) / 86400000));
     const SU = L2.filter(m => !isReg(m)).sort((a, b) => (b.test ? 1 : 0) - (a.test ? 1 : 0) || tEnd(a) - tEnd(b));
     const RG = L2.filter(isReg).sort((a, b) => a.until - b.until);
@@ -305,11 +303,11 @@ ${list.length > ASHOW ? `<button class="lcBtn" data-l="amore" style="width:100%;
   const val = id => { const n = document.getElementById(id); return n ? n.value : ''; };
 
   async function onClick(ev) {
-    const lg = ev.target.closest('a[data-lg]');   /* HD2111SA147: پیغام کا بٹن — گنتی میں جمع؛ آج ہی بھیجا ہو تو پہلے پوچھے */
+    const lg = ev.target.closest('a[data-lg]');   /* HD2111SA148: پیغام کا بٹن — گنتی میں جمع؛ آج ہی بھیجا ہو تو پہلے پوچھے */
     if (lg) { const k = lg.dataset.lg, a0 = SLOG[k] || [];
       if (a0.length && day0(a0[a0.length - 1]) === day0(Date.now()) && !confirm(L('A message was already sent to this person today. Send again?', 'اس بندے کو آج ہی پیغام بھیجا جا چکا ہے۔ کیا دوبارہ بھیجنا ہے؟'))) { ev.preventDefault(); return; }
       slAdd(k); setTimeout(draw, 700); return; }
-    if (ev.target.closest('.lcCw')) return;   /* HD2111SA147: کال / پیغام کے بٹن — فہرست کی تفصیل نہ کھلے، بس لنک چلے */
+    if (ev.target.closest('.lcCw')) return;   /* HD2111SA148: کال / پیغام کے بٹن — فہرست کی تفصیل نہ کھلے، بس لنک چلے */
     const t = ev.target.closest('[data-l]'); if (!t) return;
     const a = t.dataset.l, v = t.dataset.v, id = t.dataset.id;
     if (a === 'close') { const o = document.getElementById('licOv'); if (o) o.remove(); document.body.style.overflow = ''; return; }
@@ -408,9 +406,9 @@ ${list.length > ASHOW ? `<button class="lcBtn" data-l="amore" style="width:100%;
       return;
     }
     if (a === 'app') { if (v === APP) return; APP = v; try { localStorage.setItem('lic_app', v); } catch (e) {} NEW = []; CODES = []; MSG = ''; EDIT = null; LOOK = null; SHOWPK = false; loadLocal(); draw(); loadAll(); return; }
-    if (a === 'copy' && APP !== 'MCS' && ALOOK && ALOOK.who && ASHARE && v === ASHARE) slAdd(APP + '|' + ALOOK.who.aio);   /* HD2111SA147: AIO پیغام کاپی = بھیجا شمار */
+    if (a === 'copy' && APP !== 'MCS' && ALOOK && ALOOK.who && ASHARE && v === ASHARE) slAdd(APP + '|' + ALOOK.who.aio);   /* HD2111SA148: AIO پیغام کاپی = بھیجا شمار */
     if (a === 'copy') { let ok = false; try { await navigator.clipboard.writeText(v); ok = true; } catch (e) { try { const ta = document.createElement('textarea'); ta.value = v; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(ta); ta.select(); ok = document.execCommand('copy'); ta.remove(); } catch (e2) {} } say((ok ? '📋 ' + L('Copied', 'کاپی ہو گیا') + ': ' : '⚠️ ') + v, ok); return; }
-    if (a === 'send' && APP !== 'MCS' && ALOOK && ALOOK.who && ASHARE && v === ASHARE) { slAdd(APP + '|' + ALOOK.who.aio); setTimeout(draw, 700); }   /* HD2111SA147 */
+    if (a === 'send' && APP !== 'MCS' && ALOOK && ALOOK.who && ASHARE && v === ASHARE) { slAdd(APP + '|' + ALOOK.who.aio); setTimeout(draw, 700); }   /* HD2111SA148 */
     if (a === 'send') { try { if (navigator.share) { await navigator.share({ text: v }); } else { window.open('https://wa.me/?text=' + encodeURIComponent(v), '_blank'); } } catch (e) {} return; }
     if (a === 'copyall') { try { await navigator.clipboard.writeText(NEW.map(c => sendText(c.code)).join('\n')); say('📋 ' + NEW.length, true); } catch (e) { say('⚠️', false); } return; }
     if (a === 'pkToggle') { SHOWPK = !SHOWPK; draw(); return; }
