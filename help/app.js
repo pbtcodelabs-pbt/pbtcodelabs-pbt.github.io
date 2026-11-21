@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2111SA148';
-const UPDATE_NOTE = '📨 پیغام کی گنتی: MCS / AIO POS / AIO Direct — ہر بندے کے آگے کل کتنی بار اور آخری بار کب پیغام بھیجا؛ آج ہی بھیجا ہو تو دوبارہ بھیجنے سے پہلے پوچھے گا; سائن اپ میں 📞 کال + 💬 دعوتی پیغام';  const UPDATE_NOTE_OLD = '';
+const APP_VERSION = 'HD2111SA149';
+const UPDATE_NOTE = '📂 زپ اپ لوڈ کی کھڑکی: «OK» کی جگہ زرد فولڈر کے آئیکن کے ساتھ «Open File Manager / فائل مینیجر کھولیں»';  const UPDATE_NOTE_OLD = '';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -884,7 +884,7 @@ function zipUpAsk(appName, old) {
       <div style="margin-top:6px;border:3px solid #c0161b;background:#fff1f1;border-radius:12px;padding:12px 6px;color:#c0161b;font:900 28px/1.25 'Segoe UI',Consolas,monospace;letter-spacing:1px;word-break:break-all;direction:ltr">${esc(old || '?')}</div>
       <div style="margin-top:12px;font-size:19px;font-weight:900;color:#0f172a;line-height:1.35">Please upload the LATEST version</div>
       <div style="margin-top:2px;font-size:15px;color:#334155">براہِ کرم تازہ ترین ورژن اپ لوڈ کریں</div>
-      <div style="display:flex;gap:10px;margin-top:14px"><button type="button" id="zaNo" style="flex:1;min-height:46px;border:1px solid #cbd5e1;background:#fff;color:#334155;border-radius:10px;font-size:16px;font-weight:700">Cancel</button><button type="button" id="zaOk" style="flex:1;min-height:46px;border:0;background:#1d4ed8;color:#fff;border-radius:10px;font-size:16px;font-weight:800">OK</button></div></div>`;
+      <div style="display:flex;gap:10px;margin-top:14px"><button type="button" id="zaNo" style="flex:1;min-height:46px;border:1px solid #cbd5e1;background:#fff;color:#334155;border-radius:10px;font-size:16px;font-weight:700">Cancel</button><button type="button" id="zaOk" style="flex:1.7;min-height:52px;border:0;background:#1d4ed8;color:#fff;border-radius:10px;font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;line-height:1.25;padding:4px 8px"><svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true" style="flex:0 0 auto"><path d="M2 6.5A2.5 2.5 0 0 1 4.5 4h4.2c.6 0 1.2.3 1.6.8L11.6 6.5H19.5A2.5 2.5 0 0 1 22 9v8.5a2.5 2.5 0 0 1-2.5 2.5h-15A2.5 2.5 0 0 1 2 17.5z" fill="#facc15"/><path d="M2 10h20v7.5a2.5 2.5 0 0 1-2.5 2.5h-15A2.5 2.5 0 0 1 2 17.5z" fill="#fde047"/></svg><span style="text-align:start">Open File Manager<br><span style="font-size:14px;font-weight:700">فائل مینیجر کھولیں</span></span></button></div></div>`;
     const done = v => { ov.remove(); res(v); };
     ov.querySelector('#zaNo').onclick = () => done(false);
     ov.querySelector('#zaOk').onclick = () => done(true);
