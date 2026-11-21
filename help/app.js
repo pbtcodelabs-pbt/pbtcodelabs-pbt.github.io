@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2111SA149';
-const UPDATE_NOTE = '📂 زپ اپ لوڈ کی کھڑکی: «OK» کی جگہ زرد فولڈر کے آئیکن کے ساتھ «Open File Manager / فائل مینیجر کھولیں»';  const UPDATE_NOTE_OLD = '';
+const APP_VERSION = 'HD2211SU150';
+const UPDATE_NOTE = '🔄 تازہ زپ: 🔄 دبانے سے اپلوڈ بند نہیں ہوتی — الٹا فوراً چیک کر کے تیز ہو جاتی ہے • پینل بند / ایپ ری لوڈ ہو تو بھی اپلوڈ کی نگرانی جاری • نیا نمبر لسٹ میں فوراً اور پرانا نمبر واپس نہیں آتا • پروگریس 100٪ صرف تب جب ایپ لائیو صفحے پر نیا ورژن نظر آئے';  const UPDATE_NOTE_OLD = '';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -592,7 +592,12 @@ function zipHomeBtn() {
 }
 const ZN = a => a.en || a.ur;   /* HD1111WE079: زپ پینل میں ایپ کا اصل (انگلش) نام ہی */
 /* HD1111WE081 (مالک کا حکم): ہر ایپ کی ریپو میں ابھی موجود زپ کا نمبر — لسٹ میں «⬇️ Download latest zip · نمبر»؛ اسی پر ٹچ → ڈاؤن لوڈ */
-const LATEST = {}, PEND = {}, ZGEN = {}, ZXHR = {};   /* id → ورژن (undefined = ابھی دیکھ رہے، '' = نہیں ملا) */
+const LATEST = {}, PEND = {}, ZGEN = {}, ZXHR = {};
+/* HD2211SU150 (مالک کا حکم): اپلوڈ کی نگرانی اب پینل / 🔄 سے نہیں ٹوٹتی؛ نیا نمبر ایک بار نظر آ جائے تو پرانا (کیش والا) جواب اسے واپس نہیں مٹاتا */
+const ZFLK = 'pbthd_zfloor', ZPK = 'pbthd_zpend', ZTRK = {}, ZWAKE = {};
+const zlsGet = k => { try { return JSON.parse(localStorage.getItem(k) || '{}') || {}; } catch (e) { return {}; } };
+const zlsSet = (k, id, v) => { try { const m = zlsGet(k); if (v == null) delete m[id]; else m[id] = v; localStorage.setItem(k, JSON.stringify(m)); } catch (e) {} };
+const zWait = (id, ms) => new Promise(r => { const t = setTimeout(() => { delete ZWAKE[id]; r(); }, ms); ZWAKE[id] = () => { clearTimeout(t); delete ZWAKE[id]; r(); }; });   /* id → ورژن (undefined = ابھی دیکھ رہے، '' = نہیں ملا) */
 /* HD1211TH082 (مالک کا حکم): اپلوڈ ہوتے ہی نیا نمبر فوراً (⏳ لائیو ہو رہا ہے) — لائیو ہوتے ہی وہی نمبر پکا */
 const zipLbl = (id, c) => { const v = (c && c.ver) || LATEST[id], p = PEND[id], tail = p && p !== v ? ' → ⏳ ' + esc(p) + ' going live' : '';
   return v === undefined ? (p ? '⏳ ' + esc(p) + ' going live…' : '⏳ checking latest zip…') : v ? '⬇️ Download latest zip · ' + esc(v) + tail : '⬇️ Download latest zip' + tail; };
@@ -600,7 +605,14 @@ const zipRefresh = () => { if ($('#sheet [data-zi]')) zipSheet(); };
 let zipChanged = false;
 async function zipLatestOne(id, repo) {
   const was = LATEST[id];
-  try { LATEST[id] = await HDZips.latest(id, repo); } catch (e) { if (LATEST[id] === undefined) LATEST[id] = ''; }
+  try {
+    let v = await HDZips.latest(id, repo); const fl = zlsGet(ZFLK)[id];
+    if (fl && fl.ver && Date.now() - fl.t < 30 * 60e3) {   /* ابھی ابھی اپلوڈ ہوئی — سرور / کیش کا پرانا جواب نئے نمبر کو واپس نہ مٹائے */
+      if (v === fl.ver) zlsSet(ZFLK, id, null);
+      else if (!v || (HDZips.serial(v) >= 0 && HDZips.serial(fl.ver) >= 0 && HDZips.serial(v) < HDZips.serial(fl.ver))) v = fl.ver;
+    }
+    LATEST[id] = v;
+  } catch (e) { if (LATEST[id] === undefined) LATEST[id] = ''; }
   if (PEND[id] && (LATEST[id] === PEND[id] || (HDZips.serial(LATEST[id]) >= 0 && HDZips.serial(LATEST[id]) >= HDZips.serial(PEND[id])))) delete PEND[id];
   if (LATEST[id] !== was) zipChanged = true;
 }
@@ -718,6 +730,14 @@ async function zipGo(id) {
 /* HD1411SA086 (مالک کا حکم): ہر زپ کے آگے 🔄 Refresh — اٹکی ہوئی اپلوڈ / ڈاؤن لوڈ کو روک کر صاف کرتا ہے اور ریپو سے تازہ نمبر دوبارہ پڑھتا ہے */
 async function zipRf(id) {
   const a = id === 'HD' ? { id: 'HD', en: 'PBT Help Desk', repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io' } : appOf(id);
+  /* HD2211SU150 (مالک کا حکم): اپلوڈ چل رہی ہو تو 🔄 اسے روکتا / صاف نہیں کرتا — فوراً چیک کر کے تیز کرتا ہے */
+  if (ZXHR[id]) { toast('⬆️ Upload is still going — please wait…'); return; }
+  const pend = zlsGet(ZPK)[id];
+  if (pend && pend.ver && Date.now() - pend.t0 < 2 * 3600e3) {
+    if (ZTRK[id]) { if (ZWAKE[id]) ZWAKE[id](); toast('🔄 Checking now · ' + pend.ver); zipLatestOne(id, a.repo).then(zipRefresh); return; }
+    pend.t0 = Date.now(); zlsSet(ZPK, id, pend); PEND[id] = pend.ver; if (!ZPG[id]) ZPG[id] = { pct: 25 }; ZUP[id] = '⏳ Checking ' + pend.ver + '…';
+    zipSheet(); toast('🔄 Checking ' + pend.ver + '…'); zipTrack(id, pend.ver, ZGEN[id] || 0); return;
+  }
   ZGEN[id] = (ZGEN[id] || 0) + 1;
   try { if (ZXHR[id]) ZXHR[id].abort(); } catch (e) {} delete ZXHR[id];
   delete ZPG[id]; delete ZUP[id]; delete PEND[id]; delete ZIPC[id]; LATEST[id] = undefined;
@@ -934,37 +954,56 @@ async function zipUpGo(id, f) {
       x.setRequestHeader('Authorization', 'token ' + ghTok()); x.setRequestHeader('Content-Type', 'application/json');
       x.upload.onprogress = e => { if (live() && e.lengthComputable) zpUpd(id, Math.min(24, Math.floor(e.loaded / e.total * 24))); };
       x.onload = () => res({ status: x.status, ok: x.status >= 200 && x.status < 300 });
-      x.onerror = () => rej(new Error(E ? 'network error' : 'نیٹ ورک خرابی')); x.onabort = () => rej(new Error('cancelled'));
+      x.onerror = () => rej(new Error(E ? 'network error' : 'نیٹ ورک خرابی')); x.onabort = () => rej(new Error('cancelled')); x.timeout = 300000; x.ontimeout = () => rej(new Error('upload timed out — try again'));
       x.send(JSON.stringify(body));
     });
     delete ZXHR[id]; if (!live()) return;
     if (r.status === 401) { try { localStorage.removeItem('pbthd_ghtok'); } catch (e) {} ghWho = ''; ZUP[id] = ''; setTimeout(ghTokSheet, 300); }
     if (!r.ok) throw new Error(r.status === 401 ? (E ? 'token expired — add again' : 'اجازت نامہ ختم — دوبارہ لگائیں') : r.status === 404 ? (E ? 'no access to this repo' : 'اس ریپو کی اجازت نہیں') : 'GitHub ' + r.status);
-    let cur = 25; PEND[id] = ver; zipRefresh(); zpUpd(id, 25, '⏳ ' + ZSTG[25]);
+    PEND[id] = ver; zipRefresh(); zpUpd(id, 25, '⏳ ' + ZSTG[25]);
     if (!okName) { zpUpd(id, null, '✅ 25% — in the repo (unusual name, so progress is not tracked)'); return; }
-    const vf = (z.dir ? z.dir + '/' : '') + (z.vf || 'sw.js'), t0 = Date.now(), iso = () => '?t=' + Date.now();
+    zlsSet(ZPK, id, { ver, t0: Date.now() });
+    zipTrack(id, ver, g);   /* نگرانی الگ فنکشن میں — پینل بند ہو یا ایپ ری لوڈ ہو تو بھی جاری / بحال */
+  } catch (e) { if (!live()) return; delete ZPG[id]; delete PEND[id]; set('⚠️ ' + e.message); }
+}
+/* HD2211SU150 (مالک کا حکم): اپلوڈ کے بعد کی نگرانی — ہر 3 سیکنڈ؛ 🔄 دبانے پر فوراً۔ 100٪ صرف جب ایپ کے لائیو صفحے پر نیا ورژن نظر آئے */
+async function zipTrack(id, ver, g) {
+  if (ZTRK[id]) return; ZTRK[id] = 1;
+  const z = HDZips.ZA[id] || {}, a = id === 'HD' ? { repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io' } : appOf(id), repo = z.repo || a.repo, name = ver + '.zip', H = { Authorization: 'token ' + ghTok() };
+  const live = () => (ZGEN[id] || 0) === g, rec = zlsGet(ZPK)[id], t0 = rec && rec.ver === ver ? rec.t0 : Date.now();
+  let cur = (ZPG[id] && ZPG[id].pct) || 25, first = true;
+  try {
+    const vf = (z.dir ? z.dir + '/' : '') + (z.vf || 'sw.js'), iso = () => '?t=' + Date.now();
     const get = async u => { try { const x = await fetch(u + iso(), { cache: 'no-store' }); return x.ok ? await x.text() : null; } catch (e) { return null; } };
     const probe = async () => {
       const [lv, raw] = await Promise.all([get(HDZips.liveUrl(id, repo)), get(`https://raw.githubusercontent.com/${repo}/main/${vf}`)]);
-      if (lv && lv.includes(ver)) return 100;       // ایپ کے لائیو صفحے پر نیا ورژن نظر آ گیا
-      if (raw && raw.includes(ver)) return 75;      // گیٹ ہب main پر پہنچ گیا
-      try { const x = await fetch(`https://api.github.com/repos/${repo}/contents/${encodeURIComponent(name)}?ref=main`, { headers: H, cache: 'no-store' }); if (x.status === 404) return 50; } catch (e) {}  // زپ ریپو سے ہٹ گئی = انزپ ہو چکی
+      if (lv && lv.includes(ver)) return 100;
+      if (raw && raw.includes(ver)) return 75;
+      try { const x = await fetch(`https://api.github.com/repos/${repo}/contents/${encodeURIComponent(name)}?ref=main`, { headers: H, cache: 'no-store' }); if (x.status === 404) return 50; } catch (e) {}
       return 25;
     };
-    const advance = async to => { while (cur < to) { cur += 25; if (cur >= 100) break; zpUpd(id, cur, '⏳ ' + ZSTG[cur]); await sleep(1200); } };
+    const advance = async to => { while (cur < to) { cur += 25; if (cur >= 100) break; zpUpd(id, cur, '⏳ ' + ZSTG[cur]); await sleep(400); } };
     while (cur < 100) {
       if (!live()) return;
-      if (Date.now() - t0 > 10 * 60e3) { zpUpd(id, null, `⏳ ${cur}% — not live yet after 10 minutes. Open this panel and check again later.`); return; }
-      await sleep(5000); if (!live()) return;
+      if (Date.now() - t0 > 10 * 60e3) { zpUpd(id, null, `⏳ ${cur}% — not live yet after 10 minutes. Press 🔄 to keep checking.`); return; }
+      await zWait(id, first ? 1500 : 3000); first = false; if (!live()) return;
       let reach = cur; try { reach = Math.max(cur, await probe()); } catch (e) {}
-      if (reach >= 75 && LATEST[id] !== ver) { LATEST[id] = ver; delete PEND[id]; zipRefresh(); }   /* main پر پہنچتے ہی لسٹ میں نیا نمبر پکا */
+      if (reach >= 75) { zlsSet(ZFLK, id, { ver, t: Date.now() }); if (LATEST[id] !== ver) { LATEST[id] = ver; delete PEND[id]; zipRefresh(); } }   /* main پر پہنچتے ہی لسٹ میں نیا نمبر پکا */
       if (reach > cur) { await advance(reach); if (reach < 100) continue; cur = 100; }
       else zpUpd(id, null, '⏳ ' + ZSTG[cur] + ' ' + Math.round((Date.now() - t0) / 1000) + 's');
     }
-    LATEST[id] = ver; delete ZIPC[id];
+    LATEST[id] = ver; delete PEND[id]; delete ZIPC[id]; zlsSet(ZPK, id, null); zlsSet(ZFLK, id, { ver, t: Date.now() });
     zpUpd(id, 100, `🌐 4/4 · 100% — ${ver} is LIVE in the app. Refresh the app.`); zipRefresh();
-  } catch (e) { if (!live()) return; delete ZPG[id]; delete PEND[id]; set('⚠️ ' + e.message); }
+  } catch (e) { if (live()) zpUpd(id, null, '⚠️ ' + (e && e.message || e)); }
+  finally { delete ZTRK[id]; }
 }
+function zipResume() {
+  if (!window.HDZips || !ghTok()) return;
+  const m = zlsGet(ZPK);
+  Object.keys(m).forEach(id => { const p = m[id]; if (!p || !p.ver || ZTRK[id] || ZXHR[id]) return; if (Date.now() - p.t0 > 15 * 60e3) return;
+    PEND[id] = p.ver; if (!ZPG[id]) ZPG[id] = { pct: 25 }; if (!ZUP[id]) ZUP[id] = '⏳ ' + ZSTG[25]; zipTrack(id, p.ver, ZGEN[id] || 0); });
+}
+setTimeout(() => { try { zipResume(); } catch (e) {} }, 3000);
 function partyHomeBtn() {
   const n = partyList().length, E = LANG === 'en';
   return `<button class="partyBtn" data-act="parties"><span class="i">👥</span><span class="t"><b>${E ? 'Parties — every customer’s issues in one place' : 'پارٹیاں — ہر گاہک کے سب مسائل ایک جگہ'}</b><small>${E ? 'Name, mobile, call / WhatsApp, solved / pending' : 'نام، موبائل، کال / واٹس ایپ — حل شدہ اور باقی'}</small></span><span class="num c">${n}</span></button>`;
@@ -2097,7 +2136,7 @@ document.addEventListener('click', async e => {
     case 'mine': go('#/mine'); break;
     case 'ownMine': go('#/mine/' + id); break;
     case 'parties': go('#/party'); break;
-    case 'zips': zipSheet(); zipLatestAll(); zipPoll(); break;
+    case 'zips': try { zipResume(); } catch (e) {} zipSheet(); zipLatestAll(); zipPoll(); break;
     case 'devhub': location.href = 'devhub.html'; break;   // 🔐 HD1611MO102: سب ڈویلپر پینل ایک جگہ
     case 'zAZ': zipSort(1); break;
     case 'zZA': zipSort(-1); break;
