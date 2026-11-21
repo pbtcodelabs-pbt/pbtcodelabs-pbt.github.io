@@ -48,7 +48,7 @@
 #aiOv .aCode{font-family:monospace;font-size:17px;font-weight:900;letter-spacing:1px;direction:ltr;unicode-bidi:plaintext}
 #aiOv .aItem{border:1px solid #e5e9f0;border-radius:12px;padding:10px;margin-top:8px}
 #aiOv .aSub{font-size:12px;color:#64748b;margin-top:3px;line-height:1.7}
-#aiOv .aStf{background:#fee2e2;border:1.5px solid #fca5a5;border-radius:999px;padding:8px 14px;margin-top:6px;color:#991b1b;font-size:13px;font-weight:800;line-height:1.7}#aiOv .aStf .aCode{font-size:13px;color:#991b1b}#aiOv .aTag{display:inline-block;font-size:11px;font-weight:800;border-radius:20px;padding:2px 9px;white-space:nowrap}
+#aiOv .aBtn{padding:6px 10px;font-size:12px;border-radius:8px}#aiOv .aCap{display:flex;gap:6px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-radius:14px;padding:4px 10px;margin-top:4px;font-size:12px;font-weight:700;line-height:1.5}#aiOv .aCap.u{background:#dcfce7;color:#166534}#aiOv .aCap.t{background:#e0f2fe;color:#075985}#aiOv .aCap.d{background:#f1f5f9;color:#475569}#aiOv .aCap.r{background:#fee2e2;color:#991b1b}#aiOv .aStf{background:#fee2e2;border:1.5px solid #fca5a5;border-radius:999px;padding:3px 10px;margin-top:4px;color:#991b1b;font-size:12px;font-weight:800;line-height:1.7}#aiOv .aStf .aCode{font-size:13px;color:#991b1b}#aiOv .aTag{display:inline-block;font-size:11px;font-weight:800;border-radius:20px;padding:2px 9px;white-space:nowrap}
 #aiOv .aTag.u{background:#dcfce7;color:#166534}#aiOv .aTag.d{background:#fef3c7;color:#92400e}#aiOv .aTag.r{background:#fee2e2;color:#991b1b}#aiOv .aTag.t{background:#e0f2fe;color:#075985}
 #aiOv .aMsg{margin:12px;padding:10px 12px;border-radius:10px;font-size:13px;font-weight:700}
 #aiOv .aMsg.ok{background:#dcfce7;color:#166534}#aiOv .aMsg.bad{background:#fee2e2;color:#991b1b}
@@ -195,7 +195,11 @@
     const others = r.others || [];
     const ds = await Promise.all(others.slice(0, 6).map(o => call({ op: 'aiolook', aio: o.aio }).then(x => x.who.dev).catch(() => '')));
     others.forEach((o, i) => { o.dev = ds[i] || ''; });
-    SEL = { who: r.who, ent: r.ent, others, staff: r.staff || [] };
+    SEL = { who: r.who, ent: r.ent, others, staff: r.staff || [], devmap: {} };
+    try {   /* HD2111SA144: پیکج پر جڑے فونز کے نام / موبائل / ID */
+      const devs = []; related({ aio: r.who.aio, gmail: r.who.gmail, mobile: r.who.mobile }, [r.who.dev]).forEach(x => (Array.isArray(x.claims) ? x.claims : []).forEach(c => { if (c && c.dev && devs.indexOf(c.dev) < 0) devs.push(c.dev); }));
+      if (devs.length) { const r2 = await call({ op: 'aiolook', aio, devs }); SEL.devmap = r2.devmap || {}; }
+    } catch (e) {}
   }
   async function pick(aio, keep) {
     BUSY = true; SHARE = ''; if (!keep) { RES = null; APK = ''; SHOWPK = false; } draw();
@@ -277,6 +281,38 @@
     return '<div class="aSub" style="color:#991b1b;font-weight:800;margin-top:8px">👥 اس مالک کے ساتھ جڑے ملازم: ' + list.length + '</div>' + list.map((x, i) =>
       '<div class="aStf">👷 ملازم ' + (NUMW[i] || (i + 1)) + ': ' + esc(x.name || '—') + '<br><span style="direction:ltr;unicode-bidi:plaintext">📱 ' + esc(aPh(x.mobile) || '—') + '</span> · 🆔 <span class="aCode">' + esc(x.aio) + '</span></div>').join('');
   }
+  /* HD2111SA144 (مالک کا حکم): پیکج کا اصل نام + قیمت + دن — ایک چھوٹی کیپسول میں؛ ملازم کی سرخ کیپسول: نام + موبائل + AIO ID */
+  function pkInfo(e) {
+    const act = actAt(e), days = e.life ? 0 : Math.round(((e.exp || 0) - act) / 864e5), h = (e.hist || [])[(e.hist || []).length - 1] || {};
+    let p = PK.find(x => e.pkgId && x.id === e.pkgId);
+    if (!p) p = PK.find(x => !!x.life === !!e.life && (x.devices || 1) === (e.devices || 1) && (e.life || Math.abs((x.days || 0) - days) <= 3));
+    return { name: e.pkgName || h.pkg || (p && p.name) || '', price: h.price || (p && PRICE[p.id]) || '' };
+  }
+  function staffLines(w, e) {
+    const dm = SEL.devmap || {}, seen = {}, out = [], ce = e ? (Array.isArray(e.claims) ? e : ENTS.find(x => x.id === e.id) || {}) : {};
+    (SEL.staff || []).forEach(x => { seen[x.aio] = 1; out.push(x); });
+    (Array.isArray(ce.claims) ? ce.claims : []).forEach(c => {
+      if (!c || c.dev === w.dev) return; const m = dm[c.dev];
+      if (!m) { out.push({ aio: '', at: c.at }); return; }
+      if (m.aio === w.aio || seen[m.aio] || (m10(m.mobile) && m10(m.mobile) === m10(w.mobile))) return;
+      seen[m.aio] = 1; out.push(m);
+    });
+    return out.map(x => '<div class="aStf">👷 ' + (x.aio ? esc(x.name || '—') + ' · <span style="direction:ltr;unicode-bidi:plaintext">' + esc(aPh(x.mobile) || '—') + '</span> · ' + esc(x.aio) : 'دوسرا فون (' + dmy(x.at) + ') — نام نہیں ملا') + '</div>').join('');
+  }
+  function capsHTML(w, own) {
+    const a = { aio: w.aio, made: w.made, mobile: w.mobile, gmail: w.gmail, name: w.name };
+    let s = own ? stOne(own) : null; if (!s) s = idState(a, w.dev);
+    const bt = (act, lbl, cl) => '<button class="aBtn ' + cl + '" data-a="' + act + '" data-v="' + esc(w.aio) + '" style="padding:2px 8px;font-size:11px">' + lbl + '</button>';
+    let cls = 'u', txt = '', btn = '', e = null;
+    if (s.k === 'life' || s.k === 'act' || s.k === 'exp' || s.k === 'rev') {
+      e = s.ent; const pi = pkInfo(e), at = actAt(e);
+      cls = s.k === 'rev' ? 'r' : s.k === 'exp' ? 'd' : 'u';
+      txt = '📦 <b>' + esc(pi.name || '—') + '</b>' + (pi.price ? ' · 💰 Rs ' + esc(pi.price) : '') + ' · ' + (s.k === 'life' ? '♾️ لائف ٹائم' : s.k === 'act' ? '✅ ' + s.left + ' دن باقی' : s.k === 'rev' ? '⛔ معطل' : '⌛ ختم') + (at ? ' · 📅 ' + dmy(at) : '') + (e.life ? '' : ' → ' + dmy(e.exp));
+    } else if (s.k === 'trial') { cls = 't'; txt = '🎁 ٹرائل ' + s.left + ' دن باقی · ختم ' + dmy(s.exp); btn = bt('trialmsg', '💬', 'grn'); }
+    else if (s.extra) { cls = 'd'; txt = '🗂️ فالتو ID'; btn = bt('adel', '🗑️', 'red'); }
+    else { cls = 'r'; txt = '🚫 ٹرائل ختم ' + dmy(s.exp); btn = bt('trialmsg', '💬', 'grn') + bt('adel', '🗑️', 'red'); }
+    return '<div class="aCap ' + cls + '"><span>' + txt + '</span>' + btn + '</div>' + staffLines(w, e);
+  }
   function detailHTML() {
     if (!SEL) return '';
     const w = SEL.who, e = SEL.ent, others = SEL.others || [];
@@ -293,17 +329,16 @@
       const st = idState({ aio: o.aio, gmail: w.gmail, mobile: o.mobile, made: o.made }, o.dev), ch = chip(st);
       return '<div class="aRow" style="margin-top:7px;flex-wrap:nowrap"><b data-a="pick" data-v="' + esc(o.aio) + '" style="color:#0e7490;text-decoration:underline;cursor:pointer" class="aCode">' + esc(o.aio) + '</b><span class="aSub" style="flex:1;margin:0">' + dmy(o.made) + (o.dev ? (o.dev === w.dev ? ' · اسی فون' : ' · دوسرا فون') : '') + (o.replacedBy ? ' · 🔁' + esc(o.replacedBy) : '') + '</span><span class="aTag ' + ch[0] + '">' + esc(ch[1]) + '</span>' + (live(st) ? '' : '<button class="aBtn red" data-a="adel" data-v="' + esc(o.aio) + '" style="padding:5px 9px">🗑️ ہٹائیں</button>') + '</div>';
     }).join('') + '</div>' : '';
-    const hist = e && (e.hist || []).length ? '<div class="aSub" style="margin-top:6px">' + e.hist.slice().reverse().slice(0, 6).map(h => '• ' + dmy(h.at) + ' — ' + esc(h.pkg) + (h.price ? ' · Rs ' + esc(h.price) : '') + (h.life ? ' · ♾️' : h.exp ? ' → ' + dmy(h.exp) : '')).join('<br>') + '</div>' : '';
-    return '<div class="aBox" style="border:2px solid #0e7490">' + resHTML() + bannerHTML(w, own, rel, devMap) +
-      '<div style="font:900 19px/1.3 inherit">👤 ' + esc(w.name || '—') + '</div><div class="aCode" style="font-size:18px;color:#0e7490">' + esc(w.aio) + '</div>' +
-      '<div class="aSub" style="font-size:14px;color:#0f172a;direction:ltr;text-align:right">📱 ' + esc(aPh(w.mobile)) + (w.gmail ? ' · ✉️ ' + esc(w.gmail) : '') + '</div>' +
-      stfHTML(SEL.staff || []) +
-      '<div class="aSub" style="color:#0f172a;margin-top:6px"><b>🧾 ID کیسے بنی؟</b><br>' + howMade(w, others) + '</div>' + hist + othHTML +
-      '<h3 style="margin:14px 0 4px">📦 سرور میں اس بندے کے پیکج</h3><div class="aSub" style="margin:0 0 4px">جی میل / موبائل / کوڈ / AIO ID سے ملے سب پیکج اور وہ کن IDs کے فونز پر چل رہے ہیں</div>' + relHTML +
-      '<h3 style="margin:14px 0 6px">➕ اس ID میں دن جوڑیں</h3>' +
+    const hist = e && (e.hist || []).length ? '<div class="aSub" style="margin-top:6px">' + e.hist.slice().reverse().slice(0, 3).map(h => '• ' + dmy(h.at) + ' — ' + esc(h.pkg) + (h.price ? ' · Rs ' + esc(h.price) : '') + (h.life ? ' · ♾️' : h.exp ? ' → ' + dmy(h.exp) : '')).join('<br>') + '</div>' : '';
+    return '<div class="aBox" style="border:2px solid #0e7490">' + resHTML() +
+      '<div style="font:900 15px/1.4 inherit">👤 ' + esc(w.name || '—') + ' <span class="aCode" style="font-size:14px;color:#0e7490">' + esc(w.aio) + '</span></div>' +
+      '<div class="aSub" style="font-size:12px;color:#0f172a;direction:ltr;text-align:right">📱 ' + esc(aPh(w.mobile)) + (w.gmail ? ' · ✉️ ' + esc(w.gmail) : '') + '</div>' +
+      capsHTML(w, own) +
+      '<div class="aSub">🗓️ بنی ' + dmy(w.made) + ' ' + hm(w.made) + (w.replacedBy ? ' · 🔁 ' + esc(w.replacedBy) : '') + '</div>' + hist + othHTML +
+      '<h3 style="margin:8px 0 4px">➕ اس ID میں دن جوڑیں</h3>' +
       '<div class="aRow"><button class="aBtn grn" data-a="aadd" data-v="1" ' + (BUSY ? 'disabled' : '') + '>+1 دن</button><button class="aBtn grn" data-a="aadd" data-v="30" ' + (BUSY ? 'disabled' : '') + '>+1 مہینہ</button><button class="aBtn grn" data-a="aadd" data-v="365" ' + (BUSY ? 'disabled' : '') + '>+1 سال</button><button class="aBtn" data-a="aadd" data-v="life" ' + (BUSY ? 'disabled' : '') + '>♾️ لائف ٹائم</button></div>' +
       '<div class="aRow" style="margin-top:6px;flex-wrap:nowrap"><input type="text" id="aAddN" inputmode="numeric" maxlength="4" placeholder="دن" style="width:90px;flex:0 0 90px;text-align:center;font-weight:800"><button class="aBtn pri" data-a="aadd" data-v="n" ' + (BUSY ? 'disabled' : '') + '>➕ اتنے دن جوڑیں</button></div>' +
-      '<h3 style="margin:14px 0 6px">📦 پیکج</h3>' +
+      '<h3 style="margin:8px 0 4px">📦 پیکج</h3>' +
       '<button class="aBtn" data-a="pktoggle" style="width:100%">' + (SHOWPK ? '▲ پیکج چھپائیں' : '▼ پیکج دیکھیں اور چنیں') + '</button>' +
       (sel ? '<div class="aMsg ok" style="margin:10px 0 0">✔️ چنا ہوا: <b>' + esc(sel.name) + '</b><br>' + (sel.life ? '♾️ لائف ٹائم' : sel.days + ' دن') + ' · 📱 ' + (sel.devices || 1) + ' فون<br>💰 ' + (PRICE[sel.id] ? 'Rs ' + esc(PRICE[sel.id]) : 'قیمت نہیں لکھی') + '</div>' : '') +
       (SHOWPK ? (act.map(p => '<div class="aPk"><label class="' + (APK === p.id ? 'on' : '') + '"><input type="checkbox" data-a="apk" data-v="' + esc(p.id) + '" ' + (APK === p.id ? 'checked' : '') + '><span style="flex:1;min-width:0"><b>' + esc(p.name) + '</b><span class="aSub" style="display:block">' + (p.life ? 'لائف ٹائم' : p.days + ' دن') + ' · ' + p.devices + ' فون</span></span></label><input type="text" inputmode="numeric" data-pr="' + esc(p.id) + '" value="' + esc(PRICE[p.id] || '') + '" placeholder="قیمت"></div>').join('') || '<div class="aSub">کوئی پیکج نہیں — نیچے «پیکج بنانا / بدلنا» سے بنائیں</div>') : '') +
