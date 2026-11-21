@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2211SU150';
-const UPDATE_NOTE = '🔄 تازہ زپ: 🔄 دبانے سے اپلوڈ بند نہیں ہوتی — الٹا فوراً چیک کر کے تیز ہو جاتی ہے • پینل بند / ایپ ری لوڈ ہو تو بھی اپلوڈ کی نگرانی جاری • نیا نمبر لسٹ میں فوراً اور پرانا نمبر واپس نہیں آتا • پروگریس 100٪ صرف تب جب ایپ لائیو صفحے پر نیا ورژن نظر آئے';  const UPDATE_NOTE_OLD = '';
+const APP_VERSION = 'HD2211SU151';
+const UPDATE_NOTE = '⚡ تازہ زپ: اپلوڈ کے بعد نیا ورژن اب گیٹ ہب سے براہِ راست پڑھا جاتا ہے (درمیانی کیش کی 5 منٹ کی دیر ختم) • نمبر پڑھنے کی درخواست 12 سیکنڈ میں ختم، اٹکتی نہیں • 🔄 فوراً تازہ نمبر پڑھتا ہے';  const UPDATE_NOTE_OLD = '';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -603,10 +603,10 @@ const zipLbl = (id, c) => { const v = (c && c.ver) || LATEST[id], p = PEND[id], 
   return v === undefined ? (p ? '⏳ ' + esc(p) + ' going live…' : '⏳ checking latest zip…') : v ? '⬇️ Download latest zip · ' + esc(v) + tail : '⬇️ Download latest zip' + tail; };
 const zipRefresh = () => { if ($('#sheet [data-zi]')) zipSheet(); };
 let zipChanged = false;
-async function zipLatestOne(id, repo) {
-  const was = LATEST[id];
+async function zipLatestOne(id, repo, force) {
+  const was = LATEST[id], fresh = !!(force || PEND[id] || ZTRK[id] || zlsGet(ZPK)[id] || zlsGet(ZFLK)[id]);   /* HD2211SU151: اپلوڈ کے آس پاس / 🔄 پر کیش کے بغیر */
   try {
-    let v = await HDZips.latest(id, repo); const fl = zlsGet(ZFLK)[id];
+    let v = await HDZips.latest(id, repo, fresh); const fl = zlsGet(ZFLK)[id];
     if (fl && fl.ver && Date.now() - fl.t < 30 * 60e3) {   /* ابھی ابھی اپلوڈ ہوئی — سرور / کیش کا پرانا جواب نئے نمبر کو واپس نہ مٹائے */
       if (v === fl.ver) zlsSet(ZFLK, id, null);
       else if (!v || (HDZips.serial(v) >= 0 && HDZips.serial(fl.ver) >= 0 && HDZips.serial(v) < HDZips.serial(fl.ver))) v = fl.ver;
@@ -721,7 +721,7 @@ function zipAsk(a, what, ver) {
 }
 async function zipGo(id) {
   const a = id === 'HD' ? { id: 'HD', ur: 'ہیلپ ڈیسک', en: 'PBT Help Desk', repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io' } : appOf(id);
-  try { await Promise.race([zipLatestOne(id, a.repo), sleep(2500)]); } catch (e) {}   /* پوچھنے سے پہلے تازہ ترین نمبر */
+  try { await Promise.race([zipLatestOne(id, a.repo, true), sleep(2500)]); } catch (e) {}   /* پوچھنے سے پہلے تازہ ترین نمبر */
   if (!(await zipAsk(a, 'dl', LATEST[id] || ''))) return;
   const g = ZGEN[id] || 0; ZIPC[id] = { busy: '…' }; ZPG[id] = { pct: 0 }; zipSheet();
   try { const r = await HDZips.build(id, a.repo, (st, p) => { if ((ZGEN[id] || 0) !== g) return; ZIPC[id] = { busy: st }; if (p != null) ZPG[id] = { pct: p }; zipSheet(); }); if ((ZGEN[id] || 0) !== g) return; ZIPC[id] = r; if (r.ver) LATEST[id] = r.ver; ZPG[id] = { pct: 100 }; zipSheet(); zipDl(id, true); }
@@ -734,7 +734,7 @@ async function zipRf(id) {
   if (ZXHR[id]) { toast('⬆️ Upload is still going — please wait…'); return; }
   const pend = zlsGet(ZPK)[id];
   if (pend && pend.ver && Date.now() - pend.t0 < 2 * 3600e3) {
-    if (ZTRK[id]) { if (ZWAKE[id]) ZWAKE[id](); toast('🔄 Checking now · ' + pend.ver); zipLatestOne(id, a.repo).then(zipRefresh); return; }
+    if (ZTRK[id]) { if (ZWAKE[id]) ZWAKE[id](); toast('🔄 Checking now · ' + pend.ver); zipLatestOne(id, a.repo, true).then(zipRefresh); return; }
     pend.t0 = Date.now(); zlsSet(ZPK, id, pend); PEND[id] = pend.ver; if (!ZPG[id]) ZPG[id] = { pct: 25 }; ZUP[id] = '⏳ Checking ' + pend.ver + '…';
     zipSheet(); toast('🔄 Checking ' + pend.ver + '…'); zipTrack(id, pend.ver, ZGEN[id] || 0); return;
   }
@@ -742,7 +742,7 @@ async function zipRf(id) {
   try { if (ZXHR[id]) ZXHR[id].abort(); } catch (e) {} delete ZXHR[id];
   delete ZPG[id]; delete ZUP[id]; delete PEND[id]; delete ZIPC[id]; LATEST[id] = undefined;
   zipSheet(); toast('🔄 Refreshing ' + ZN(a) + '…');
-  await Promise.race([zipLatestOne(id, a.repo), sleep(6000)]);
+  await Promise.race([zipLatestOne(id, a.repo, true), sleep(6000)]);
   if (LATEST[id] === undefined) LATEST[id] = '';
   zipSheet(); toast('✅ ' + ZN(a) + (LATEST[id] ? ' · ' + LATEST[id] : ''));
 }
@@ -815,7 +815,7 @@ async function srvPackFor(id, fromRow) {
   const a = id === 'HD' ? { id: 'HD', ur: 'ہیلپ ڈیسک', en: 'PBT Help Desk', repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io' } : (appOf(id) || { id, en: id, repo: '' });
   const sv = Object.assign({}, SRV, (HDZips.ZA[id] && HDZips.ZA[id].srv) || {}), nm = ZN(a);
   const say = m => { if (fromRow) zpUpd(id, null, m); else srvSet(m); };
-  if (fromRow) { try { await Promise.race([zipLatestOne(id, a.repo), sleep(2500)]); } catch (e) {} if (!(await zipAsk(a, 'pack', LATEST[id] || ''))) return; ZPG[id] = { pct: 0 }; }
+  if (fromRow) { try { await Promise.race([zipLatestOne(id, a.repo, true), sleep(2500)]); } catch (e) {} if (!(await zipAsk(a, 'pack', LATEST[id] || ''))) return; ZPG[id] = { pct: 0 }; }
   say('⏳ Reading ' + nm + ' + server from GitHub…');
   try {
     const [m, w] = await Promise.all([HDZips.build(id, a.repo, (st, p) => { say('⏳ ' + nm + ' ' + st); if (fromRow && p != null) zpUpd(id, p); }), fetch(`https://raw.githubusercontent.com/${sv.repo}/main/${sv.path}?t=${Date.now()}`, { cache: 'no-store' }).then(r => { if (!r.ok) throw new Error('worker.js ' + r.status + ' (' + sv.repo + '/' + sv.path + ')'); return r.arrayBuffer(); })]);
@@ -914,7 +914,7 @@ function zipUpAsk(appName, old) {
 async function zipUp(id) {
   const a = id === 'HD' ? { id: 'HD', en: 'PBT Help Desk', repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io' } : appOf(id);
   let old = LATEST[id];
-  toast('⏳ Checking the existing zip…'); await Promise.race([zipLatestOne(id, a.repo), sleep(3500)]); old = LATEST[id] || '';
+  toast('⏳ Checking the existing zip…'); await Promise.race([zipLatestOne(id, a.repo, true), sleep(3500)]); old = LATEST[id] || '';
   const pre = HDZips.prefix(id);
   if (!(await zipUpAsk(ZN(a), old))) return;   /* HD1511SU098: لمبی تقریر کی جگہ چھوٹا ڈبہ — لائیو زپ کا نمبر بڑا سرخ */
   if (!ghTok()) { ghTokSheet(); return; }
@@ -976,7 +976,7 @@ async function zipTrack(id, ver, g) {
     const vf = (z.dir ? z.dir + '/' : '') + (z.vf || 'sw.js'), iso = () => '?t=' + Date.now();
     const get = async u => { try { const x = await fetch(u + iso(), { cache: 'no-store' }); return x.ok ? await x.text() : null; } catch (e) { return null; } };
     const probe = async () => {
-      const [lv, raw] = await Promise.all([get(HDZips.liveUrl(id, repo)), get(`https://raw.githubusercontent.com/${repo}/main/${vf}`)]);
+      const [lv, raw] = await Promise.all([get(HDZips.liveUrl(id, repo)), HDZips.freshText(repo, vf)]);   /* HD2211SU151: main کی فائل کیش کے بغیر */
       if (lv && lv.includes(ver)) return 100;
       if (raw && raw.includes(ver)) return 75;
       try { const x = await fetch(`https://api.github.com/repos/${repo}/contents/${encodeURIComponent(name)}?ref=main`, { headers: H, cache: 'no-store' }); if (x.status === 404) return 50; } catch (e) {}
@@ -986,7 +986,7 @@ async function zipTrack(id, ver, g) {
     while (cur < 100) {
       if (!live()) return;
       if (Date.now() - t0 > 10 * 60e3) { zpUpd(id, null, `⏳ ${cur}% — not live yet after 10 minutes. Press 🔄 to keep checking.`); return; }
-      await zWait(id, first ? 1500 : 3000); first = false; if (!live()) return;
+      await zWait(id, first ? 1500 : (Date.now() - t0 < 60e3 ? 3000 : 5000)); first = false; if (!live()) return;
       let reach = cur; try { reach = Math.max(cur, await probe()); } catch (e) {}
       if (reach >= 75) { zlsSet(ZFLK, id, { ver, t: Date.now() }); if (LATEST[id] !== ver) { LATEST[id] = ver; delete PEND[id]; zipRefresh(); } }   /* main پر پہنچتے ہی لسٹ میں نیا نمبر پکا */
       if (reach > cur) { await advance(reach); if (reach < 100) continue; cur = 100; }

@@ -36,24 +36,36 @@
   const bust = () => 't=' + Date.now();
   async function listFiles(repo, dir) {
     try {
-      const r = await fetch(`https://api.github.com/repos/${repo}/contents${dir ? "/" + dir : ""}?ref=main`, { cache: 'no-store' });
+      const t = tok(), r = await fetch(`https://api.github.com/repos/${repo}/contents${dir ? "/" + dir : ""}?ref=main`, { cache: 'no-store', signal: tmo(12000), headers: t ? { Authorization: 'token ' + t } : {} });
       if (!r.ok) throw 0; const j = await r.json();
       return j.filter(x => x.type === 'file' && CODE.test(x.name) && !SKIP.test(x.name)).map(x => x.name);
     } catch (e) { return null; }
   }
+  const tok = () => { try { return localStorage.getItem('pbthd_ghtok') || ''; } catch (e) { return ''; } };
+  const tmo = ms => { const c = new AbortController(); setTimeout(() => c.abort(), ms); return c.signal; };   /* HD2211SU151: اٹکی درخواست ہمیشہ «checking…» نہ رکھے */
   async function getFile(repo, path) {
-    const r = await fetch(`https://raw.githubusercontent.com/${repo}/main/${path}?${bust()}`, { cache: 'no-store' });
+    const r = await fetch(`https://raw.githubusercontent.com/${repo}/main/${path}?${bust()}`, { cache: 'no-store', signal: tmo(12000) });
     if (!r.ok) throw new Error(path + ' ' + r.status); return new Uint8Array(await r.arrayBuffer());
   }
+  /* HD2211SU150+1 (مالک کا حکم): raw.githubusercontent کا درمیانی کیش (CDN، ~5 منٹ) نیا ورژن دیر سے دکھاتا ہے — اپلوڈ کے فوراً بعد
+     گیٹ ہب API سے براہِ راست (کیش کے بغیر)؛ اجازت نامہ (token) نہ ہو یا API ناکام ہو تو پرانا raw طریقہ */
+  async function getFresh(repo, path) {
+    const t = tok(); if (!t) return getFile(repo, path);
+    try {
+      const r = await fetch(`https://api.github.com/repos/${repo}/contents/${encodeURI(path)}?ref=main&${bust()}`, { cache: 'no-store', signal: tmo(12000), headers: { Authorization: 'token ' + t, Accept: 'application/vnd.github.raw+json' } });
+      if (!r.ok) throw 0; return new Uint8Array(await r.arrayBuffer());
+    } catch (e) { return getFile(repo, path); }
+  }
+  const freshText = async (repo, path) => { try { return new TextDecoder().decode(await getFresh(repo, path)); } catch (e) { return null; } };
   // ورژن: پہلے «VERSION / CACHE… / APP_VERSION = '…'» والی لائن، ورنہ فائل میں سب سے بڑا سیریل (سیریل ہمیشہ آگے)
   const pickV = (z, t) => { const a = t.match(RX('(?:APP_VERSION|CACHE_VERSION|CACHE_NAME|VERSION|CACHE)\\s*=\\s*[\'"`][^\'"`]*?(' + z.v + ')')); if (a) return a[1];
     const all = t.match(new RegExp(z.v, 'g')) || []; let best = '', bs = -1;
     all.forEach(m => { const n = +((m.match(/(\d{3,4})(?:AM|PM)?$/) || [0, -1])[1]); if (n > bs) { bs = n; best = m; } }); return best; };
   /* HD1111WE081 (مالک کا حکم): ریپو میں ابھی موجود زپ کا ورژن (صرف ایک چھوٹی فائل پڑھ کر) — لسٹ میں «Download latest zip + نمبر» اور اپلوڈ کی تنبیہ کے لیے */
-  async function latest(id, repo) {
+  async function latest(id, repo, fresh) {
     const z = ZA[id]; if (!z) return '';
     repo = z.repo || repo;
-    return pickV(z, new TextDecoder().decode(await getFile(repo, (z.dir ? z.dir + '/' : '') + (z.vf || 'sw.js'))));
+    return pickV(z, new TextDecoder().decode(await (fresh ? getFresh : getFile)(repo, (z.dir ? z.dir + '/' : '') + (z.vf || 'sw.js'))));
   }
   // ہر ایپ کا شروع کا پری فکس (MCS، HD، AIO…) — اپلوڈ میں صرف اسی پری فکس والی زپ قبول
   const prefix = id => { const m = ZA[id] && ZA[id].v.match(/^[A-Za-z]+/); return m ? m[0] : ''; };
@@ -83,5 +95,5 @@
     if (!ver) { for (const f of out) { ver = pick(dec.decode(f.data)); if (ver) break; } }
     return { ver: ver || (id + '-' + new Date().toISOString().slice(0, 10)), files: out, blob: zip(out), repo, dir: z.dir || '' };
   }
-  window.HDZips = { ZA, zip, build, latest, prefix, whose, serial, liveUrl, has: id => !!ZA[id] };
+  window.HDZips = { ZA, zip, build, latest, freshText, prefix, whose, serial, liveUrl, has: id => !!ZA[id] };
 })();
