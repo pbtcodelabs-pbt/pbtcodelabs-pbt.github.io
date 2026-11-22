@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2211SU165';
-const UPDATE_NOTE = '📨 ٹرائل والے کو پیغام بھیجتے ہی تاریخ لکھی جاتی ہے «پیغام بھیجا جا چکا: تاریخ» (AIO، Direct، سبزی منڈی)؛ ID کی تفصیل میں پیکج، رقم، لگنے اور ختم کی تاریخ صاف ڈبے میں';
+const APP_VERSION = 'HD2211SU166';
+const UPDATE_NOTE = '🟰 چاروں ایپس کا پیکج پینل برابر — نوری نستعلیق، ہر ٹرائل والے پر 📞 کال + 💬 پیغام + «پیغام کب گیا»، My City Shines میں بھی اوپر خلاصہ اور پیکج کا ڈبہ';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
