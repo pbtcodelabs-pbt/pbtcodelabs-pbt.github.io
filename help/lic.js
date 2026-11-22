@@ -64,7 +64,9 @@
   function css() {
     if (document.getElementById('licCss')) return;
     const s = document.createElement('style'); s.id = 'licCss';
-    s.textContent = `#licOv{position:fixed;inset:0;z-index:9000;background:var(--bg,#f4f6fb);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 0 90px}
+    s.textContent = `html:not([lang=en]) #licOv,html:not([lang=en]) #licOv :is(button,input,textarea,select,b,span,div,a,label,small,h3){font-family:Noori,'Jameel Noori Nastaleeq','Noto Nastaliq Urdu',serif}
+#licOv .lcCode{font-family:monospace !important}
+#licOv{position:fixed;inset:0;z-index:9000;background:var(--bg,#f4f6fb);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 0 90px}
 #licOv .lcTop{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:8px;padding:12px 14px;background:#1e293b;color:#fff;font-weight:800;font-size:16px}
 #licOv .lcTop b{flex:1}#licOv .lcX{background:#fff2;color:#fff;border:0;border-radius:10px;padding:8px 12px;font-size:16px}
 #licOv .lcBox{background:#fff;border-radius:14px;margin:12px;padding:14px;box-shadow:0 1px 6px #0001}
@@ -221,6 +223,8 @@ ${list.map(x => { const s = status(x); return `<div class="lcItem"><div class="l
 <div class="lcRow" style="flex-wrap:nowrap;align-items:flex-start">${x.img ? `<img src="${esc(x.img)}" alt="" style="width:86px;height:86px;border-radius:12px;object-fit:cover;border:2px solid #16a34a;flex:0 0 86px">` : `<div style="width:86px;height:86px;border-radius:12px;background:#e2e8f0;display:flex;align-items:center;justify-content:center;font-size:36px;flex:0 0 86px">👤</div>`}
 <div style="flex:1;min-width:0"><div style="font:900 19px/1.3 inherit">${esc(x.name || g.owner || '—')}</div><div class="lcCode" style="font-size:18px;color:#166534">${x.test ? '🧪 ' : ''}${esc(x.sid)}${x.test ? ' <span class="lcTag d">' + L('Test mode', 'ٹیسٹ موڈ') + '</span>' : ''}</div>
 <span class="lcTag ${live ? 'u' : 'd'}" style="margin-top:4px">${live ? '✅ ' + L('Active till ', 'ایکٹیو: ') + dmy(till) : '⏳ ' + L('Not active yet', 'ابھی ایکٹیو نہیں')}</span>${x.test ? '' : slTag('MCS|' + x.sid, true, true)}</div></div>
+${live || till ? (() => { const st0 = till - 365 * 864e5, left = Math.max(0, Math.ceil((till - now) / 864e5)), r2 = (k, v) => `<div style="display:flex;justify-content:space-between;gap:8px;padding:3px 0;border-bottom:1px dashed #cbd5e1"><span style="color:#475569">${k}</span><b>${v}</b></div>`;
+  return `<div style="background:#f8fafc;border:1.5px solid #16a34a;border-radius:12px;padding:8px 10px;margin-top:8px;font-size:13.5px;line-height:1.7">${r2('📦 ' + L('Package', 'پیکج'), L('1 year registration', '1 سال رجسٹریشن'))}${r2('📅 ' + L('Started', 'لگا'), dmy(st0))}${r2('⏳ ' + L('Ends', 'ختم'), dmy(till) + (live ? ' · ' + L('left ', 'باقی ') + left + L(' days', ' دن') : ''))}${live ? r2('🕒 ' + L('Passed', 'گزرے'), Math.max(0, Math.floor((now - st0) / 864e5)) + L(' days', ' دن')) : ''}</div>`; })() : ''}   <!-- HD2211SU166: باقی ایپس جیسا پیکج کا ڈبہ -->
 ${row('📱', L('Mobile', 'موبائل'), ph(x.mob), 1)}${row('📧', 'Gmail', x.gmail, 1)}${row('🪪', L('CNIC', 'شناختی کارڈ'), cnicF(g.cnic), 1)}
 ${row('🏪', L('Business', 'کاروبار'), g.biz)}${row('🏷️', L('Category', 'قسم'), g.cat === 'cat_unassigned' ? '' : g.cat)}${row('📍', L('Address', 'پتہ'), [g.addr, g.area, g.city || g.dist].filter(Boolean).join('، '))}
 ${row('🏙️', L('District', 'ضلع'), x.district || g.dist)}${row('💬', 'WhatsApp', ph(g.wa), 1)}${row('📲', L('Phone UID', 'فون کی UID'), x.dev, 1)}
@@ -233,7 +237,10 @@ ${x.test ? `<button class="lcBtn grn" data-l="mact" style="width:100%;margin-top
 ${x.test ? '' : `<div class="lcRow" style="margin-top:8px;flex-wrap:nowrap">${live && !x.susp ? `<button class="lcBtn" data-l="msusp" style="flex:1;padding:12px" ${BUSY ? 'disabled' : ''}>⏸️ ${L('Suspend (temporary)', 'معطل (عارضی)')}</button>` : ''}<button class="lcBtn" data-l="mdel" style="flex:1;padding:12px;background:#b91c1c;color:#fff;border-color:#b91c1c" ${BUSY ? 'disabled' : ''}>🗑️ ${L('Delete permanently', 'مستقل ڈیلیٹ')}</button></div>`}
 <button class="lcBtn" data-l="mclose" style="width:100%;margin-top:6px">↩️ ${L('Back to list', 'فہرست پر واپس')}</button></div>`;
     }
-    return `<div class="lcBox"><h3>📋 ${L('New MCS accounts', 'نئے MCS اکاؤنٹ')} (${MDIST ? L2.length : MLIST.length})</h3>
+    /* HD2211SU166 (مالک کا حکم — سب ایپس برابر): اوپر خلاصہ — رجسٹرڈ، 15 دن سے کم، ٹرائل، ٹرائل ختم */
+    const nLow = RG.filter(m => dLeft(m) <= 15).length, nTr = SU.filter(m => !m.test && !tOver(m)).length, nTo = SU.filter(m => !m.test && tOver(m)).length;
+    const sumB = `<div class="lcItem" style="background:#f0fdf4;border-color:#86efac;margin:0 0 8px;display:flex;gap:6px;flex-wrap:wrap;justify-content:space-between;font-size:14px"><span>⭐ ${L('Registered', 'رجسٹرڈ')}: <b>${RG.length}</b></span><span style="color:#c2410c">⚠️ ${L('≤15 days', '15 دن سے کم')}: <b>${nLow}</b></span><span style="color:#075985">🎁 ${L('Trial', 'ٹرائل')}: <b>${nTr}</b></span><span style="color:#b91c1c">🚫 ${L('Trial over', 'ٹرائل ختم')}: <b>${nTo}</b></span></div>`;
+    return `<div class="lcBox"><h3>📋 ${L('New MCS accounts', 'نئے MCS اکاؤنٹ')} (${MDIST ? L2.length : MLIST.length})</h3>${sumB}
 <div class="lcRow" style="flex-wrap:nowrap"><input type="text" id="lcSid" maxlength="40" value="${esc(MQ)}" placeholder="${L('MCS ID / name / mobile', 'MCS نمبر / نام / موبائل')}" style="direction:ltr"><button class="lcBtn" data-l="look" ${BUSY ? 'disabled' : ''}>🔍</button><button class="lcBtn" data-l="mref" ${BUSY ? 'disabled' : ''}>🔄</button><select id="lcDist" class="lcDist" data-l="dist"><option value="">${L('All districts', 'سب ضلعے')}</option>${DISTS.map(d => `<option value="${esc(d[0])}"${MDIST === d[0] ? ' selected' : ''}>${esc(d[0])}</option>`).join('')}</select></div>
 <div class="lcTabs" style="margin:8px 0 4px"><button class="${MTAB === 'signup' ? 'on' : ''}" data-l="mtab" data-v="signup">📲 ${L('Sign Up', 'سائن اپ')} (${SU.length})</button><button class="${MTAB === 'reg' ? 'on' : ''}" data-l="mtab" data-v="reg">⭐ ${L('Registered', 'رجسٹرڈ')} (${RG.length})</button></div>
 ${det}
