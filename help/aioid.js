@@ -10,7 +10,8 @@
   if (typeof OLD !== 'function') return;
   const API = 'https://aio-pos-verify.pbtcodelabs.workers.dev/entadmin';
   const TRIAL_DAYS = 7;   /* ⚠️ AIO POS کے مفت ٹرائل کے دن — ID بننے کی تاریخ سے گنے جاتے ہیں */
-  const TABS = [['MCS', 'My City Shines'], ['DR', 'AIO Direct'], ['AIO', 'AIO POS']];
+  const TABS = [['MCS', 'My City Shines'], ['SM', 'سبزی منڈی'], ['DR', 'AIO Direct'], ['AIO', 'AIO POS']];   /* HD2211SU163 (مالک کا حکم): سبزی منڈی بھی SM ID پر — AIO Direct جیسا */
+  const IDN = () => APP === 'SM' ? 'SM ID' : 'AIO ID';
   let APP = 'AIO', AIDS = [], ENTS = [], PK = [], PRICE = {}, AQ = '', SHOW = 40, SEL = null, APK = '', SHOWPK = false, BUSY = false, MSG = '', OK = true, RES = null, SHARE = '', GRP = {}, FIL = 'su', ST = {};
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const p2 = n => String(n).padStart(2, '0');
@@ -105,6 +106,7 @@
       const p = await call({ op: 'pkglist' });
       const arr = p.list || p.packages || p.pkgs || p.items || [];
       PK = arr; try { localStorage.setItem(pkKey(), JSON.stringify(arr)); } catch (e) {}
+      arr.forEach(p => { if (p.price && !PRICE[p.id]) PRICE[p.id] = String(p.price); });   /* HD2211SU163: سبزی منڈی کے پیکجوں کی پہلی قیمت سرور سے (پرانے ریٹ)؛ بدلیں تو آپ کی والی */
     } catch (e) { err = '⚠️ ' + e.message + (PK.length ? ' (فون میں محفوظ پیکج فہرست دکھا رہا ہوں)' : ''); }
     try { const l = await call({ op: 'list' }); ENTS = l.list || []; } catch (e) { if (!err) err = '⚠️ ' + e.message; }
     try { const n = await call({ op: 'aionew' }); AIDS = n.list || []; buildGroups(); } catch (e) { if (!err) err = '⚠️ ' + e.message; }
@@ -142,7 +144,7 @@
   function chip(s) {
     switch (s.k) {
       case 'life': return ['u', '✅ ♾️ لائف ٹائم'];
-      case 'act': return ['u', '✅ ' + s.left + ' دن باقی'];
+      case 'act': return [s.left <= 7 ? 'r' : s.left <= 15 ? 'd' : 'u', (s.left <= 15 ? '⚠️ ' : '✅ ') + s.left + ' دن باقی'];   /* HD2211SU163: 15 دن سے کم پیلا، 7 سے کم لال */
       case 'rev': return ['r', '⛔ معطل'];
       case 'exp': return ['d', '⌛ ختم ' + dmy(s.exp)];
       case 'trial': return ['t', '🎁 ٹرائل ' + s.left + ' دن باقی'];
@@ -179,6 +181,9 @@
   const waNum = m => { const d = String(m || '').replace(/\D/g, ''); return d.startsWith('92') ? d : d.startsWith('0') ? '92' + d.slice(1) : d.length === 10 ? '92' + d : d; };
   function trialMsg(a) {
     const t = a && a.made ? trial(a) : null;
+    if (APP === 'SM') return t && t.k === 'trial'
+      ? ['السلام علیکم' + (a.name ? ' ' + a.name + ' صاحب' : '') + '! 🌹', '', 'امید ہے سبزی منڈی ایپ آپ کو پسند آ رہی ہے۔ کوئی مشورہ یا مشکل ہو تو ضرور بتائیں۔', '', '⏳ آپ کے مفت ٹرائل کے ' + t.left + ' دن باقی ہیں۔', 'ایپ لگاتار چلانے کے لیے پیکج لگوانا ہو تو اسی پیغام کا جواب دیں — آپ کی SM ID پر پیکج لگا دیا جائے گا، کوئی کوڈ نہیں۔', '', 'جزاک اللہ 🙏'].join('\n')
+      : ['السلام علیکم' + (a && a.name ? ' ' + a.name + ' صاحب' : '') + '! 🌹', '', 'سبزی منڈی ایپ کا آپ کا مفت ٹرائل ختم ہو چکا ہے۔', 'ایپ جاری رکھنے کے لیے پیکج لگوائیں — اسی پیغام کا جواب دیں، آپ کی SM ID پر پیکج لگا دیا جائے گا اور ایپ خود چالو ہو جائے گی۔', '', 'جزاک اللہ 🙏'].join('\n');
     if (t && t.k === 'trial') {   /* ٹرائل چل رہا ہے — فیڈبیک + پیکج کی دعوت */
       return ['Hello' + (a.name ? ' ' + a.name : '') + '! 👋', '', 'We hope you are enjoying AIO POS.',
         'Please let us know if you have any new ideas or suggestions — we would love to hear from you.', '',
@@ -254,6 +259,7 @@
   function aioMsg(w, e) {
     if (!w || !e) return '';
     const h = (e.hist || [])[(e.hist || []).length - 1] || {};
+    if (APP === 'SM') return ['✅ سبزی منڈی — آپ کا پیکج چالو ہو گیا', '', '👤 نام: ' + (w.name || e.name || ''), '🆔 SM ID: ' + w.aio, w.mobile ? '📱 موبائل: ' + aPh(w.mobile) : '', '📦 پیکج: ' + (h.pkg || e.pkgName || ''), '📅 شروع: ' + dmy(h.at || Date.now()), e.life ? '♾️ لائف ٹائم' : '⏳ ختم: ' + dmy(e.exp), e.revoked ? '⛔ معطل' : '', '', 'اپنے فون پر سبزی منڈی ایپ کھولیں — پیکج خود لگ جائے گا، کوئی کوڈ نہیں۔'].filter((x, i) => x || i === 1 || i === 9).join('\n');
     const L1 = ['✅ ' + (APP === 'DR' ? 'AIO POS Direct' : 'AIO POS') + ' — package activated', '', '👤 Name: ' + (w.name || e.name || ''), '🆔 AIO ID: ' + w.aio];
     if (w.mobile) L1.push('📱 Mobile: ' + aPh(w.mobile)); if (w.gmail) L1.push('✉️ Gmail: ' + w.gmail);
     L1.push('📦 Package: ' + (h.pkg || e.pkgName || ''), '📅 Activated on: ' + dmy(h.at || Date.now()), e.life ? '♾️ Valid: Lifetime' : '⏳ Valid till: ' + dmy(e.exp), '📱 Total phones: ' + (e.devices || 1));
@@ -354,7 +360,10 @@
     calc(); const c = { act: 0, trial: 0, dead: 0 };
     AIDS.forEach(a => { c[bucket(ST[a.aio])]++; });
     const B = [['su', '📲 سائن اپ', c.trial + c.dead], ['trial', '🎁 ٹرائل', c.trial], ['dead', '🚫 ختم', c.dead], ['act', '✅ پیکج', c.act]];
-    return '<div class="aFil">' + B.map(x => '<button class="' + (FIL === x[0] ? 'on' : '') + '" data-a="fil" data-v="' + x[0] + '">' + x[1] + '<b>' + x[2] + '</b></button>').join('') + '</div>';
+    /* HD2211SU163 (مالک کا حکم): پیسوں کا حساب — کل وصولی، چلتے پیکجوں کی رقم، کم دن والے */
+    const fm = n => Number(n || 0).toLocaleString('en-US'), paid = AIDS.reduce((x, a) => x + ((a.ent && a.ent.paid) || 0), 0), paidAct = AIDS.reduce((x, a) => x + (live(ST[a.aio]) && a.ent ? a.ent.paid || 0 : 0), 0), low = AIDS.filter(a => ST[a.aio].k === 'act' && ST[a.aio].left <= 15).length;
+    const sum = paid || low ? '<div class="aRow" style="justify-content:space-between;background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;padding:8px 10px;margin-bottom:8px"><span><b style="font-size:16px;color:#166534">💰 ' + fm(paid) + ' روپے</b><span class="aSub" style="display:block;margin:0">کل وصولی</span></span><span><b style="font-size:16px;color:#0e7490">' + fm(paidAct) + ' روپے</b><span class="aSub" style="display:block;margin:0">چلتے پیکج</span></span>' + (low ? '<span class="aTag d" data-a="fil" data-v="act" style="cursor:pointer">⚠️ ' + low + ' کے 15 دن سے کم</span>' : '') + '</div>' : '';
+    return sum + '<div class="aFil">' + B.map(x => '<button class="' + (FIL === x[0] ? 'on' : '') + '" data-a="fil" data-v="' + x[0] + '">' + x[1] + '<b>' + x[2] + '</b></button>').join('') + '</div>';
   }
   /* HD2111SA142: پیکج کا نام — اسی ID کا پیکج، ورنہ سرور کی فہرست والا نام */
   const pkn = (a, st) => (st.ent && (st.ent.pkgName || st.ent.label)) || (a.ent && a.ent.pkg) || (st.ent && st.ent.life ? 'لائف ٹائم' : 'پیکج');
@@ -370,18 +379,18 @@
       if (st.k === 'trial') btn = '<button class="aBtn grn" data-a="trialmsg" data-v="' + esc(a.aio) + '" style="padding:4px 9px;font-size:12px">💬 پیغام</button>';
       if (st.k === 'tend') btn = (st.extra ? '' : '<button class="aBtn grn" data-a="trialmsg" data-v="' + esc(a.aio) + '" style="padding:4px 9px;font-size:12px">💬 پیغام</button>') + '<button class="aBtn red" data-a="adel" data-v="' + esc(a.aio) + '" style="padding:4px 9px;font-size:12px">🗑️ ہٹائیں</button>';
       const tl = (st.k === 'trial' || st.k === 'tend') ? ' · ڈاؤن لوڈ ' + dmy(a.made) + ' · ٹرائل ' + (st.k === 'trial' ? 'ختم ہو گا ' : 'ختم ہوا ') + dmy(st.exp) : (a.made ? ' · ' + dmy(a.made) : '');
-      return '<div class="aItem" data-a="pick" data-v="' + esc(a.aio) + '" style="cursor:pointer' + (dup > 1 ? ';border-right:4px solid #f59e0b' : '') + (SEL && SEL.who.aio === a.aio ? ';background:#ecfeff' : '') + '"><div class="aRow" style="flex-wrap:nowrap"><span class="aCode" style="color:#0e7490">' + esc(a.aio) + '</span><b style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(a.name || '—') + (dup > 1 ? ' <small>⚠️×' + dup + '</small>' : '') + '</b><span class="aTag ' + ch[0] + '">' + esc(ch[1]) + '</span></div><div class="aRow" style="flex-wrap:nowrap;justify-content:space-between"><div class="aSub" style="flex:1;min-width:0">' + [aPh(a.mobile), a.gmail].filter(Boolean).map(esc).join(' · ') + tl + (live(st) ? ' · 📦 ' + esc(pkn(a, st)) : '') + '</div><div style="display:flex;gap:6px;flex:0 0 auto">' + btn + '</div></div>' + (FIL === 'act' ? (a.staff || []).map((x, i) => '<div class="aStfL">👷 ' + esc(x.name || '—') + ' · ' + esc(aPh(x.mobile)) + ' · ' + esc(x.aio) + '</div>').join('') : '') + '</div>';
+      return '<div class="aItem" data-a="pick" data-v="' + esc(a.aio) + '" style="cursor:pointer' + (dup > 1 ? ';border-right:4px solid #f59e0b' : '') + (SEL && SEL.who.aio === a.aio ? ';background:#ecfeff' : '') + '"><div class="aRow" style="flex-wrap:nowrap"><span class="aCode" style="color:#0e7490">' + esc(a.aio) + '</span><b style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(a.name || '—') + (dup > 1 ? ' <small>⚠️×' + dup + '</small>' : '') + '</b><span class="aTag ' + ch[0] + '">' + esc(ch[1]) + '</span></div><div class="aRow" style="flex-wrap:nowrap;justify-content:space-between"><div class="aSub" style="flex:1;min-width:0">' + [aPh(a.mobile), a.gmail].filter(Boolean).map(esc).join(' · ') + tl + (live(st) ? ' · 📦 ' + esc(pkn(a, st)) + (a.ent && a.ent.paid ? ' · 💰 ' + Number(a.ent.paid).toLocaleString('en-US') + ' روپے' : '') + (a.ent && a.ent.lastAt ? ' · ' + Math.max(0, Math.floor((Date.now() - a.ent.lastAt) / 864e5)) + ' دن گزرے' : '') : '') + '</div><div style="display:flex;gap:6px;flex:0 0 auto">' + btn + '</div></div>' + (FIL === 'act' ? (a.staff || []).map((x, i) => '<div class="aStfL">👷 ' + esc(x.name || '—') + ' · ' + esc(aPh(x.mobile)) + ' · ' + esc(x.aio) + '</div>').join('') : '') + '</div>';
     }).join('') + (list.length > SHOW ? '<button class="aBtn" data-a="amore" style="width:100%;margin-top:8px">⬇️ مزید دکھائیں (' + (list.length - SHOW) + ')</button>' : '') || '<div class="aSub" style="margin-top:8px">' + (BUSY ? '⏳' : 'اس خانے میں کوئی ID نہیں') + '</div>';
   }
   function drawList() { const n = document.getElementById('aiList'); if (n) n.innerHTML = listHTML(); }
 
   function draw() {
     const o = document.getElementById('aiOv'); if (!o) return;
-    o.innerHTML = '<div class="aTop"><b>✅ AIO ID — پیکج ایکٹیو کریں</b><button class="aX" data-a="close">✕</button></div>' +
+    o.innerHTML = '<div class="aTop"><b>✅ ' + IDN() + ' — پیکج ایکٹیو کریں</b><button class="aX" data-a="close">✕</button></div>' +
       '<div class="aBox" style="padding:8px"><div class="aTabs">' + TABS.map(([k, t]) => '<button class="' + (APP === k ? 'on' : '') + '" data-a="tab" data-v="' + k + '">' + t + '</button>').join('') + '</div></div>' +
       (MSG ? '<div class="aMsg ' + (OK ? 'ok' : 'bad') + '">' + esc(MSG) + '</div>' : '') + detailHTML() +
       '<div class="aBox">' + filHTML() +
-      '<div class="aRow" style="flex-wrap:nowrap"><input type="text" id="aiQ" maxlength="40" value="' + esc(AQ) + '" placeholder="تلاش: نام / AIO ID / موبائل" style="direction:ltr"><button class="aBtn" data-a="aref" ' + (BUSY ? 'disabled' : '') + '>🔄</button></div><div id="aiList">' + listHTML() + '</div></div>' +
+      '<div class="aRow" style="flex-wrap:nowrap"><input type="text" id="aiQ" maxlength="40" value="' + esc(AQ) + '" placeholder="تلاش: نام / ' + IDN() + ' / موبائل" style="direction:ltr"><button class="aBtn" data-a="aref" ' + (BUSY ? 'disabled' : '') + '>🔄</button></div><div id="aiList">' + listHTML() + '</div></div>' +
       '<div class="aBox"><button class="aBtn" data-a="oldscr" style="width:100%">🛠️ پیکج بنانا / بدلنا (پرانی سکرین)</button></div>';
   }
 
@@ -460,6 +469,7 @@
     if (a === 'ashare') { SHARE = aioMsg(w, SEL.ent); draw(); return; }
     if (a === 'apay') {
       const p = PK.find(x => x.id === APK); if (!p) return;
+      if (APP === 'SM') { SHARE = ['سبزی منڈی — ' + p.name, '🆔 SM ID: ' + w.aio, '👤 ' + name, (p.life ? '♾️ لائف ٹائم' : '⏳ ' + p.days + ' دن') + ' · 👥 مالک' + (p.devices > 1 ? ' + ' + (p.devices - 1) + ' ملازم' : ''), PRICE[p.id] ? '💰 رقم: ' + PRICE[p.id] + ' روپے' : '', '', 'رقم بھیج کر اسکرین شاٹ بھیج دیں — پیکج فوراً آپ کی ایپ میں خود لگ جائے گا، کوئی کوڈ نہیں۔'].filter((x, i) => x || i === 5).join('\n'); draw(); return; }
       SHARE = [(APP === 'DR' ? 'AIO POS Direct — ' : 'AIO POS — ') + p.name, '🆔 AIO ID: ' + w.aio, '👤 ' + name, (p.life ? '♾️ Lifetime' : '⏳ ' + p.days + ' days') + ' · 📱 ' + p.devices + ' phone(s)', PRICE[p.id] ? '💰 Amount: Rs ' + PRICE[p.id] : '', '', 'Please send the payment and a screenshot. Your package will be switched on right after — no code needed.'].filter((x, i) => x || i === 5).join('\n');
       draw(); return;
     }
@@ -494,7 +504,7 @@
     if (!window.Store || !Store.isOwner || !Store.isOwner()) { try { toast('🔒'); } catch (e) {} return; }
     window.__licBypass = false;
     const old = document.getElementById('licOv'); if (old) old.remove();
-    APP = app === 'DR' ? 'DR' : 'AIO'; try { localStorage.setItem('lic_app', APP); } catch (e) {}
+    APP = app === 'DR' ? 'DR' : app === 'SM' ? 'SM' : 'AIO'; try { localStorage.setItem('lic_app', APP); } catch (e) {}
     SEL = null; APK = ''; SHOWPK = false; RES = null; SHARE = ''; MSG = ''; AQ = ''; SHOW = 40; loadLocal();
     css();
     let o = document.getElementById('aiOv'); if (o) o.remove();
