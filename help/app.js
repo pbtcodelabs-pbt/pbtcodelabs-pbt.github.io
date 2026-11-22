@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2211SU162';
-const UPDATE_NOTE = '🎒 گٹھڑی والی زپ لائیو ہونے پر پوچھتا ہے «کون سے مسئلے حل ہوئے؟» — صرف ✓ والے حل، باقی فری Claude کے پاس رہتے ہیں';
+const APP_VERSION = 'HD2211SU163';
+const UPDATE_NOTE = '🎒 فری Claude کی گٹھڑی کا نام اب بتاتا ہے کہ اندر کون سا مسئلہ ہے — ہر مسئلے کا مختصر اردو تعارف (مثلاً «340-ہوم-پیج-ہلنا»)، زپ کے نام اور اندر کے ٹائٹل دونوں میں';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -2155,6 +2155,56 @@ const FC_SRV_APPS = ['MCS', 'AIO', 'AIO-POS-DIRECT', 'FFPOS', 'PBT-Portal', 'SM'
    ہر مسئلہ issues.txt میں الگ نمبر کے ساتھ، اسکرین شاٹ / آواز مسئلہ نمبر کے نام سے؛ worker.js سرور والی ایپ یا متن میں سرور کا ذکر ہو تو۔
    زپ اترتے ہی وہ مسئلے «🎒 Claude کے پاس» (fcAt، fcApp، status work، stage claude) — کھڑی فہرست / گنتی سے باہر؛
    اسی ایپ کی زپ اپلوڈ ہو کر لائیو (یا اس کا worker.js) → fcAutoDone: سب «✅ حل» + گاہک کو اس کی زبان میں جواب۔ */
+/* HD2211SU163 (مالک کا حکم): گٹھڑی کی زپ کا نام / ٹائٹل — ہر مسئلے کا ایک دو لفظ کا اردو تعارف (مثلاً «ہوم پیج ہلنا»)۔
+   طریقہ: متن میں «کہاں» (ہوم، لاگ اِن، ادائیگی، اشتہار…) اور «کیا ہوا» (ہلنا، نہیں کھلتا، کریش، سست…) کے الفاظ ڈھونڈ کر جوڑتے ہیں؛
+   دونوں نہ ملیں تو گاہک کے اپنے پہلے کام کے الفاظ (فالتو الفاظ — بھائی، یہ، ہماری، ہے… — ہٹا کر) */
+const FC_WHERE = [
+  [/ہوم|مین پیج|home ?(page|screen)?/i, 'ہوم پیج'], [/سائن ?اپ|sign ?up|رجسٹر|register|اکاؤنٹ بن|account creat/i, 'رجسٹریشن'],
+  [/لاگ ?(ان|اِن|آؤٹ|آوٹ)|log ?(in|out)|پن کوڈ|\bpin\b|پاس ?ورڈ|password|پن بھول|forgot/i, 'لاگ اِن'],
+  [/ادائیگی|پیمنٹ|payment|سبسکرپشن|subscription|خریدار|purchase|google ?play|گوگل پلے|redeem|ریڈیم|قیمت|price/i, 'ادائیگی'],
+  [/اشتہار|\bads?\b|advert/i, 'اشتہار'], [/بزنس کارڈ|کاروبار کا کارڈ|business card|کارڈ|\bcard\b/i, 'کارڈ'],
+  [/تصویر|فوٹو|photo|image|picture|سیلفی|selfie|کیمرہ|camera|ڈی پی|\bdp\b/i, 'تصویر'],
+  [/فارم|form|خانہ|فیلڈ|field/i, 'فارم'], [/سرچ|تلاش|search|فلٹر|filter/i, 'سرچ'],
+  [/فہرست|لسٹ|\blist\b|کیٹگری|category|زمرہ/i, 'فہرست'], [/نماز|اذان|prayer|namaz/i, 'نماز'], [/موسم|weather/i, 'موسم'],
+  [/نوٹیفکیشن|اطلاع|notification|الرٹ|alert/i, 'نوٹیفکیشن'], [/بیک ?اپ|backup|ریسٹور|restore/i, 'بیک اپ'],
+  [/لوکیشن|location|نقشہ|\bmap\b|جی پی ایس|gps/i, 'لوکیشن'], [/فونٹ|font|نستعلیق|اردو|urdu|زبان|language/i, 'زبان / فونٹ'],
+  [/ایجنٹ|agent|دعوت|invite|ریفر|referral/i, 'ایجنٹ'], [/ایڈمن|admin|ڈویلپر|developer/i, 'ایڈمن'],
+  [/چیٹ|پیغام|میسج|chat|message|واٹس ?ایپ|whatsapp/i, 'پیغام'], [/ویڈیو|video|آواز|audio|voice/i, 'ویڈیو / آواز'],
+  [/بل|انوائس|invoice|bill|رسید|receipt|سیل|sale|پرچیز|خرید|stock|اسٹاک|inventory/i, 'بل / اسٹاک'], [/رپورٹ|report|حساب|account statement|کھاتہ/i, 'رپورٹ'],
+  [/اپڈیٹ|update|ورژن|version|انسٹال|install/i, 'اپڈیٹ'], [/سیٹنگ|setting|پروفائل|profile/i, 'پروفائل'], [/بٹن|button/i, 'بٹن'], [/ڈیلیٹ|delete|حذف|remove/i, 'ڈیلیٹ'], [/ایڈٹ|edit|تبدیل/i, 'ایڈٹ']
+];
+const FC_WHAT = [
+  [/ہل(تا|تی|نا|ے)|ناچ|کود|اچھل|جھول|کانپ|اوپر ?نیچے|ادھر ?ادھر|shake|jump|jitter|flicker|wobbl|bounc/i, 'ہلنا'],
+  [/نہیں کھل|کھل نہیں|کھلتا نہیں|کھلتی نہیں|اوپن نہیں|not open|won'?t open|cannot open|can'?t open/i, 'نہیں کھلتا'],
+  [/کریش|crash|بند ہو ?(جا|ت|گ)|خود بند|hang|ہینگ|اٹک|پھنس|freeze|stuck|رک ?(جا|ت)/i, 'اٹکنا / بند'],
+  [/سست|slow|دیر|لیٹ|delay|lag/i, 'سست'], [/غلط|wrong|incorrect|فرق|مختلف|mismatch/i, 'غلط'],
+  [/غائب|نظر نہیں|نہیں (آ|دکھ)|دکھائی نہیں|missing|not (show|visible|appear)|disappear|خالی|blank|empty/i, 'غائب'],
+  [/ڈبل|دو ?بار|دہرا|duplicate|repeat|بار بار/i, 'بار بار'], [/نہیں (ہو رہا|ہوتا|ہوتی|چل|کر|بن|لگ|جا|مل|بھیج|سیو|محفوظ|آ)|کام نہیں|not working|doesn'?t work|failed|error|ایرر|خرابی|fail|نہیں بنتا|نہیں لگتا/i, 'خرابی'],
+  [/چاہیے|چاہئے|چاہتے|کر دیں|کریں|بنائیں|شامل|add|please|feature|فیچر|نیا|مشورہ|suggest/i, 'درخواست']
+];
+const FC_STOP = new Set('بھائی یہ وہ ہماری ہمارا ہمارے میری میرا میرے آپ اپ اس اسے ان کا کی کے کو سے میں پر نے ہے ہیں ہو ہوں تھا تھی تھے رہا رہی رہے گا گی گے اور بھی تو جو جی سلام اسلام علیکم برائے بہت زیادہ ایک کوئی کچھ کیا کہ ہی نہ نہیں پھر ابھی جب تب اگر لیکن مگر ورنہ بس صرف سب ہم ہمیں تم آج کل دفعہ بار کرنا کرنی کریں کر دیں دیں دیکھیں اپنا اپنی اپنے'.split(' '));
+function fcBrief(i) {
+  const raw = String((i && i.text) || '').replace(/\nScreenshots:[^\n]*/g, '').replace(/https?:\/\/\S+/g, ' ');
+  const t = raw.slice(0, 700);
+  const w = (FC_WHERE.find(r => r[0].test(t)) || [])[1], x = (FC_WHAT.find(r => r[0].test(t)) || [])[1];
+  let b = '';
+  if (w && x && x !== 'درخواست') b = w + ' ' + x;
+  else if (w) b = w + (i && i.type === 'idea' || x === 'درخواست' ? ' مشورہ' : i && i.type === 'ask' ? ' سوال' : ' مسئلہ');
+  else if (x) b = (i && i.type === 'idea' ? 'مشورہ' : x);
+  if (!b) {
+    const ws = t.replace(/[^؀-ۿA-Za-z0-9\s]/g, ' ').split(/\s+/).filter(z => z && !FC_STOP.has(z));
+    b = ws.slice(0, 3).join(' ') || (i && i.audio ? 'آواز والا پیغام' : (i && i.type === 'idea' ? 'مشورہ' : i && i.type === 'ask' ? 'سوال' : 'مسئلہ'));
+  }
+  return b.trim().slice(0, 40);
+}
+const fcSafe = s => String(s || '').replace(/[\\/:*?"<>|#%{}^~\[\]`]+/g, ' ').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+function fcZipName(a, arr) {
+  const body = arr.map(i => i.no + '-' + fcSafe(fcBrief(i))).join('_');
+  let n = `FreeClaude-Gathri-${a.id}-${arr.length}مسئلے-${body}`;
+  if (new TextEncoder().encode(n).length > 190) { n = `FreeClaude-Gathri-${a.id}-${arr.length}مسئلے-${arr.slice(0, 3).map(i => i.no + '-' + fcSafe(fcBrief(i)).split('-').slice(0, 2).join('-')).join('_')}${arr.length > 3 ? '_اور' + (arr.length - 3) : ''}`; }
+  while (new TextEncoder().encode(n).length > 190) n = n.slice(0, -1);
+  return n.replace(/[-_]+$/, '') + '.zip';
+}
 async function fcBundles() {
   const picks = aiPicked(); if (!picks.length) return;
   if (!window.HDZips || !HDZips.zip) { toast('⚠️ zip'); return; }
@@ -2188,10 +2238,10 @@ async function fcBundles() {
               else if (b.kind === 'audio') { na++; files.push({ name: `voice/${i.no}_${na}.${/ogg/i.test(mt) ? 'ogg' : /mp4|m4a|aac/i.test(mt) ? 'm4a' : 'webm'}`, data: by }); } } catch (e) {}
           }
           const txt = (claudeText(i) || i.text || '').replace(/\nScreenshots:[^\n]*/g, '').trim();
-          parts.push(`──────── ISSUE #${i.no} (${q + 1} of ${arr.length}) — ${i.type || ''} ────────\n${txt}\nScreenshots: ${ns ? 'screenshots/' + i.no + '_1…' + ns : 'none'}${na ? '   |   Voice: voice/' + i.no + '_…' : ''}`);
+          parts.push(`──────── ISSUE #${i.no} (${q + 1} of ${arr.length}) — ${i.type || ''} — ${fcBrief(i)} ────────\n${txt}\nScreenshots: ${ns ? 'screenshots/' + i.no + '_1…' + ns : 'none'}${na ? '   |   Voice: voice/' + i.no + '_…' : ''}`);
         }
         const url = aiRepo(a), nos = arr.map(i => '#' + i.no).join(', ');
-        const title = `FREE CLAUDE GATHRI — ${a.en}${a.ur && a.ur !== a.en ? ' (' + a.ur + ')' : ''} — ${arr.length} issue(s): ${nos}`;
+        const briefs = arr.map(i => '#' + i.no + ' ' + fcBrief(i)), title = `FREE CLAUDE GATHRI — ${a.en}${a.ur && a.ur !== a.en ? ' (' + a.ur + ')' : ''} — ${arr.length} issue(s): ${briefs.join(' • ')}`;
         const readme = `${title}\n${'='.repeat(70)}\n\nApp: ${a.en}${ver ? '   |   Current version: ' + ver : ''}\n${url ? 'Repo: ' + url + '\n' : ''}\n` +
           `=== FILES IN THIS ZIP ===\n- Root files (index.html, sw.js …) = the ${a.en} app, exactly as live now.\n${withSrv ? '- server/worker.js = the Cloudflare server (repo ' + sv.repo + ', ' + sv.path + ').\n' : ''}- issues.txt = every issue, one by one, exactly as the customers wrote it.\n- screenshots/, voice/ = named by issue number.\n\n` +
           `=== RULES FOR CLAUDE (must follow) ===\n1. Solve EVERY issue in issues.txt, one by one, carefully (not by guesswork). Do not change prices, payments, subscriptions, or delete data.\n2. Give back ONLY the files you actually changed. NEVER return an unchanged file.\n` +
@@ -2202,7 +2252,7 @@ async function fcBundles() {
           (notes.length ? '\n⚠️ ' + notes.join('\n⚠️ ') + '\n' : '');
         files.unshift({ name: 'issues.txt', data: enc.encode(title + '\n\n' + parts.join('\n\n')) });
         files.unshift({ name: '00-READ-ME-FREE-CLAUDE.txt', data: enc.encode(readme) });
-        download(HDZips.zip(files), `FreeClaude-Gathri-${a.id}-${arr.length}issues.zip`);
+        download(HDZips.zip(files), fcZipName(a, arr));
         const now = Date.now();
         for (const i of arr) { const p = { fcAt: now, fcApp: a.id, status: i.status === 'new' ? 'work' : (i.status || 'work'), stage: 'claude', stageAt: now }; try { await Store.update(i.id, p); Object.assign(i, p); delete AI.sel[i.id]; } catch (e) { notes.push('#' + i.no + ': mark failed'); } }
         done.push(`${nm}: ${nos}`);
