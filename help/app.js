@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2211SU163';
-const UPDATE_NOTE = '🎒 فری Claude کی گٹھڑی کا نام اب بتاتا ہے کہ اندر کون سا مسئلہ ہے — ہر مسئلے کا مختصر اردو تعارف (مثلاً «340-ہوم-پیج-ہلنا»)، زپ کے نام اور اندر کے ٹائٹل دونوں میں';
+const APP_VERSION = 'HD2211SU164';
+const UPDATE_NOTE = '🆔 سبزی منڈی بھی SM ID پر — «✅ Activate package» میں سبزی منڈی کا ٹیب؛ اوپر کل وصولی، چلتے پیکجوں کی رقم اور 15 دن سے کم والے؛ ہر ID کے ساتھ رقم اور گزرے دن';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -672,7 +672,7 @@ function zipSheet() {
         <div class="zpMv"><button type="button" data-act="zUp" data-id="${esc(a.id)}" aria-label="Up"${ix === 0 ? ' disabled' : ''}>▲</button><button type="button" data-act="zDn" data-id="${esc(a.id)}" aria-label="Down"${ix === L.length - 1 ? ' disabled' : ''}>▼</button></div>
         <div class="zpIc">${appIcon(a, 'appMini')}</div>
         <div class="zpNm"><b>${esc(ZN(a))}</b><small class="num">${c && c.err ? '⚠️ ' + esc(c.err) : c && c.busy ? '⏳ ' + esc(c.busy) : zipLbl(a.id, c).replace('⬇️ Download latest zip', '📦 Latest zip')}</small></div>
-        ${(a.id === 'AIO' || a.id === 'MCS' || a.id === 'AIO-POS-DIRECT') ? `<div class="zpLic"><button class="tb zpRf" data-act="zipRf" data-id="${esc(a.id)}">🔄</button><div class="zpLicBox"><button class="zpLicB" data-act="lic" data-id="${esc(a.id === 'AIO-POS-DIRECT' ? 'DR' : a.id)}">${a.id === 'MCS' ? '✅ Activate business (1 year)' : '✅ Activate package (AIO ID)'}</button></div></div>` : `<button class="tb zpRf" data-act="zipRf" data-id="${esc(a.id)}">🔄</button>`}
+        ${(a.id === 'AIO' || a.id === 'MCS' || a.id === 'AIO-POS-DIRECT' || a.id === 'SM') ? `<div class="zpLic"><button class="tb zpRf" data-act="zipRf" data-id="${esc(a.id)}">🔄</button><div class="zpLicBox"><button class="zpLicB" data-act="lic" data-id="${esc(a.id === 'AIO-POS-DIRECT' ? 'DR' : a.id)}">${a.id === 'MCS' ? '✅ Activate business (1 year)' : a.id === 'SM' ? '✅ Activate package (SM ID)' : '✅ Activate package (AIO ID)'}</button></div></div>` : `<button class="tb zpRf" data-act="zipRf" data-id="${esc(a.id)}">🔄</button>`}
       </div>
       <div class="zpCols">
         <div class="zpCol zpDl"><div class="zpH">⬇️ DOWNLOAD</div>
