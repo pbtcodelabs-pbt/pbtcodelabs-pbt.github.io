@@ -226,7 +226,11 @@ ${row('🏪', L('Business', 'کاروبار'), g.biz)}${row('🏷️', L('Catego
 ${row('🏙️', L('District', 'ضلع'), x.district || g.dist)}${row('💬', 'WhatsApp', ph(g.wa), 1)}${row('📲', L('Phone UID', 'فون کی UID'), x.dev, 1)}
 ${row('🗓️', L('Account made', 'اکاؤنٹ بنا'), x.created ? dmy(x.created) : '')}${row('🆔', L('Membership', 'ممبرشپ'), (x.recs || []).map(r => r.sub).filter(Boolean).join(', ') || x.sub, 1)}
 ${!g.biz && !(x.recs || []).length ? `<div class="lcMsg bad" style="margin:8px 0 0">${L('No business card yet — ask the person to finish the business form in the app first.', 'ابھی کاروبار کا کارڈ نہیں بنا — بندہ پہلے ایپ میں کاروبار کا فارم مکمل کرے۔')}</div>` : ''}
-<button class="lcBtn grn" data-l="mact" style="width:100%;margin-top:12px;padding:14px;font-size:16px" ${BUSY ? 'disabled' : ''}>✅ ${live ? L('Add 1 more year', 'ایک سال مزید بڑھائیں') : L('Activate for 1 year', 'ایک سال کے لیے ایکٹیو کریں')}</button>
+${x.test ? `<button class="lcBtn grn" data-l="mact" style="width:100%;margin-top:12px;padding:14px;font-size:16px" ${BUSY ? 'disabled' : ''}>✅ ${live ? L('Add 1 more year', 'ایک سال مزید بڑھائیں') : L('Activate for 1 year', 'ایک سال کے لیے ایکٹیو کریں')}</button>`
+  : x.susp ? `<div class="lcMsg bad" style="margin:12px 0 0">⏸️ ${L('Suspended — hidden from the public; ID and registration are kept.', 'معطل — عوام سے چھپا ہوا ہے؛ ID اور رجسٹریشن موجود ہے۔')}</div><button class="lcBtn grn" data-l="munsusp" style="width:100%;margin-top:8px;padding:14px;font-size:16px" ${BUSY ? 'disabled' : ''}>▶️ ${L('Restore (un-suspend)', 'بحال کریں')}</button>`
+  : !live ? `<button class="lcBtn grn" data-l="mact" style="width:100%;margin-top:12px;padding:14px;font-size:16px" ${BUSY ? 'disabled' : ''}>✅ ${L('Activate for 1 year', 'ایک سال کے لیے ایکٹیو کریں')}</button>`
+  : `<div class="lcSub" style="margin-top:12px;text-align:center">✅ ${L('Registered for 1 year — the extend button appears after this year ends.', 'ایک سال کی رجسٹریشن جاری ہے — «ایک سال مزید» کا بٹن سال ختم ہونے کے بعد آئے گا۔')}</div>`}
+${x.test ? '' : `<div class="lcRow" style="margin-top:8px;flex-wrap:nowrap">${live && !x.susp ? `<button class="lcBtn" data-l="msusp" style="flex:1;padding:12px" ${BUSY ? 'disabled' : ''}>⏸️ ${L('Suspend (temporary)', 'معطل (عارضی)')}</button>` : ''}<button class="lcBtn" data-l="mdel" style="flex:1;padding:12px;background:#b91c1c;color:#fff;border-color:#b91c1c" ${BUSY ? 'disabled' : ''}>🗑️ ${L('Delete permanently', 'مستقل ڈیلیٹ')}</button></div>`}
 <button class="lcBtn" data-l="mclose" style="width:100%;margin-top:6px">↩️ ${L('Back to list', 'فہرست پر واپس')}</button></div>`;
     }
     return `<div class="lcBox"><h3>📋 ${L('New MCS accounts', 'نئے MCS اکاؤنٹ')} (${MDIST ? L2.length : MLIST.length})</h3>
@@ -377,6 +381,27 @@ ${list.length > ASHOW ? `<button class="lcBtn" data-l="amore" style="width:100%;
     /* HD1811WE130 (مالک کا حکم): 🧪 ٹیسٹ موڈ کے اکاؤنٹ — دیکھیں، ایک سال ایکٹیو (صرف ٹیسٹ خانے میں)، سب ٹیسٹ صاف */
     if (a === 'mtpick') { BUSY = true; draw(); try { LOOK = await call({ op: 'tlook', k: v }); MSG = ''; } catch (e) { LOOK = null; say('⚠️ ' + e.message, false); } finally { BUSY = false; draw(); const o = document.querySelector('#licOv .lcItem[style*="16a34a"]'); if (o) o.scrollIntoView({ block: 'start', behavior: 'smooth' }); } return; }
     if (a === 'twipe') { if (!confirm(L('Delete ALL test-mode accounts from the server?', 'سرور سے سب ٹیسٹ اکاؤنٹ مٹا دیں؟'))) return; BUSY = true; draw(); try { await call({ op: 'twipe' }); LOOK = LOOK && LOOK.test ? null : LOOK; await loadAll(); say('🗑️ ' + L('Test accounts cleared', 'ٹیسٹ اکاؤنٹ صاف ہو گئے'), true); } catch (e) { say('⚠️ ' + e.message, false); } finally { BUSY = false; draw(); } return; }
+    /* HD2211SU152 (مالک کا حکم): «ایک سال مزید» کی جگہ — ⏸️ معطل (عارضی) / ▶️ بحال / 🗑️ مستقل ڈیلیٹ (ID اور رجسٹریشن ختم) */
+    if ((a === 'msusp' || a === 'munsusp') && LOOK && !LOOK.test) {
+      const on = a === 'msusp';
+      if (!confirm(on ? L('Suspend ' + LOOK.sid + ' (' + (LOOK.name || '') + ')? It is hidden from the public; the ID and registration stay.', LOOK.sid + ' (' + (LOOK.name || '') + ') کو معطل کریں؟ عوام سے چھپ جائے گا؛ ID اور رجسٹریشن رہے گی۔') : L('Restore ' + LOOK.sid + '?', LOOK.sid + ' کو بحال کریں؟'))) return;
+      BUSY = true; draw();
+      try { await call({ op: 'mcssusp', sid: LOOK.sid, on }); LOOK = await call({ op: 'mcslook', sid: LOOK.sid }); await loadAll(); say((on ? '⏸️ ' + L('Suspended', 'معطل کر دیا') : '▶️ ' + L('Restored', 'بحال کر دیا')) + ' — ' + LOOK.sid, true); }
+      catch (e) { say('⚠️ ' + e.message, false); }
+      finally { BUSY = false; draw(); }
+      return;
+    }
+    if (a === 'mdel' && LOOK && !LOOK.test) {
+      const sid = LOOK.sid;
+      if (!confirm(L('DELETE ' + sid + ' (' + (LOOK.name || '') + ') permanently? Its ID, registration, membership and account are removed and the ID becomes free for the next person. This cannot be undone.', sid + ' (' + (LOOK.name || '') + ') کو مستقل ڈیلیٹ کریں؟ اس کی ID، رجسٹریشن، ممبرشپ اور اکاؤنٹ ختم ہو جائیں گے اور ID اگلے بندے کے لیے خالی ہو جائے گی۔ یہ واپس نہیں آئے گا۔'))) return;
+      const t = (prompt(L('Type the ID to confirm: ' + sid, 'تصدیق کے لیے ID لکھیں: ' + sid)) || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (t !== sid) { say('⚠️ ' + L('ID did not match — nothing deleted', 'ID نہیں ملی — کچھ ڈیلیٹ نہیں ہوا'), false); return; }
+      BUSY = true; draw();
+      try { await call({ op: 'mcsdel', sid }); LOOK = null; await loadAll(); say('🗑️ ' + sid + ' — ' + L('deleted; the ID is free now', 'ڈیلیٹ ہو گیا؛ ID اب خالی ہے'), true); }
+      catch (e) { say('⚠️ ' + e.message, false); }
+      finally { BUSY = false; draw(); }
+      return;
+    }
     if (a === 'mact' && LOOK && LOOK.test) {
       if (!confirm(L('🧪 Test account ' + LOOK.sid + ': activate for 1 year?', '🧪 ٹیسٹ اکاؤنٹ ' + LOOK.sid + ' کو ایک سال کے لیے ایکٹیو کریں؟'))) return;
       BUSY = true; draw();
@@ -387,7 +412,12 @@ ${list.length > ASHOW ? `<button class="lcBtn" data-l="amore" style="width:100%;
     }
     if (a === 'mact') {   /* HD1811WE124: کوڈ کے بغیر ایک سال ایکٹیو */
       if (!LOOK) return;
-      if (!confirm(L('Activate ' + LOOK.sid + ' (' + (LOOK.name || '') + ') for 1 year now?', LOOK.sid + ' (' + (LOOK.name || '') + ') کو ابھی ایک سال کے لیے ایکٹیو کریں؟'))) return;
+      /* HD2211SU154 (مالک کا حکم): فوراً سال نہیں — پہلے پیمنٹ کی تصدیق، پھر دوسری بار آخری تصدیق (موجودہ اور نئی تاریخ کے ساتھ) */
+      const _now = Date.now(), _till = Math.max(0, ...(LOOK.recs || []).map(r => r.until || 0)), _new = Math.max(_till, _now) + 365 * 86400000;
+      const _left = _till > _now ? Math.ceil((_till - _now) / 86400000) : 0;
+      const _who = LOOK.sid + ' (' + (LOOK.name || '') + ')' + (LOOK.mob ? ' · ' + ph(LOOK.mob) : '');
+      if (!confirm(L('💰 PAYMENT CHECK\n\n' + _who + '\n\nHave you checked and RECEIVED this person\'s payment? Is there any problem — is the payment still pending?\n\nOK = payment received, nothing pending\nCancel = stop', '💰 پیمنٹ کی تصدیق\n\n' + _who + '\n\nکیا آپ نے اس بندے کی پیمنٹ چیک کر لی ہے اور پیمنٹ موصول ہو گئی ہے؟ کوئی مسئلہ تو نہیں؟ کہیں ایسا تو نہیں کہ پیمنٹ ابھی نہ آئی ہو؟\n\nOK = پیمنٹ موصول ہو گئی، کچھ باقی نہیں\nCancel = رک جائیں'))) return;
+      if (!confirm(L('✅ FINAL CONFIRMATION\n\n' + _who + '\nNow: ' + (_left ? _left + ' day(s) left (till ' + dmy(_till) + ')' : 'not active') + '\nAfter: active till ' + dmy(_new) + '\n\nThe payment is received. Activate 1 year now?', '✅ آخری تصدیق\n\n' + _who + '\nابھی: ' + (_left ? _left + ' دن باقی (' + dmy(_till) + ' تک)' : 'ایکٹیو نہیں') + '\nبعد میں: ' + dmy(_new) + ' تک ایکٹیو\n\nپیمنٹ موصول ہو چکی ہے۔ کیا ابھی ایک سال ایکٹیو کر دیں؟'))) return;
       BUSY = true; draw();
       try { const r = await call({ op: 'mcsact', sid: LOOK.sid }); LOOK = await call({ op: 'mcslook', sid: LOOK.sid }); await loadAll(); say('✅ ' + r.sid + (r.sub ? ' (' + r.sub + ')' : '') + ' — ' + L('active till ', 'ایکٹیو: ') + dmy(r.until) + L(' · the owner sees a congratulations message in the app', ' · گاہک کو ایپ میں مبارکباد کا پیغام'), true); }
       catch (e) { say('⚠️ ' + e.message, false); }
