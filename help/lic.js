@@ -47,6 +47,16 @@
     return `<div class="lcSl ${d <= 2 ? 'w' : 's'}">📨 ${L('Message sent', 'پیغام بھیجا جا چکا')}: ${L('total', 'کل')} <b>${a.length}</b> ${L('time(s)', 'بار')} · ${L('last', 'آخری')}: <b>${dmy(last)}</b> (${ago})</div>`
       + (full && a.length ? `<div class="lcSub" style="margin-top:3px">${a.slice().reverse().slice(0, 6).map((t, i) => (a.length - i) + '. ' + dmy(t) + ' ' + hm(t)).join(' &nbsp;·&nbsp; ')}</div>` : '');
   }
+  /* HD2211SU167 (مالک کا حکم — واٹس ایپ نمبر بند نہ ہو): ہر پیغام میں کم از کم ڈھائی منٹ کا وقفہ، اس فون سے روزانہ زیادہ سے زیادہ 5 —
+     My City Shines کی دعوتی فہرست کے ساتھ ایک ہی گنتی (pbtWaSafeLog، اسی ویب سائٹ پر) */
+  function waSafe() {
+    let a = []; try { a = (JSON.parse(localStorage.getItem('pbtWaSafeLog') || '[]') || []).filter(t => t > Date.now() - 3 * 864e5); } catch (e) {}
+    const last = a.length ? a[a.length - 1] : 0, w = last + 150e3 - Date.now(), t0 = new Date(); t0.setHours(0, 0, 0, 0);
+    if (w > 0) { const s = Math.ceil(w / 1000); alert('⏳ احتیاط: اگلا پیغام ' + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') + ' منٹ بعد بھیجیں — واٹس ایپ نمبر محفوظ رہے'); return false; }
+    if (a.filter(t => t >= t0.getTime()).length >= 5) { alert('✋ آج اس فون سے 5 پیغام پورے — باقی کل ان شاء اللہ'); return false; }
+    a.push(Date.now()); try { localStorage.setItem('pbtWaSafeLog', JSON.stringify(a)); } catch (e) {}
+    return true;
+  }
   function loadLocal() {
     slLoad();
     try { PRICE = JSON.parse(localStorage.getItem('lic_price') || '{}') || {}; } catch (e) { PRICE = {}; }
@@ -315,6 +325,7 @@ ${list.length > ASHOW ? `<button class="lcBtn" data-l="amore" style="width:100%;
 
   async function onClick(ev) {
     const lg = ev.target.closest('a[data-lg]');   /* HD2111SA148: پیغام کا بٹن — گنتی میں جمع؛ آج ہی بھیجا ہو تو پہلے پوچھے */
+    if (lg && !waSafe()) { ev.preventDefault(); return; }
     if (lg) { const k = lg.dataset.lg, a0 = SLOG[k] || [];
       if (a0.length && day0(a0[a0.length - 1]) === day0(Date.now()) && !confirm(L('A message was already sent to this person today. Send again?', 'اس بندے کو آج ہی پیغام بھیجا جا چکا ہے۔ کیا دوبارہ بھیجنا ہے؟'))) { ev.preventDefault(); return; }
       slAdd(k); setTimeout(draw, 700); return; }

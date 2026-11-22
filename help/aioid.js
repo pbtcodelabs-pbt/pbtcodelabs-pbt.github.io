@@ -43,6 +43,16 @@
     return '<div class="aSub" style="margin-top:3px;font-weight:800;color:' + (d <= 2 ? '#b45309' : '#15803d') + '">📨 پیغام بھیجا جا چکا: <b>' + dmy(last) + '</b> ' + hm(last) + ' (' + (d <= 0 ? 'آج' : d + ' دن پہلے') + ')' + (a.length > 1 ? ' · کل ' + a.length + ' بار' : '') + '</div>'
       + (full && a.length > 1 ? '<div class="aSub">' + a.slice().reverse().slice(0, 6).map((t, i) => (a.length - i) + '. ' + dmy(t) + ' ' + hm(t)).join(' · ') + '</div>' : '');
   }
+  /* HD2211SU167 (مالک کا حکم — واٹس ایپ نمبر بند نہ ہو): ہر پیغام میں کم از کم ڈھائی منٹ کا وقفہ، اس فون سے روزانہ زیادہ سے زیادہ 5 —
+     My City Shines کی دعوتی فہرست کے ساتھ ایک ہی گنتی (pbtWaSafeLog، اسی ویب سائٹ پر) */
+  function waSafe() {
+    let a = []; try { a = (JSON.parse(localStorage.getItem('pbtWaSafeLog') || '[]') || []).filter(t => t > Date.now() - 3 * 864e5); } catch (e) {}
+    const last = a.length ? a[a.length - 1] : 0, w = last + 150e3 - Date.now(), t0 = new Date(); t0.setHours(0, 0, 0, 0);
+    if (w > 0) { const s = Math.ceil(w / 1000); alert('⏳ احتیاط: اگلا پیغام ' + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') + ' منٹ بعد بھیجیں — واٹس ایپ نمبر محفوظ رہے'); return false; }
+    if (a.filter(t => t >= t0.getTime()).length >= 5) { alert('✋ آج اس فون سے 5 پیغام پورے — باقی کل ان شاء اللہ'); return false; }
+    a.push(Date.now()); try { localStorage.setItem('pbtWaSafeLog', JSON.stringify(a)); } catch (e) {}
+    return true;
+  }
   function loadLocal() {
     slLoad();
     try { PRICE = JSON.parse(localStorage.getItem('lic_price') || '{}') || {}; } catch (e) { PRICE = {}; }
@@ -483,7 +493,7 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
     if (a === 'send') { try { if (navigator.share) { await navigator.share({ text: v }); } else { window.open('https://wa.me/?text=' + encodeURIComponent(v), '_blank'); } } catch (e) {} return; }
     if (a === 'trialmsg') {
       const x = AIDS.find(z => z.aio === v) || (SEL && SEL.who.aio === v ? SEL.who : null); if (!x) return;
-      { const k = APP + '|' + x.aio, a0 = (slLoad(), SLOG[k] || []); if (a0.length && d0(a0[a0.length - 1]) === d0(Date.now()) && !confirm('اس بندے کو آج ہی پیغام بھیجا جا چکا ہے (' + hm(a0[a0.length - 1]) + ')۔ کیا دوبارہ بھیجنا ہے؟')) return; slAdd(k); setTimeout(draw, 600); }
+      { const k = APP + '|' + x.aio, a0 = (slLoad(), SLOG[k] || []); if (a0.length && d0(a0[a0.length - 1]) === d0(Date.now()) && !confirm('اس بندے کو آج ہی پیغام بھیجا جا چکا ہے (' + hm(a0[a0.length - 1]) + ')۔ کیا دوبارہ بھیجنا ہے؟')) return; if (!waSafe()) return; slAdd(k); setTimeout(draw, 600); }
       const msg = trialMsg(x), n = waNum(x.mobile);
       try { window.open('https://wa.me/' + (n ? n : '') + '?text=' + encodeURIComponent(msg), '_blank'); } catch (e) {}
       return;
