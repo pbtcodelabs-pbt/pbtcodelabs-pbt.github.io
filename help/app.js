@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2211SU156';
-const UPDATE_NOTE = '📦 «فری کلاڈ کے لیے مسائل کی گٹھڑی» اب ایک ہی دبانے پر زپ اتارتی ہے (کوئی شیٹ / ٹک نہیں): سب مسائل + اسکرین شاٹ + ایپس کی فائلیں، ورکر خود بخود جہاں ضرورت • ہوم کے بٹن ٹھیک';
+const APP_VERSION = 'HD2211SU157';
+const UPDATE_NOTE = '📦 ہوم کے چار بٹن اب چھوٹے اور دو دو کی قطار میں • «فری کلاڈ گٹھڑی» پھر سے کام کرتی ہے: ایک دبانے پر سب مسائل + اسکرین شاٹ + ایپ فائلیں (ورکر جہاں ضرورت) کی زپ';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -400,7 +400,7 @@ function playVideo(id) {
 /* HD1511SU088: ہوم پر ایپس کے اوپر — «سب مسائل» اور «ایکسپورٹ» */
 function issHomeBtns() {
   const E = LANG === 'en', n = ISSUES.filter(aiStanding).length;
-  return `<div class="issHm"><button class="issB a" data-act="allIss">📚 ${E ? 'All issues' : 'سب مسائل'}${n ? ` <i>${n}</i>` : ''}</button><button class="issB b" data-act="expIss">📦 ${E ? 'Issues bundle for Free Claude' : 'فری کلاڈ کے لیے مسائل کی گٹھڑی'}${n ? ` <i>${n}</i>` : ''}</button><button class="issB c" data-act="zips">📦 ${E ? 'Latest zip' : 'تازہ زپ'}</button><button class="issB c" data-act="devhub" style="background:linear-gradient(135deg,#7c3aed,#4c1d95)">🔐 ${E ? 'Developer panels' : 'ڈویلپر پینل'}</button></div>`;
+  return `<div class="issHm"><button class="issB a" data-act="allIss">📚 ${E ? 'All issues' : 'سب مسائل'}${n ? ` <i>${n}</i>` : ''}</button><button class="issB b" data-act="expIss">📦 ${E ? 'Bundle for Claude' : 'فری کلاڈ گٹھڑی'}${n ? ` <i>${n}</i>` : ''}</button><button class="issB c" data-act="zips">📦 ${E ? 'Latest zip' : 'تازہ زپ'}</button><button class="issB c" data-act="devhub" style="background:linear-gradient(135deg,#7c3aed,#4c1d95)">🔐 ${E ? 'Developer panels' : 'ڈویلپر پینل'}</button></div>`;
 }
 function vHome() {
   const own = Store.isOwner();
@@ -2079,6 +2079,7 @@ const BN_SRV_APPS = new Set(['AIO', 'MCS', 'PBT-Portal']);
 const BN_SRV_RX = /server|worker|cloudflare|license|licence|activation|activate|subscription|subscribe|payment|billing|verify|login|log in|sign.?in|otp|sync|backup|restore|سرور|ورکر|لائسنس|ایکٹیویشن|ایکٹیو|سبسکرپشن|پیمنٹ|ادائیگی|تصدیق|لاگ ?ان|سنک|بیک ?اپ|ریسٹور/i;
 const bnNeedsWorker = (a, arr) => BN_SRV_APPS.has(a.id) || arr.some(i => BN_SRV_RX.test(i.text || ''));
 let BN_BUSY = false;
+function bnGroups() { return aiGroups(ISSUES.filter(aiStanding).sort((a, b) => a.created - b.created)); }
 async function bnGo() {
   if (BN_BUSY) return;
   if (!window.HDZips || !HDZips.zip) { toast('⚠️ zip'); return; }
@@ -2327,7 +2328,7 @@ document.addEventListener('click', async e => {
     case 'open': openDetail(id); break;
     case 'close': closeSheet(); break;
     case 'allIss': aiOpen('view'); break;
-    case 'expIss': bnGo(); break;   // HD2211SU155: اب فری کلاڈ والی گٹھڑی (پرانا ایکسپورٹ «سب مسائل» کے اندر ٹیب میں ہی ہے)
+    case 'expIss': bnGo().catch(e => { BN_BUSY = false; busy(false); toast('⚠️ ' + (e && e.message || e), 5000); }); break;   // HD2211SU155: اب فری کلاڈ والی گٹھڑی (پرانا ایکسپورٹ «سب مسائل» کے اندر ٹیب میں ہی ہے)
     case 'aiTab': AI.tab = id; AI.edit = ''; AI.rest = ''; AI.conf = ''; if (id === 'arch') AI.sel = {}; aiRedraw(); break;
     case 'aiEdit': AI.edit = AI.edit === id ? '' : id; AI.rest = ''; AI.conf = ''; aiRedraw(); if (AI.edit) setTimeout(() => { const ta = $('#aiEdTx'); if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } }, 60); break;
     case 'aiEdSave': {
