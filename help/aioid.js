@@ -23,7 +23,28 @@
   const dayLeft = ts => Math.ceil((ts - Date.now()) / 864e5);
   const pkKey = () => APP === 'AIO' ? 'lic_pk' : 'lic_pk_' + APP;
 
+  /* HD2211SU165 (مالک کا حکم): پیغام کب بھیجا — ٹرائل / ٹرائل ختم والے کو واٹس ایپ پیغام دبانے پر تاریخ محفوظ؛ فہرست اور تفصیل میں «📨 پیغام بھیجا جا چکا: تاریخ»۔
+     وہی خانہ جو My City Shines میں (lic_sendlog + کلاؤڈ licSendLog)، کنجی = ایپ|ID */
+  let SLOG = {};
+  function slLoad() {
+    try { SLOG = JSON.parse(localStorage.getItem('lic_sendlog') || '{}') || {}; } catch (e) { SLOG = {}; }
+    try { const c = window.CFG || (typeof CFG !== 'undefined' ? CFG : null); if (c && c.licSendLog) for (const k in c.licSendLog) { const a = SLOG[k] || [], b = Array.isArray(c.licSendLog[k]) ? c.licSendLog[k] : []; SLOG[k] = [...new Set(a.concat(b))].sort((x, y) => x - y).slice(-60); } } catch (e) {}
+  }
+  function slAdd(k) {
+    slLoad(); (SLOG[k] = SLOG[k] || []).push(Date.now()); SLOG[k] = SLOG[k].slice(-60);
+    try { localStorage.setItem('lic_sendlog', JSON.stringify(SLOG)); } catch (e) {}
+    try { if (window.Store && Store.setCfg) Store.setCfg({ licSendLog: SLOG }); } catch (e) {}
+  }
+  const d0 = t => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
+  function slTag(aio, full) {
+    const a = SLOG[APP + '|' + aio] || [];
+    if (!a.length) return '<div class="aSub" style="margin-top:3px;color:#64748b">📭 ابھی تک پیغام نہیں بھیجا</div>';
+    const last = a[a.length - 1], d = Math.round((d0(Date.now()) - d0(last)) / 864e5);
+    return '<div class="aSub" style="margin-top:3px;font-weight:800;color:' + (d <= 2 ? '#b45309' : '#15803d') + '">📨 پیغام بھیجا جا چکا: <b>' + dmy(last) + '</b> ' + hm(last) + ' (' + (d <= 0 ? 'آج' : d + ' دن پہلے') + ')' + (a.length > 1 ? ' · کل ' + a.length + ' بار' : '') + '</div>'
+      + (full && a.length > 1 ? '<div class="aSub">' + a.slice().reverse().slice(0, 6).map((t, i) => (a.length - i) + '. ' + dmy(t) + ' ' + hm(t)).join(' · ') + '</div>' : '');
+  }
   function loadLocal() {
+    slLoad();
     try { PRICE = JSON.parse(localStorage.getItem('lic_price') || '{}') || {}; } catch (e) { PRICE = {}; }
     try { const c = window.CFG || (typeof CFG !== 'undefined' ? CFG : null); if (c && c.licPrices) PRICE = Object.assign({}, c.licPrices, PRICE); } catch (e) {}
     try { PK = JSON.parse(localStorage.getItem(pkKey()) || '[]') || []; } catch (e) { PK = []; }
@@ -294,6 +315,18 @@
     if (!p) p = PK.find(x => !!x.life === !!e.life && (x.devices || 1) === (e.devices || 1) && (e.life || Math.abs((x.days || 0) - days) <= 3));
     return { name: e.pkgName || h.pkg || (p && p.name) || '', price: h.price || (p && PRICE[p.id]) || '' };
   }
+  /* HD2211SU165 (مالک کا حکم): تفصیل میں صاف لکھا ہو — کون سا پیکج، کتنے پیسوں کا، کب لگا، کب تک، کتنے دن باقی؛ اور اس ID کی کل ادائیگی */
+  function pkBox(e, s) {
+    const pi = pkInfo(e), at = actAt(e), fm = n => Number(String(n || 0).replace(/,/g, '')).toLocaleString('en-US');
+    const tot = (e.hist || []).reduce((x, h) => x + (parseFloat(String(h.price || '').replace(/,/g, '')) || 0), 0);
+    const row = (k, v) => '<div style="display:flex;justify-content:space-between;gap:8px;padding:3px 0;border-bottom:1px dashed #cbd5e1"><span style="color:#475569">' + k + '</span><b style="text-align:left">' + v + '</b></div>';
+    return '<div style="background:#f8fafc;border:1.5px solid #0e7490;border-radius:12px;padding:8px 10px;margin-top:6px;font-size:13.5px;line-height:1.7">'
+      + row('📦 پیکج', esc(pi.name || '—')) + row('👥 فون', (e.devices || 1) + (APP === 'SM' && (e.devices || 1) > 1 ? ' (مالک + ' + ((e.devices || 1) - 1) + ' ملازم)' : ''))
+      + row('💰 اس پیکج کی رقم', pi.price ? fm(pi.price) + ' روپے' : '<span style="color:#b91c1c">نہیں لکھی</span>')
+      + (tot && String(tot) !== String(pi.price).replace(/,/g, '') ? row('💵 اس ID کی کل ادائیگی', fm(tot) + ' روپے') : '')
+      + row('📅 لگا', at ? dmy(at) + ' ' + hm(at) : '—') + row('⏳ ختم', e.life ? '♾️ لائف ٹائم' : dmy(e.exp) + (s.k === 'act' ? ' · باقی ' + s.left + ' دن' : ''))
+      + (at && !e.life ? row('🕒 گزرے', Math.max(0, Math.floor((Date.now() - at) / 864e5)) + ' دن') : '') + '</div>';
+  }
   function staffLines(w, e) {
     const dm = SEL.devmap || {}, seen = {}, out = [], ce = e ? (Array.isArray(e.claims) ? e : ENTS.find(x => x.id === e.id) || {}) : {};
     (SEL.staff || []).forEach(x => { seen[x.aio] = 1; out.push(x); });
@@ -317,7 +350,8 @@
     } else if (s.k === 'trial') { cls = 't'; txt = '🎁 ٹرائل ' + s.left + ' دن باقی · ختم ' + dmy(s.exp); btn = bt('trialmsg', '💬', 'grn'); }
     else if (s.extra) { cls = 'd'; txt = '🗂️ فالتو ID'; btn = bt('adel', '🗑️', 'red'); }
     else { cls = 'r'; txt = '🚫 ٹرائل ختم ' + dmy(s.exp); btn = bt('trialmsg', '💬', 'grn') + bt('adel', '🗑️', 'red'); }
-    return '<div class="aCap ' + cls + '"><span>' + txt + '</span>' + btn + '</div>' + staffLines(w, e);
+    const pkb = e ? pkBox(e, s) : '';
+    return '<div class="aCap ' + cls + '"><span>' + txt + '</span>' + btn + '</div>' + pkb + (s.k === 'trial' || s.k === 'tend' ? slTag(w.aio, true) : '') + staffLines(w, e);
   }
   function detailHTML() {
     if (!SEL) return '';
@@ -379,7 +413,7 @@
       if (st.k === 'trial') btn = '<button class="aBtn grn" data-a="trialmsg" data-v="' + esc(a.aio) + '" style="padding:4px 9px;font-size:12px">💬 پیغام</button>';
       if (st.k === 'tend') btn = (st.extra ? '' : '<button class="aBtn grn" data-a="trialmsg" data-v="' + esc(a.aio) + '" style="padding:4px 9px;font-size:12px">💬 پیغام</button>') + '<button class="aBtn red" data-a="adel" data-v="' + esc(a.aio) + '" style="padding:4px 9px;font-size:12px">🗑️ ہٹائیں</button>';
       const tl = (st.k === 'trial' || st.k === 'tend') ? ' · ڈاؤن لوڈ ' + dmy(a.made) + ' · ٹرائل ' + (st.k === 'trial' ? 'ختم ہو گا ' : 'ختم ہوا ') + dmy(st.exp) : (a.made ? ' · ' + dmy(a.made) : '');
-      return '<div class="aItem" data-a="pick" data-v="' + esc(a.aio) + '" style="cursor:pointer' + (dup > 1 ? ';border-right:4px solid #f59e0b' : '') + (SEL && SEL.who.aio === a.aio ? ';background:#ecfeff' : '') + '"><div class="aRow" style="flex-wrap:nowrap"><span class="aCode" style="color:#0e7490">' + esc(a.aio) + '</span><b style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(a.name || '—') + (dup > 1 ? ' <small>⚠️×' + dup + '</small>' : '') + '</b><span class="aTag ' + ch[0] + '">' + esc(ch[1]) + '</span></div><div class="aRow" style="flex-wrap:nowrap;justify-content:space-between"><div class="aSub" style="flex:1;min-width:0">' + [aPh(a.mobile), a.gmail].filter(Boolean).map(esc).join(' · ') + tl + (live(st) ? ' · 📦 ' + esc(pkn(a, st)) + (a.ent && a.ent.paid ? ' · 💰 ' + Number(a.ent.paid).toLocaleString('en-US') + ' روپے' : '') + (a.ent && a.ent.lastAt ? ' · ' + Math.max(0, Math.floor((Date.now() - a.ent.lastAt) / 864e5)) + ' دن گزرے' : '') : '') + '</div><div style="display:flex;gap:6px;flex:0 0 auto">' + btn + '</div></div>' + (FIL === 'act' ? (a.staff || []).map((x, i) => '<div class="aStfL">👷 ' + esc(x.name || '—') + ' · ' + esc(aPh(x.mobile)) + ' · ' + esc(x.aio) + '</div>').join('') : '') + '</div>';
+      return '<div class="aItem" data-a="pick" data-v="' + esc(a.aio) + '" style="cursor:pointer' + (dup > 1 ? ';border-right:4px solid #f59e0b' : '') + (SEL && SEL.who.aio === a.aio ? ';background:#ecfeff' : '') + '"><div class="aRow" style="flex-wrap:nowrap"><span class="aCode" style="color:#0e7490">' + esc(a.aio) + '</span><b style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(a.name || '—') + (dup > 1 ? ' <small>⚠️×' + dup + '</small>' : '') + '</b><span class="aTag ' + ch[0] + '">' + esc(ch[1]) + '</span></div><div class="aRow" style="flex-wrap:nowrap;justify-content:space-between"><div class="aSub" style="flex:1;min-width:0">' + [aPh(a.mobile), a.gmail].filter(Boolean).map(esc).join(' · ') + tl + (live(st) ? ' · 📦 ' + esc(pkn(a, st)) + (a.ent && a.ent.paid ? ' · 💰 ' + Number(a.ent.paid).toLocaleString('en-US') + ' روپے' : '') + (a.ent && a.ent.lastAt ? ' · ' + Math.max(0, Math.floor((Date.now() - a.ent.lastAt) / 864e5)) + ' دن گزرے' : '') : '') + '</div><div style="display:flex;gap:6px;flex:0 0 auto">' + btn + '</div></div>' + ((st.k === 'trial' || st.k === 'tend') && !st.extra && (SLOG[APP + '|' + a.aio] || []).length ? slTag(a.aio) : '') + (FIL === 'act' ? (a.staff || []).map((x, i) => '<div class="aStfL">👷 ' + esc(x.name || '—') + ' · ' + esc(aPh(x.mobile)) + ' · ' + esc(x.aio) + '</div>').join('') : '') + '</div>';
     }).join('') + (list.length > SHOW ? '<button class="aBtn" data-a="amore" style="width:100%;margin-top:8px">⬇️ مزید دکھائیں (' + (list.length - SHOW) + ')</button>' : '') || '<div class="aSub" style="margin-top:8px">' + (BUSY ? '⏳' : 'اس خانے میں کوئی ID نہیں') + '</div>';
   }
   function drawList() { const n = document.getElementById('aiList'); if (n) n.innerHTML = listHTML(); }
@@ -446,6 +480,7 @@
     if (a === 'send') { try { if (navigator.share) { await navigator.share({ text: v }); } else { window.open('https://wa.me/?text=' + encodeURIComponent(v), '_blank'); } } catch (e) {} return; }
     if (a === 'trialmsg') {
       const x = AIDS.find(z => z.aio === v) || (SEL && SEL.who.aio === v ? SEL.who : null); if (!x) return;
+      { const k = APP + '|' + x.aio, a0 = (slLoad(), SLOG[k] || []); if (a0.length && d0(a0[a0.length - 1]) === d0(Date.now()) && !confirm('اس بندے کو آج ہی پیغام بھیجا جا چکا ہے (' + hm(a0[a0.length - 1]) + ')۔ کیا دوبارہ بھیجنا ہے؟')) return; slAdd(k); setTimeout(draw, 600); }
       const msg = trialMsg(x), n = waNum(x.mobile);
       try { window.open('https://wa.me/' + (n ? n : '') + '?text=' + encodeURIComponent(msg), '_blank'); } catch (e) {}
       return;
