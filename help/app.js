@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2211SU151';
-const UPDATE_NOTE = '⚡ تازہ زپ: اپلوڈ کے بعد نیا ورژن اب گیٹ ہب سے براہِ راست پڑھا جاتا ہے (درمیانی کیش کی 5 منٹ کی دیر ختم) • نمبر پڑھنے کی درخواست 12 سیکنڈ میں ختم، اٹکتی نہیں • 🔄 فوراً تازہ نمبر پڑھتا ہے';  const UPDATE_NOTE_OLD = '';
+const APP_VERSION = 'HD2211SU152';
+const UPDATE_NOTE = '⚡ تازہ زپ: ڈاؤن لوڈ کی فائلیں بھی اب گیٹ ہب API سے براہِ راست (پرانی کیش والی نقل نہیں) اور 4 ایک ساتھ — زپ تیز • اپلوڈ شروع ہوتے ہی «پہلے سے موجود زپ» کی جانچ اور فائل کی تیاری ساتھ ساتھ';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -946,9 +946,10 @@ async function zipUpGo(id, f) {
   const name = ver + '.zip', H = { Authorization: 'token ' + ghTok(), 'Content-Type': 'application/json' };
   try {
     ZPG[id] = { pct: 0 }; set('⏳ ' + (old ? `Existing zip: ${old} · ` : '') + 'uploading ' + name + '…');
-    const body = { message: `${ver}: زپ اپلوڈ (ہیلپ ڈیسک)`, content: b64(await f.arrayBuffer()), branch: 'main' };
-    const ex = await fetch(`https://api.github.com/repos/${repo}/contents/${encodeURIComponent(name)}?ref=main`, { headers: H, cache: 'no-store' });
-    if (ex.ok) body.sha = (await ex.json()).sha;
+    /* HD2211SU152: «پہلے سے موجود؟» کی جانچ اور base64 تیاری ساتھ ساتھ — اپلوڈ شروع ہونے میں کم انتظار */
+    const [ex, content] = await Promise.all([fetch(`https://api.github.com/repos/${repo}/contents/${encodeURIComponent(name)}?ref=main`, { headers: H, cache: 'no-store', signal: AbortSignal.timeout ? AbortSignal.timeout(15000) : undefined }).catch(() => null), f.arrayBuffer().then(b64)]);
+    const body = { message: `${ver}: زپ اپلوڈ (ہیلپ ڈیسک)`, content, branch: 'main' };
+    if (ex && ex.ok) body.sha = (await ex.json()).sha;
     const r = await new Promise((res, rej) => {
       const x = new XMLHttpRequest(); ZXHR[id] = x; x.open('PUT', `https://api.github.com/repos/${repo}/contents/${encodeURIComponent(name)}`);
       x.setRequestHeader('Authorization', 'token ' + ghTok()); x.setRequestHeader('Content-Type', 'application/json');

@@ -1,4 +1,5 @@
-/* HD1111WE075 (مالک کا حکم): «📦 تازہ زپ» — ہر ایپ کی ابھی لائیو (ریپو main) فائلیں اسی وقت اٹھا کر زپ `<ورژن>.zip`
+/* HD2211SU152: build اب getFresh سے فائلیں اٹھاتا ہے (4 ایک ساتھ)۔
+   HD1111WE075 (مالک کا حکم): «📦 تازہ زپ» — ہر ایپ کی ابھی لائیو (ریپو main) فائلیں اسی وقت اٹھا کر زپ `<ورژن>.zip`
    (اندر index.html + sw.js + باقی جڑ کی کوڈ فائلیں)۔ فری Claude / کسی اور سے کام ہوا ہو تب بھی یہی تازہ ورژن۔
    فائلیں raw.githubusercontent.com سے (عوامی ریپو، CORS کھلا)؛ فہرست api.github.com سے، نہ ملے تو `files`۔ زپ بغیر دبائے (store) + CRC32۔ */
 (function () {
@@ -85,11 +86,13 @@
     names = [...names, ...(z.extra || [])];
     const out = [], dec = new TextDecoder(); let ver = '';
     const pick = t => pickV(z, t);
-    for (let i = 0; i < names.length; i++) {
-      onStep && onStep(`⬇️ ${i + 1}/${names.length}`, Math.round(i / names.length * 100));
-      let data; try { data = await getFile(repo, dir + names[i]); } catch (e) { if (names[i] === 'index.html') throw e; continue; }
-      out.push({ name: names[i], data });
-    }
+    /* HD2211SU152: فائلیں گیٹ ہب API سے (raw کا ~5 منٹ کیش نہیں) اور 4 ایک ساتھ — زپ تیز بھی، تازہ بھی؛ ترتیب وہی رہتی ہے */
+    const got = new Array(names.length); let nx = 0, dn = 0, fail = null;
+    const worker = async () => { while (nx < names.length && !fail) { const i = nx++;
+      try { got[i] = await getFresh(repo, dir + names[i]); } catch (e) { if (names[i] === 'index.html') fail = e; }
+      dn++; onStep && onStep(`⬇️ ${dn}/${names.length}`, Math.round(dn / names.length * 100)); } };
+    await Promise.all([worker(), worker(), worker(), worker()]); if (fail) throw fail;
+    names.forEach((n, i) => { if (got[i]) out.push({ name: n, data: got[i] }); });
     onStep && onStep('📦', 100);
     const vf = out.find(f => f.name === (z.vf || 'sw.js')); if (vf) ver = pick(dec.decode(vf.data));
     if (!ver) { for (const f of out) { ver = pick(dec.decode(f.data)); if (ver) break; } }
