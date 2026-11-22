@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2211SU157';
-const UPDATE_NOTE = '📦 ہوم کے چار بٹن اب چھوٹے اور دو دو کی قطار میں • «فری کلاڈ گٹھڑی» پھر سے کام کرتی ہے: ایک دبانے پر سب مسائل + اسکرین شاٹ + ایپ فائلیں (ورکر جہاں ضرورت) کی زپ';
+const APP_VERSION = 'HD2211SU158';
+const UPDATE_NOTE = '🎒 «فری کلاڈ گٹھڑی»: ہر مسئلے کی الگ زپ (ایپ کی تازہ فائلیں، worker.js جہاں ضرورت، اسکرین شاٹ، آواز، Claude کے اصول) — یا سب مسائل ایک زپ میں';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -400,7 +400,7 @@ function playVideo(id) {
 /* HD1511SU088: ہوم پر ایپس کے اوپر — «سب مسائل» اور «ایکسپورٹ» */
 function issHomeBtns() {
   const E = LANG === 'en', n = ISSUES.filter(aiStanding).length;
-  return `<div class="issHm"><button class="issB a" data-act="allIss">📚 ${E ? 'All issues' : 'سب مسائل'}${n ? ` <i>${n}</i>` : ''}</button><button class="issB b" data-act="expIss">📦 ${E ? 'Bundle for Claude' : 'فری کلاڈ گٹھڑی'}${n ? ` <i>${n}</i>` : ''}</button><button class="issB c" data-act="zips">📦 ${E ? 'Latest zip' : 'تازہ زپ'}</button><button class="issB c" data-act="devhub" style="background:linear-gradient(135deg,#7c3aed,#4c1d95)">🔐 ${E ? 'Developer panels' : 'ڈویلپر پینل'}</button></div>`;
+  return `<div class="issHm"><button class="issB a" data-act="allIss">📚 ${E ? 'All issues' : 'سب مسائل'}${n ? ` <i>${n}</i>` : ''}</button><button class="issB b" data-act="expIss">🎒 ${E ? 'Free Claude bundle' : 'فری کلاڈ گٹھڑی'}${n ? ` <i>${n}</i>` : ''}</button><button class="issB c" data-act="zips">📦 ${E ? 'Latest zip' : 'تازہ زپ'}</button><button class="issB c" data-act="devhub" style="background:linear-gradient(135deg,#7c3aed,#4c1d95)">🔐 ${E ? 'Developer panels' : 'ڈویلپر پینل'}</button></div>`;
 }
 function vHome() {
   const own = Store.isOwner();
@@ -1990,13 +1990,13 @@ function aiHTML() {
     : AI.mode === 'app' ? aiGroups(l).map(([id, arr]) => { const a = appOf(id); return `<div class="aiGrp">${appIcon(a, 'appMini')}<span>${esc(AN(a))}</span><span class="chip">${arr.length}</span></div>${arr.map(aiCard).join('')}`; }).join('')
     : l.map(aiCard).join('');
   return `<h2>${ar ? '🗄️ ' + (E ? 'Archive' : 'آرکائیو شدہ مسائل') : '📚 ' + (E ? 'Open issues' : 'کھڑے مسائل')} <span class="chip">${l.length}</span><button class="x" data-act="close">✕</button></h2>
-    <div class="aiBar"><button class="tb ${!ex ? 'on' : ''}" data-act="aiTab" data-id="view">👁️ ${E ? 'View' : 'دیکھیں'}</button><button class="tb ${ex ? 'on' : ''}" data-act="aiTab" data-id="exp">📤 ${E ? 'Export' : 'ایکسپورٹ'}</button><button class="tb ${ar ? 'on' : ''}" data-act="aiTab" data-id="arch">🗄️ ${E ? 'Archive' : 'آرکائیو'}${nArch ? ` <span class="chip">${nArch}</span>` : ''}</button></div>
+    <div class="aiBar"><button class="tb ${!ex ? 'on' : ''}" data-act="aiTab" data-id="view">👁️ ${E ? 'View' : 'دیکھیں'}</button><button class="tb ${ex ? 'on' : ''}" data-act="aiTab" data-id="exp">🎒 ${E ? 'Take to free Claude' : 'فری Claude میں لے جائیں'}</button><button class="tb ${ar ? 'on' : ''}" data-act="aiTab" data-id="arch">🗄️ ${E ? 'Archive' : 'آرکائیو'}${nArch ? ` <span class="chip">${nArch}</span>` : ''}</button></div>
     <div class="aiBar"><button class="tb ${AI.mode === 'all' ? 'on' : ''}" data-act="aiMode" data-id="all">🌐 ${E ? 'All together' : 'سب اکٹھے'}</button><button class="tb ${AI.mode === 'app' ? 'on' : ''}" data-act="aiMode" data-id="app">📱 ${E ? 'App-wise' : 'ایپ وار'}</button>
       <button class="tb ${AI.sort === 'old' ? 'on' : ''}" data-act="aiSort" data-id="old">⏳ ${E ? 'Oldest on top' : 'پرانے اوپر'}</button><button class="tb ${AI.sort === 'new' ? 'on' : ''}" data-act="aiSort" data-id="new">🕒 ${E ? 'Newest on top' : 'نئے اوپر'}</button></div>
     <div class="aiBar"><select class="inp" data-aiapp="1">${aiAppOpts()}</select></div>
     ${ex ? `<div class="aiBar"><button class="tb" data-act="aiAll">☑️ ${E ? 'Select all' : 'سب چنیں'}</button><button class="tb" data-act="aiNone">⬜ ${E ? 'Clear' : 'ہٹائیں'}</button><span style="align-self:center;color:var(--mut);font-size:13.5px">${E ? 'Selected' : 'چنے ہوئے'}: <b>${n}</b></span></div>` : ''}
     ${body}
-    ${ex ? `<div class="aiAct"><button class="tb pri" data-act="aiCopy" ${n ? '' : 'disabled'}>📋 ${E ? 'Copy text' : 'متن کاپی'}</button><button class="tb grn" data-act="aiZip" ${n ? '' : 'disabled'}>📦 ${E ? 'Everything in one zip' : 'سب ایک زپ میں'}</button></div>` : ''}`;
+    ${ex ? `<div class="aiAct" style="flex-direction:column"><button class="tb grn" data-act="fcBundles" ${n ? '' : 'disabled'} style="width:100%;padding:14px;font-size:16px;background:linear-gradient(135deg,#7c3aed,#4c1d95);border-color:#4c1d95;color:#fff">🎒 ${E ? 'Make free-Claude bundles — one zip per issue' : 'فری Claude کی گٹھڑیاں بنائیں — ہر مسئلہ الگ زپ'} (${n})</button><div style="display:flex;gap:8px"><button class="tb pri" data-act="aiCopy" ${n ? '' : 'disabled'}>📋 ${E ? 'Copy text' : 'متن کاپی'}</button><button class="tb" data-act="bnAll">📦 ${E ? 'All open issues in one zip (all apps)' : 'سب مسائل ایک زپ میں (سب ایپس)'}</button></div></div>` : ''}`;
 }
 function aiOpen(tab) {
   AI.tab = tab || 'view';
@@ -2144,6 +2144,65 @@ async function bnGo() {
     toast('✅ ' + totalIss + (E ? ' issues in one zip' : ' مسائل ایک زپ میں') + (notes.length ? ' ⚠️' : ''), 3500);
   } catch (e) { busy(false); toast('⚠️ ' + (e && e.message || e), 4500); }
   BN_BUSY = false;
+}
+/* HD2211SU153 (مالک کا حکم): «🎒 فری Claude کی گٹھڑی» — ہر چنے ہوئے مسئلے کی الگ زپ: اوپر ایپ کا نام + مسئلہ نمبر، گاہک کی صاف بات، اسکرین شاٹ، آواز،
+   اس ایپ کی تازہ فائلیں (جڑ میں، HDZips.build) اور سرور والی ایپس کے ساتھ server/worker.js؛ اندر READ-ME (Claude کے اصول — صرف بدلی فائلیں واپس)۔
+   واپسی پہلے والے نظام سے: ایپ کی زپ «⬆️ Upload zip»، worker.js «Upload changed worker.js»۔ */
+const FC_SRV_APPS = ['MCS', 'AIO', 'AIO-POS-DIRECT', 'FFPOS', 'PBT-Portal', 'SM'];
+async function fcBundles() {
+  const picks = aiPicked(); if (!picks.length) return;
+  if (!window.HDZips || !HDZips.zip) { toast('⚠️ zip'); return; }
+  const E = LANG === 'en', enc = new TextEncoder(), cache = {}, done = [], fail = [], wait = ms => new Promise(r => setTimeout(r, ms));
+  let wk = null;
+  try {
+    for (let k = 0; k < picks.length; k++) {
+      const { i } = picks[k], a = appOf(i.app), nm = ZN(a), step = `(${k + 1}/${picks.length})`;
+      busy(true, `🎒 #${i.no} ${nm} ${step}`);
+      try {
+        const files = [], notes = [];
+        let ver = '';
+        if (a.repo && HDZips.has(a.id)) {
+          if (!cache[a.id]) cache[a.id] = await HDZips.build(a.id, a.repo, st => busy(true, `🎒 #${i.no} ${nm} ${step} ${st || ''}`));
+          ver = cache[a.id].ver; cache[a.id].files.forEach(f => files.push({ name: f.name, data: f.data }));
+        } else notes.push('App files: not available from the zip system — ask the owner for the zip.');
+        const z = (HDZips.ZA && HDZips.ZA[a.id]) || {}, withSrv = !!z.srv || FC_SRV_APPS.includes(a.id);
+        const sv = Object.assign({}, SRV, z.srv || {});
+        if (withSrv) {
+          try {
+            if (!wk || wk.key !== sv.repo + sv.path) { const r = await fetch(`https://raw.githubusercontent.com/${sv.repo}/main/${sv.path}?t=${Date.now()}`, { cache: 'no-store' }); if (!r.ok) throw new Error('worker.js ' + r.status); wk = { key: sv.repo + sv.path, data: new Uint8Array(await r.arrayBuffer()) }; }
+            files.push({ name: 'server/worker.js', data: wk.data });
+          } catch (e) { notes.push('server/worker.js: could not read (' + (e.message || e) + ')'); }
+        }
+        let bl = []; try { bl = await Store.blobs(i.id) || []; } catch (e) { notes.push('Screenshots / voice: could not read'); }
+        let ns = 0, na = 0;
+        for (const b of bl) {
+          try {
+            const by = await aiBytes(b.data); if (!by) continue; const mt = String(typeof b.data === 'string' ? b.data.slice(5, 24) : (b.data.type || ''));
+            if (b.kind === 'shot') { ns++; files.push({ name: `screenshots/${i.no}_${ns}.${/png/i.test(mt) ? 'png' : /webp/i.test(mt) ? 'webp' : 'jpg'}`, data: by }); }
+            else if (b.kind === 'audio') { na++; files.push({ name: `voice/${i.no}_${na}.${/ogg/i.test(mt) ? 'ogg' : /mp4|m4a|aac/i.test(mt) ? 'm4a' : 'webm'}`, data: by }); }
+          } catch (e) {}
+        }
+        const url = aiRepo(a), title = `FREE CLAUDE GATHRI — ${a.en}${a.ur && a.ur !== a.en ? ' (' + a.ur + ')' : ''} — Issue #${i.no}`;
+        const txt = (claudeText(i) || i.text || '').replace(/\nScreenshots:[^\n]*/g, '').trim();
+        const readme = `${title}\n${'='.repeat(Math.min(70, title.length))}\n\nApp: ${a.en}${ver ? '   |   Current version: ' + ver : ''}\n${url ? 'Repo: ' + url + '\n' : ''}Issue: #${i.no}   |   Type: ${i.type || ''}\n` +
+          `Screenshots: ${ns} (screenshots/ folder)${na ? '   |   Voice: ' + na + ' (voice/ folder — the customer explains there)' : ''}\n\n` +
+          `=== WHAT THE CUSTOMER SAID ===\n${txt}\n\n` +
+          `=== FILES IN THIS ZIP ===\n- Root files (index.html, sw.js …) = the ${a.en} app, exactly as live now.\n${withSrv ? '- server/worker.js = the Cloudflare server this app talks to (repo ' + sv.repo + ', ' + sv.path + ').\n' : ''}- screenshots/, voice/ = what the customer sent.\n\n` +
+          `=== RULES FOR CLAUDE (must follow) ===\n1. Fix only this issue. Do not change prices, payments, subscriptions or delete data.\n2. Give back ONLY the files you actually changed. NEVER return an unchanged file.\n` +
+          `3. If you changed the APP: return ONE zip named with the NEW app version${ver ? ' (same pattern as ' + ver + ', serial +1)' : ''}. Inside: only changed app files at the root (always index.html + sw.js — the version changes in both — plus the update note). No server folder, no worker.js, no screenshots, no READ-ME.\n` +
+          (withSrv ? `4. If you changed the SERVER: return worker.js ALONE (not zipped, not inside the app zip).\n` : '') +
+          `${withSrv ? '5' : '4'}. At the end, tell the owner in Urdu: what was wrong, what you changed, and exactly which file to upload where.\n\n` +
+          `=== مالک کے لیے ===\nیہ زپ فری Claude کو دیں اور کہیں: «یہ مسئلہ حل کرو»۔ واپسی: ایپ کی زپ → ہیلپ ڈیسک «📦 تازہ زپ» ← ${nm} ← «⬆️ Upload zip»${withSrv ? '؛ worker.js → «🖥️ Server file» ← «Upload changed worker.js»' : ''}۔ پھر اس مسئلے کو حل شدہ کر دیں۔\n` +
+          (notes.length ? '\n⚠️ ' + notes.join('\n⚠️ ') + '\n' : '');
+        files.unshift({ name: '00-READ-ME-FREE-CLAUDE.txt', data: enc.encode(readme) });
+        download(HDZips.zip(files), `FreeClaude-Gathri-${a.id}-${i.no}.zip`);
+        done.push('#' + i.no);
+        await wait(900);
+      } catch (e) { fail.push('#' + i.no + ' (' + String(e && e.message || e).slice(0, 50) + ')'); }
+    }
+    busy(false);
+    toast((done.length ? '🎒 ' + done.length + (E ? ' bundle(s) downloaded: ' : ' گٹھڑیاں ڈاؤن لوڈ: ') + done.join(', ') : '') + (fail.length ? '  ⚠️ ' + fail.join(', ') : ''), 6000);
+  } catch (e) { busy(false); toast('⚠️ ' + (e && e.message || e), 5000); }
 }
 
 document.addEventListener('change', e => { if (e.target.dataset && e.target.dataset.aiapp) { AI.app = e.target.value; aiRedraw(); } });
@@ -2328,8 +2387,10 @@ document.addEventListener('click', async e => {
     case 'open': openDetail(id); break;
     case 'close': closeSheet(); break;
     case 'allIss': aiOpen('view'); break;
-    case 'expIss': bnGo().catch(e => { BN_BUSY = false; busy(false); toast('⚠️ ' + (e && e.message || e), 5000); }); break;   // HD2211SU155: اب فری کلاڈ والی گٹھڑی (پرانا ایکسپورٹ «سب مسائل» کے اندر ٹیب میں ہی ہے)
-    case 'aiTab': AI.tab = id; AI.edit = ''; AI.rest = ''; AI.conf = ''; if (id === 'arch') AI.sel = {}; aiRedraw(); break;
+    case 'expIss': aiOpen('exp'); if (!Object.keys(AI.sel).length) { aiList().forEach(i => { AI.sel[i.id] = { t: 1, s: 1, z: 1 }; }); aiRedraw(); } break;   // HD2211SU158: گٹھڑی کی شیٹ — ہر مسئلہ الگ زپ، یا سب ایک زپ (bnGo)
+    case 'aiTab': AI.tab = id; AI.edit = ''; AI.rest = ''; AI.conf = ''; if (id === 'arch') AI.sel = {}; if (id === 'exp' && !Object.keys(AI.sel).length) aiList().forEach(i => { AI.sel[i.id] = { t: 1, s: 1, z: 1 }; }); aiRedraw(); break;
+    case 'fcBundles': fcBundles(); break;
+    case 'bnAll': bnGo().catch(e => { BN_BUSY = false; busy(false); toast('⚠️ ' + (e && e.message || e), 5000); }); break;
     case 'aiEdit': AI.edit = AI.edit === id ? '' : id; AI.rest = ''; AI.conf = ''; aiRedraw(); if (AI.edit) setTimeout(() => { const ta = $('#aiEdTx'); if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } }, 60); break;
     case 'aiEdSave': {
       const i = ISSUES.find(x => x.id === id), ta = $('#aiEdTx'); if (!i || !ta) break; const v = (ta.value || '').trim();
