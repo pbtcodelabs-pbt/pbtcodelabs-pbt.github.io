@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2211SU155';
-const UPDATE_NOTE = '📦 ہوم پر «ایکسپورٹ» کی جگہ «فری کلاڈ کے لیے مسائل کی گٹھڑی»: ایک بٹن سے سب کھڑے مسائل (متن + اسکرین شاٹ) اور ہر ایپ کی تازہ فائلیں (اختیاری ورکر) ایک زپ میں، ساتھ Claude کے لیے ہدایات';
+const APP_VERSION = 'HD2211SU156';
+const UPDATE_NOTE = '📦 «فری کلاڈ کے لیے مسائل کی گٹھڑی» اب ایک ہی دبانے پر زپ اتارتی ہے (کوئی شیٹ / ٹک نہیں): سب مسائل + اسکرین شاٹ + ایپس کی فائلیں، ورکر خود بخود جہاں ضرورت • ہوم کے بٹن ٹھیک';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -2072,31 +2072,21 @@ async function aiExportZip() {
 /* HD2211SU155 (مالک کا حکم): ہوم کا «📦 فری کلاڈ کے لیے مسائل کی گٹھڑی» — ساری ایپس کے سب کھڑے مسائل ایک ہی زپ میں:
    ہر ایپ کا ایک فولڈر «ایپ کا نام + ورژن» (اندر ایپ کی تازہ فائلیں index.html + sw.js …، issues.txt = گاہکوں کا متن، screenshots/ = ان کی تصویریں،
    اور ورکر چاہیں تو server/worker.js) + جڑ میں READ-ME.txt (Claude کے لیے ہدایات: کیا واپس کرنا ہے، کہاں اپلوڈ ہوگا)۔ ہیلپ ڈیسک کی اپنی فائلیں بھی چاہیں تو چن لیں */
-const BN = { srv: {}, hd: false };
 const BN_HD = { id: 'HD', ur: 'ہیلپ ڈیسک', en: 'PBT Help Desk', repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io' };
-function bnGroups() { return aiGroups(ISSUES.filter(aiStanding).sort((a, b) => a.created - b.created)); }
-const bnOn = on => on ? 'style="background:#2563eb;color:#fff;border-color:#2563eb"' : '';
-function bnHTML() {
-  const E = LANG === 'en', g = bnGroups(), tot = g.reduce((t, x) => t + x[1].length, 0);
-  const rows = g.map(([id, arr]) => { const a = appOf(id), can = !!(a.repo && window.HDZips && HDZips.has(a.id));
-    return `<div class="aiCard"><div class="aiTop">${appIcon(a, 'appMini')}<b>${esc(AN(a))}</b><span class="chip">${arr.length}</span>${can ? '' : `<span style="color:var(--mut);font-size:12.5px">${E ? 'issues only — no app files' : 'صرف مسائل — ایپ فائلیں نہیں'}</span>`}</div>
-      ${can ? `<div class="aiOpts"><button class="tb" ${bnOn(BN.srv[id])} data-act="bnSrv" data-id="${esc(id)}">${BN.srv[id] ? '✅' : '⬜'} 🖥️ ${E ? 'Add worker.js' : 'ورکر (worker.js) بھی ڈالیں'}</button></div>` : ''}</div>`; }).join('');
-  const hd = `<div class="aiCard"><div class="aiTop">🛠️<b>${E ? 'PBT Help Desk (its own files)' : 'ہیلپ ڈیسک (اس کی اپنی فائلیں)'}</b></div>
-      <div class="aiOpts"><button class="tb" ${bnOn(BN.hd)} data-act="bnHd">${BN.hd ? '✅' : '⬜'} ${E ? 'Add Help Desk app files' : 'ہیلپ ڈیسک کی فائلیں بھی ڈالیں'}</button>${BN.hd ? `<button class="tb" ${bnOn(BN.srv.HD)} data-act="bnSrv" data-id="HD">${BN.srv.HD ? '✅' : '⬜'} 🖥️ ${E ? 'Add worker.js' : 'ورکر بھی'}</button>` : ''}</div></div>`;
-  const ok = tot > 0 || BN.hd;
-  return `<h2>📦 ${E ? 'Issues bundle for Free Claude' : 'فری کلاڈ کے لیے مسائل کی گٹھڑی'} <span class="chip">${tot}</span><button class="x" data-act="close">✕</button></h2>
-    <p style="color:var(--mut);font-size:13.5px;margin:0 0 8px">${E ? 'One zip: every open issue (text + screenshots) with each app’s latest files, ready for Free Claude. Tick “worker.js” only where the job needs the server.' : 'ایک زپ: سب کھڑے مسائل (متن + اسکرین شاٹ) اور ہر ایپ کی تازہ فائلیں — فری کلاڈ کو دینے کے لیے تیار۔ ورکر صرف وہاں ڈالیں جہاں کام کو سرور چاہیے۔'}</p>
-    ${tot ? rows : `<div class="card empty"><span class="e">🎉</span>${E ? 'No open issues' : 'کوئی کھڑا مسئلہ نہیں'}</div>`}${hd}
-    <div class="aiAct"><button class="tb grn" data-act="bnGo" ${ok ? '' : 'disabled'}>📦 ${E ? 'Make the zip' : 'زپ بنائیں'}</button></div>`;
-}
-function bnOpen() { if (window.HDZips && !Object.keys(LATEST).length) { try { zipLatestAll(true); } catch (e) {} } sheet(bnHTML()); }
-function bnRedraw() { sheet(bnHTML(), true); }
+/* HD2211SU156: کوئی ٹک / شیٹ نہیں — بٹن دبتے ہی زپ بنتی اور اترتی ہے۔ ورکر خود شامل: سرور والی ایپس (AIO / MCS / MCS Agent) میں ہمیشہ،
+   باقی ایپس میں تب جب کسی مسئلے کے متن میں سرور / ورکر / لائسنس / ایکٹیویشن / سبسکرپشن / پیمنٹ / لاگ ان / سنک وغیرہ کا ذکر ہو */
+const BN_SRV_APPS = new Set(['AIO', 'MCS', 'PBT-Portal']);
+const BN_SRV_RX = /server|worker|cloudflare|license|licence|activation|activate|subscription|subscribe|payment|billing|verify|login|log in|sign.?in|otp|sync|backup|restore|سرور|ورکر|لائسنس|ایکٹیویشن|ایکٹیو|سبسکرپشن|پیمنٹ|ادائیگی|تصدیق|لاگ ?ان|سنک|بیک ?اپ|ریسٹور/i;
+const bnNeedsWorker = (a, arr) => BN_SRV_APPS.has(a.id) || arr.some(i => BN_SRV_RX.test(i.text || ''));
+let BN_BUSY = false;
 async function bnGo() {
+  if (BN_BUSY) return;
   if (!window.HDZips || !HDZips.zip) { toast('⚠️ zip'); return; }
   const E = LANG === 'en', enc = new TextEncoder(), files = [], notes = [], summary = [];
   const jobs = bnGroups().map(([id, arr]) => ({ a: appOf(id), arr }));
-  if (BN.hd) jobs.push({ a: BN_HD, arr: [] });
-  if (!jobs.length) return;
+  if (!jobs.length) { toast('🎉 ' + (LANG === 'en' ? 'No open issues' : 'کوئی کھڑا مسئلہ نہیں'), 3000); return; }
+  jobs.push({ a: BN_HD, arr: [] });   // ہیلپ ڈیسک کی اپنی فائلیں ہمیشہ ساتھ
+  BN_BUSY = true;
   const safe = t => String(t).replace(/[\\\/:*?"<>|]+/g, '').trim().replace(/\s+/g, '-'), used = new Set();
   let totalIss = 0, firstVer = '';
   try {
@@ -2109,7 +2099,7 @@ async function bnGo() {
       }
       let dir = safe(nm + (ver ? ' ' + ver : '')) || ('app' + k); while (used.has(dir)) dir += '_'; used.add(dir);
       appFiles.forEach(f => files.push({ name: dir + '/' + f.name, data: f.data }));
-      if (BN.srv[a.id]) {
+      if (bnNeedsWorker(a, arr) && a.repo && HDZips.has(a.id)) {
         try {
           const sv = Object.assign({}, SRV, (HDZips.ZA[a.id] && HDZips.ZA[a.id].srv) || {});
           busy(true, `🖥️ ${nm} worker.js`);
@@ -2138,7 +2128,7 @@ async function bnGo() {
     const d = new Date(), tag = String(d.getDate()).padStart(2, '0') + String(d.getMonth() + 1).padStart(2, '0');
     const readme = `PBT Help Desk — issues bundle for Claude (${tag})\n\nFolders (one per app):\n${summary.join('\n')}\n\n` +
       `=== RULES FOR CLAUDE (must follow) ===\n` +
-      `Every folder = one app. Inside: the app's latest live files, issues.txt (open issues exactly as the customers wrote them), screenshots/ (their images; issue numbers are in the file names), and server/worker.js ONLY if the owner included it.\n` +
+      `Every folder = one app. Inside: the app's latest live files, issues.txt (open issues exactly as the customers wrote them), screenshots/ (their images; issue numbers are in the file names), and server/worker.js when the issues involve the server (it is added automatically).\n` +
       `Work through issues.txt of each folder. Solve every problem professionally and methodically, not by guesswork. Do not change prices, product IDs, subscription logic or the server unless an issue asks for it.\n\n` +
       `Give back ONLY the files you actually changed. NEVER return an unchanged file.\n\n` +
       `A) If you changed an APP: return ONE zip PER APP, named with that app's NEW version (same pattern as the folder's current version).\n   - Inside: only the changed app files, at the root (always index.html + sw.js, because the version changes in both).\n   - NO folders, NO worker.js, NO unchanged files, NO READ-ME, NO screenshots.\n   - Owner uploads it: Help Desk -> Latest zip -> <that app> -> Upload zip.\n\n` +
@@ -2152,6 +2142,7 @@ async function bnGo() {
     download(blob, `HelpDesk-Claude-${totalIss}issues-${tag}.zip`);
     toast('✅ ' + totalIss + (E ? ' issues in one zip' : ' مسائل ایک زپ میں') + (notes.length ? ' ⚠️' : ''), 3500);
   } catch (e) { busy(false); toast('⚠️ ' + (e && e.message || e), 4500); }
+  BN_BUSY = false;
 }
 
 document.addEventListener('change', e => { if (e.target.dataset && e.target.dataset.aiapp) { AI.app = e.target.value; aiRedraw(); } });
@@ -2336,10 +2327,7 @@ document.addEventListener('click', async e => {
     case 'open': openDetail(id); break;
     case 'close': closeSheet(); break;
     case 'allIss': aiOpen('view'); break;
-    case 'expIss': bnOpen(); break;   // HD2211SU155: اب فری کلاڈ والی گٹھڑی (پرانا ایکسپورٹ «سب مسائل» کے اندر ٹیب میں ہی ہے)
-    case 'bnSrv': BN.srv[id] = !BN.srv[id]; bnRedraw(); break;
-    case 'bnHd': BN.hd = !BN.hd; if (!BN.hd) BN.srv.HD = false; bnRedraw(); break;
-    case 'bnGo': bnGo(); break;
+    case 'expIss': bnGo(); break;   // HD2211SU155: اب فری کلاڈ والی گٹھڑی (پرانا ایکسپورٹ «سب مسائل» کے اندر ٹیب میں ہی ہے)
     case 'aiTab': AI.tab = id; AI.edit = ''; AI.rest = ''; AI.conf = ''; if (id === 'arch') AI.sel = {}; aiRedraw(); break;
     case 'aiEdit': AI.edit = AI.edit === id ? '' : id; AI.rest = ''; AI.conf = ''; aiRedraw(); if (AI.edit) setTimeout(() => { const ta = $('#aiEdTx'); if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } }, 60); break;
     case 'aiEdSave': {
