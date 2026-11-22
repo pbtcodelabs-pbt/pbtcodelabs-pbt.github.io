@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2211SU158';
-const UPDATE_NOTE = '🎒 «فری کلاڈ گٹھڑی»: ہر مسئلے کی الگ زپ (ایپ کی تازہ فائلیں، worker.js جہاں ضرورت، اسکرین شاٹ، آواز، Claude کے اصول) — یا سب مسائل ایک زپ میں';
+const APP_VERSION = 'HD2211SU159';
+const UPDATE_NOTE = '🎒 فری کلاڈ گٹھڑی: ہر ایپ کی ایک زپ (اس کے سب مسئلے الگ الگ نمبر سے) — اٹھاتے ہی مسئلے کھڑی فہرست سے ہٹ کر «Claude کے پاس»؛ اسی ایپ کی زپ لائیو ہوتے ہی خود حل + گاہک کو جواب';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -885,7 +885,7 @@ async function srvUpGo(f, id) {
       try { const x = await fetch(`https://api.github.com/repos/${SRV.repo}/actions/workflows/${SRV.wf}/runs?branch=main&per_page=5&created=>=${encodeURIComponent(t0)}`, { headers: H, cache: 'no-store' }); if (x.ok) run = ((await x.json()).workflow_runs || []).find(w => !commit || w.head_sha === commit); } catch (e) {}
       if (!run) { srvSet('⏳ 2/3 · Uploaded. Waiting for the deploy to start… (' + (i + 1) * 5 + 's)'); continue; }
       if (run.status !== 'completed') { srvSet('⏳ 3/3 · Deploying to Cloudflare… (' + (i + 1) * 5 + 's)'); continue; }
-      if (run.conclusion === 'success') { srvSet('✅ Server is LIVE with the new worker.js.'); toast('✅ Server live', 5000); return; }
+      if (run.conclusion === 'success') { srvSet('✅ Server is LIVE with the new worker.js.'); toast('✅ Server live', 5000); try { if (id) fcAutoDone(id, 'server'); } catch (e) {} return; }
       srvSet('❌ Deploy failed — the OLD server is still running (nothing broke).\nGive this to Claude: ' + run.html_url); return;
     }
     srvSet('⚠️ Uploaded, but the deploy status could not be read. Check again in a few minutes.');
@@ -995,6 +995,7 @@ async function zipTrack(id, ver, g) {
     }
     LATEST[id] = ver; delete PEND[id]; delete ZIPC[id]; zlsSet(ZPK, id, null); zlsSet(ZFLK, id, { ver, t: Date.now() });
     zpUpd(id, 100, `🌐 4/4 · 100% — ${ver} is LIVE in the app. Refresh the app.`); zipRefresh();
+    try { fcAutoDone(id, ver); } catch (e) {}   /* HD2211SU159: گٹھڑی والے مسئلے خود حل + گاہک کو جواب */
   } catch (e) { if (live()) zpUpd(id, null, '⚠️ ' + (e && e.message || e)); }
   finally { delete ZTRK[id]; }
 }
@@ -1936,7 +1937,7 @@ let taps = 0, tapT = 0;
 /* HD1511SU087 (مالک کا حکم): «📚 سب مسائل» — ساری ایپس کے کھڑے مسائل ایک جگہ (پرانے / نئے اوپر)، «ایپ وار» بھی؛ «📤 ایکسپورٹ» — ہر مسئلے کا چیک باکس،
    اس کے آگے 📝 متن · 🖼️ اسکرین شاٹ · 📦 لیٹسٹ زپ (اختیاری)؛ سب چنا ہوا ایک ہی زپ میں (issues.txt + screenshots/ + ہر ایپ کی تازہ زپ کے فولڈر) یا صرف متن کاپی */
 const AI = { tab: 'view', mode: 'all', sort: 'old', app: '', sel: {}, edit: '', rest: '', conf: '' };   // HD1511SU089: edit / rest = جس مسئلے کا ایڈٹ / واپسی کا خانہ کھلا ہے   // sel[id] = { t, s, z } — لیٹسٹ زپ پہلے سے آن (HD1511SU088)
-const aiStanding = i => !isReq(i) && !i.arch && i.status !== 'done' && i.status !== 'dup' && i.stage !== 'done';
+const aiStanding = i => !isReq(i) && !i.arch && i.status !== 'done' && i.status !== 'dup' && i.stage !== 'done' && !i.fcAt;   // HD2211SU159: گٹھڑی میں Claude کے پاس گئے مسئلے کھڑی فہرست / گنتی سے باہر
 const aiArchOf = i => !isReq(i) && !!i.arch;
 const aiBase = () => AI.tab === 'arch' ? aiArchOf : aiStanding;
 function aiList() {
@@ -1996,7 +1997,8 @@ function aiHTML() {
     <div class="aiBar"><select class="inp" data-aiapp="1">${aiAppOpts()}</select></div>
     ${ex ? `<div class="aiBar"><button class="tb" data-act="aiAll">☑️ ${E ? 'Select all' : 'سب چنیں'}</button><button class="tb" data-act="aiNone">⬜ ${E ? 'Clear' : 'ہٹائیں'}</button><span style="align-self:center;color:var(--mut);font-size:13.5px">${E ? 'Selected' : 'چنے ہوئے'}: <b>${n}</b></span></div>` : ''}
     ${body}
-    ${ex ? `<div class="aiAct" style="flex-direction:column"><button class="tb grn" data-act="fcBundles" ${n ? '' : 'disabled'} style="width:100%;padding:14px;font-size:16px;background:linear-gradient(135deg,#7c3aed,#4c1d95);border-color:#4c1d95;color:#fff">🎒 ${E ? 'Make free-Claude bundles — one zip per issue' : 'فری Claude کی گٹھڑیاں بنائیں — ہر مسئلہ الگ زپ'} (${n})</button><div style="display:flex;gap:8px"><button class="tb pri" data-act="aiCopy" ${n ? '' : 'disabled'}>📋 ${E ? 'Copy text' : 'متن کاپی'}</button><button class="tb" data-act="bnAll">📦 ${E ? 'All open issues in one zip (all apps)' : 'سب مسائل ایک زپ میں (سب ایپس)'}</button></div></div>` : ''}`;
+    ${ex ? (() => { const W = ISSUES.filter(i => i.fcAt && i.status !== 'done' && i.status !== 'dup'); return W.length ? `<div class="card" style="padding:10px;margin:8px 0;border:1.5px dashed #7c3aed"><b>🎒 ${E ? 'With free Claude (waiting for the zip upload)' : 'فری Claude کے پاس (زپ اپلوڈ کا انتظار)'}: ${W.length}</b>${W.map(i => `<div style="display:flex;gap:6px;align-items:center;margin-top:6px;font-size:13.5px">${appIcon(appOf(i.app), 'appMini')}<span>${esc(AN(appOf(i.app)))} <b class="num">#${i.no}</b> · ${ago(i.fcAt)}</span><button class="tb" style="margin-inline-start:auto" data-act="fcBack" data-id="${i.id}">↩️ ${E ? 'Back to list' : 'واپس فہرست میں'}</button></div>`).join('')}</div>` : ''; })() : ''}
+    ${ex ? `<div class="aiAct" style="flex-direction:column"><button class="tb grn" data-act="fcBundles" ${n ? '' : 'disabled'} style="width:100%;padding:14px;font-size:16px;background:linear-gradient(135deg,#7c3aed,#4c1d95);border-color:#4c1d95;color:#fff">🎒 ${E ? 'Make free-Claude bundles — one zip per app' : 'فری Claude کی گٹھڑیاں بنائیں — ہر ایپ کی ایک زپ'} (${n})</button><div style="display:flex;gap:8px"><button class="tb pri" data-act="aiCopy" ${n ? '' : 'disabled'}>📋 ${E ? 'Copy text' : 'متن کاپی'}</button><button class="tb" data-act="bnAll">📦 ${E ? 'All open issues in one zip (all apps)' : 'سب مسائل ایک زپ میں (سب ایپس)'}</button></div></div>` : ''}`;
 }
 function aiOpen(tab) {
   AI.tab = tab || 'view';
@@ -2149,7 +2151,85 @@ async function bnGo() {
    اس ایپ کی تازہ فائلیں (جڑ میں، HDZips.build) اور سرور والی ایپس کے ساتھ server/worker.js؛ اندر READ-ME (Claude کے اصول — صرف بدلی فائلیں واپس)۔
    واپسی پہلے والے نظام سے: ایپ کی زپ «⬆️ Upload zip»، worker.js «Upload changed worker.js»۔ */
 const FC_SRV_APPS = ['MCS', 'AIO', 'AIO-POS-DIRECT', 'FFPOS', 'PBT-Portal', 'SM'];
+/* HD2211SU159 (مالک کا مشورہ / حکم): گٹھڑی اب **ہر ایپ کی ایک** — اس ایپ کے سب چنے مسئلے ایک زپ میں (ایپ کی بڑی فائل فری Claude ایک ہی بار پڑھے = کم لمٹ)؛
+   ہر مسئلہ issues.txt میں الگ نمبر کے ساتھ، اسکرین شاٹ / آواز مسئلہ نمبر کے نام سے؛ worker.js سرور والی ایپ یا متن میں سرور کا ذکر ہو تو۔
+   زپ اترتے ہی وہ مسئلے «🎒 Claude کے پاس» (fcAt، fcApp، status work، stage claude) — کھڑی فہرست / گنتی سے باہر؛
+   اسی ایپ کی زپ اپلوڈ ہو کر لائیو (یا اس کا worker.js) → fcAutoDone: سب «✅ حل» + گاہک کو اس کی زبان میں جواب۔ */
 async function fcBundles() {
+  const picks = aiPicked(); if (!picks.length) return;
+  if (!window.HDZips || !HDZips.zip) { toast('⚠️ zip'); return; }
+  const E = LANG === 'en', enc = new TextEncoder(), done = [], fail = [], wait = ms => new Promise(r => setTimeout(r, ms)), wks = {};
+  const grp = new Map(); picks.forEach(p => { const k = appOf(p.i.app).id; if (!grp.has(k)) grp.set(k, []); grp.get(k).push(p.i); });
+  const jobs = [...grp.entries()];
+  try {
+    for (let k = 0; k < jobs.length; k++) {
+      const [aid, arr] = jobs[k], a = appOf(aid), nm = ZN(a), step = `(${k + 1}/${jobs.length})`;
+      busy(true, `🎒 ${nm} ${step}`);
+      try {
+        const files = [], notes = []; let ver = '';
+        if (a.repo && HDZips.has(a.id)) {
+          const r = await HDZips.build(a.id, a.repo, st => busy(true, `🎒 ${nm} ${step} ${st || ''}`));
+          ver = r.ver; r.files.forEach(f => files.push({ name: f.name, data: f.data }));
+        } else notes.push('App files: not available from the zip system — ask the owner for the zip.');
+        const z = (HDZips.ZA && HDZips.ZA[a.id]) || {}, sv = Object.assign({}, SRV, z.srv || {});
+        const withSrv = !!z.srv || FC_SRV_APPS.includes(a.id) || (typeof BN_SRV_RX !== 'undefined' && arr.some(i => BN_SRV_RX.test(i.text || '')));
+        if (withSrv) {
+          try { const key = sv.repo + sv.path; if (!wks[key]) { const r = await fetch(`https://raw.githubusercontent.com/${sv.repo}/main/${sv.path}?t=${Date.now()}`, { cache: 'no-store' }); if (!r.ok) throw new Error('worker.js ' + r.status); wks[key] = new Uint8Array(await r.arrayBuffer()); }
+            files.push({ name: 'server/worker.js', data: wks[key] }); } catch (e) { notes.push('server/worker.js: could not read (' + (e.message || e) + ')'); }
+        }
+        const parts = [];
+        for (let q = 0; q < arr.length; q++) {
+          const i = arr[q]; busy(true, `🖼️ ${nm} #${i.no} (${q + 1}/${arr.length})`);
+          let bl = []; try { bl = await Store.blobs(i.id) || []; } catch (e) { notes.push(`#${i.no}: screenshots / voice could not be read`); }
+          let ns = 0, na = 0;
+          for (const b of bl) {
+            try { const by = await aiBytes(b.data); if (!by) continue; const mt = String(typeof b.data === 'string' ? b.data.slice(5, 24) : (b.data.type || ''));
+              if (b.kind === 'shot') { ns++; files.push({ name: `screenshots/${i.no}_${ns}.${/png/i.test(mt) ? 'png' : /webp/i.test(mt) ? 'webp' : 'jpg'}`, data: by }); }
+              else if (b.kind === 'audio') { na++; files.push({ name: `voice/${i.no}_${na}.${/ogg/i.test(mt) ? 'ogg' : /mp4|m4a|aac/i.test(mt) ? 'm4a' : 'webm'}`, data: by }); } } catch (e) {}
+          }
+          const txt = (claudeText(i) || i.text || '').replace(/\nScreenshots:[^\n]*/g, '').trim();
+          parts.push(`──────── ISSUE #${i.no} (${q + 1} of ${arr.length}) — ${i.type || ''} ────────\n${txt}\nScreenshots: ${ns ? 'screenshots/' + i.no + '_1…' + ns : 'none'}${na ? '   |   Voice: voice/' + i.no + '_…' : ''}`);
+        }
+        const url = aiRepo(a), nos = arr.map(i => '#' + i.no).join(', ');
+        const title = `FREE CLAUDE GATHRI — ${a.en}${a.ur && a.ur !== a.en ? ' (' + a.ur + ')' : ''} — ${arr.length} issue(s): ${nos}`;
+        const readme = `${title}\n${'='.repeat(70)}\n\nApp: ${a.en}${ver ? '   |   Current version: ' + ver : ''}\n${url ? 'Repo: ' + url + '\n' : ''}\n` +
+          `=== FILES IN THIS ZIP ===\n- Root files (index.html, sw.js …) = the ${a.en} app, exactly as live now.\n${withSrv ? '- server/worker.js = the Cloudflare server (repo ' + sv.repo + ', ' + sv.path + ').\n' : ''}- issues.txt = every issue, one by one, exactly as the customers wrote it.\n- screenshots/, voice/ = named by issue number.\n\n` +
+          `=== RULES FOR CLAUDE (must follow) ===\n1. Solve EVERY issue in issues.txt, one by one, carefully (not by guesswork). Do not change prices, payments, subscriptions, or delete data.\n2. Give back ONLY the files you actually changed. NEVER return an unchanged file.\n` +
+          `3. App changed: return ONE zip named with the NEW app version${ver ? ' (same pattern as ' + ver + ', serial +1)' : ''}. Inside: only changed app files at the root (always index.html + sw.js — the version changes in both — plus the update note). No server folder, no worker.js, no screenshots, no READ-ME.\n` +
+          (withSrv ? `4. Server changed: return worker.js ALONE (not zipped, not inside the app zip).\n` : '') +
+          `${withSrv ? '5' : '4'}. At the end, tell the owner in Urdu, for EACH issue number: solved or not, what you changed, and exactly which file to upload where.\n\n` +
+          `=== مالک کے لیے ===\nیہ زپ فری Claude کو دیں: «سب مسئلے حل کرو»۔ واپسی: ایپ کی زپ → ہیلپ ڈیسک «📦 تازہ زپ» ← ${nm} ← «⬆️ Upload zip»${withSrv ? '؛ worker.js → اسی قطار میں «⬆️🖥️ Upload new worker.js»' : ''}۔ لائیو ہوتے ہی یہ مسئلے (${nos}) خود «✅ حل» ہو جائیں گے اور گاہکوں کو جواب چلا جائے گا۔\n` +
+          (notes.length ? '\n⚠️ ' + notes.join('\n⚠️ ') + '\n' : '');
+        files.unshift({ name: 'issues.txt', data: enc.encode(title + '\n\n' + parts.join('\n\n')) });
+        files.unshift({ name: '00-READ-ME-FREE-CLAUDE.txt', data: enc.encode(readme) });
+        download(HDZips.zip(files), `FreeClaude-Gathri-${a.id}-${arr.length}issues.zip`);
+        const now = Date.now();
+        for (const i of arr) { const p = { fcAt: now, fcApp: a.id, status: i.status === 'new' ? 'work' : (i.status || 'work'), stage: 'claude', stageAt: now }; try { await Store.update(i.id, p); Object.assign(i, p); delete AI.sel[i.id]; } catch (e) { notes.push('#' + i.no + ': mark failed'); } }
+        done.push(`${nm}: ${nos}`);
+        await wait(900);
+      } catch (e) { fail.push(nm + ' (' + String(e && e.message || e).slice(0, 50) + ')'); }
+    }
+    busy(false);
+    toast((done.length ? '🎒 ' + done.join(' · ') : '') + (fail.length ? '  ⚠️ ' + fail.join(', ') : ''), 7000);
+    try { aiRedraw(); render(); ownerBadge(); } catch (e) {}
+  } catch (e) { busy(false); toast('⚠️ ' + (e && e.message || e), 5000); }
+}
+/* گٹھڑی والے مسئلے: اسی ایپ کی زپ / worker.js لائیو ہوتے ہی خود حل + گاہک کی زبان میں جواب */
+async function fcAutoDone(appId, ver) {
+  const L = ISSUES.filter(i => i.fcAt && i.fcApp === appId && i.status !== 'done' && i.status !== 'dup'); if (!L.length) return;
+  const now = Date.now(); let n = 0;
+  for (const i of L) {
+    const en = i.lang === 'en';
+    const reply = en ? `✅ Your issue has been solved. Please refresh the app once to get the update${ver && ver !== 'server' ? ' (' + ver + ')' : ''}.`
+      : `✅ آپ کا مسئلہ حل کر دیا گیا ہے۔ ایپ ایک بار تازہ کر لیں تاکہ نئی اپڈیٹ آ جائے${ver && ver !== 'server' ? ' (' + ver + ')' : ''}۔`;
+    const p = { status: 'done', stage: 'done', stageAt: now, doneAt: now, reply: (i.reply && i.hold === 'info') ? reply : reply, replyAt: now, hold: '', urgent: false };
+    try { await Store.update(i.id, p); Object.assign(i, p); n++; } catch (e) {}
+  }
+  if (n) { toast('✅ ' + n + (LANG === 'en' ? ' bundle issue(s) marked solved — customers can see the reply' : ' گٹھڑی والے مسئلے حل — گاہکوں کو جواب نظر آ گیا'), 6000); try { render(); ownerBadge(); } catch (e) {} }
+}
+/* Claude کے پاس گیا مسئلہ واپس کھڑی فہرست میں */
+async function fcBack(id) { const i = ISSUES.find(x => x.id === id); if (!i) return; const p = { fcAt: 0, fcApp: '' }; try { await Store.update(i.id, p); Object.assign(i, p); aiRedraw(); } catch (e) { toast('⚠️ ' + (e.message || e), 4000); } }
+async function fcBundlesOld() {
   const picks = aiPicked(); if (!picks.length) return;
   if (!window.HDZips || !HDZips.zip) { toast('⚠️ zip'); return; }
   const E = LANG === 'en', enc = new TextEncoder(), cache = {}, done = [], fail = [], wait = ms => new Promise(r => setTimeout(r, ms));
@@ -2390,6 +2470,7 @@ document.addEventListener('click', async e => {
     case 'expIss': aiOpen('exp'); if (!Object.keys(AI.sel).length) { aiList().forEach(i => { AI.sel[i.id] = { t: 1, s: 1, z: 1 }; }); aiRedraw(); } break;   // HD2211SU158: گٹھڑی کی شیٹ — ہر مسئلہ الگ زپ، یا سب ایک زپ (bnGo)
     case 'aiTab': AI.tab = id; AI.edit = ''; AI.rest = ''; AI.conf = ''; if (id === 'arch') AI.sel = {}; if (id === 'exp' && !Object.keys(AI.sel).length) aiList().forEach(i => { AI.sel[i.id] = { t: 1, s: 1, z: 1 }; }); aiRedraw(); break;
     case 'fcBundles': fcBundles(); break;
+    case 'fcBack': fcBack(id); break;
     case 'bnAll': bnGo().catch(e => { BN_BUSY = false; busy(false); toast('⚠️ ' + (e && e.message || e), 5000); }); break;
     case 'aiEdit': AI.edit = AI.edit === id ? '' : id; AI.rest = ''; AI.conf = ''; aiRedraw(); if (AI.edit) setTimeout(() => { const ta = $('#aiEdTx'); if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } }, 60); break;
     case 'aiEdSave': {
