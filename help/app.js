@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2211SU161';
-const UPDATE_NOTE = '🎬 My City Shines کی پلے اسٹور ویڈیو ہیلپ ڈیسک سے ہٹا کر ایپ کے اپنے سائن اپ / لاگ اِن صفحے پر';
+const APP_VERSION = 'HD2211SU162';
+const UPDATE_NOTE = '🎒 گٹھڑی والی زپ لائیو ہونے پر پوچھتا ہے «کون سے مسئلے حل ہوئے؟» — صرف ✓ والے حل، باقی فری Claude کے پاس رہتے ہیں';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -2198,7 +2198,7 @@ async function fcBundles() {
           `3. App changed: return ONE zip named with the NEW app version${ver ? ' (same pattern as ' + ver + ', serial +1)' : ''}. Inside: only changed app files at the root (always index.html + sw.js — the version changes in both — plus the update note). No server folder, no worker.js, no screenshots, no READ-ME.\n` +
           (withSrv ? `4. Server changed: return worker.js ALONE (not zipped, not inside the app zip).\n` : '') +
           `${withSrv ? '5' : '4'}. At the end, tell the owner in Urdu, for EACH issue number: solved or not, what you changed, and exactly which file to upload where.\n\n` +
-          `=== مالک کے لیے ===\nیہ زپ فری Claude کو دیں: «سب مسئلے حل کرو»۔ واپسی: ایپ کی زپ → ہیلپ ڈیسک «📦 تازہ زپ» ← ${nm} ← «⬆️ Upload zip»${withSrv ? '؛ worker.js → اسی قطار میں «⬆️🖥️ Upload new worker.js»' : ''}۔ لائیو ہوتے ہی یہ مسئلے (${nos}) خود «✅ حل» ہو جائیں گے اور گاہکوں کو جواب چلا جائے گا۔\n` +
+          `=== مالک کے لیے ===\nیہ زپ فری Claude کو دیں: «سب مسئلے حل کرو»۔ واپسی: ایپ کی زپ → ہیلپ ڈیسک «📦 تازہ زپ» ← ${nm} ← «⬆️ Upload zip»${withSrv ? '؛ worker.js → اسی قطار میں «⬆️🖥️ Upload new worker.js»' : ''}۔ لائیو ہوتے ہی ہیلپ ڈیسک پوچھے گا کہ (${nos}) میں سے کون سے حل ہوئے — ✓ والے «✅ حل» اور گاہکوں کو جواب؛ باقی گٹھڑی میں رہیں گے۔\n` +
           (notes.length ? '\n⚠️ ' + notes.join('\n⚠️ ') + '\n' : '');
         files.unshift({ name: 'issues.txt', data: enc.encode(title + '\n\n' + parts.join('\n\n')) });
         files.unshift({ name: '00-READ-ME-FREE-CLAUDE.txt', data: enc.encode(readme) });
@@ -2215,8 +2215,20 @@ async function fcBundles() {
   } catch (e) { busy(false); toast('⚠️ ' + (e && e.message || e), 5000); }
 }
 /* گٹھڑی والے مسئلے: اسی ایپ کی زپ / worker.js لائیو ہوتے ہی خود حل + گاہک کی زبان میں جواب */
-async function fcAutoDone(appId, ver) {
+/* HD2211SU162 (مالک کا حکم): زپ لائیو ہونے پر سب خود «حل» نہیں — پہلے پوچھے: «اس زپ میں کون سے حل ہوئے؟» (✓ والے ہی حل + گاہک کو جواب)؛
+   باقی «🎒 فری Claude کے پاس» ہی رہتے ہیں — اسی ایپ کی کسی دوسرے کام کی زپ یا آدھا کام (فری Claude کی حد ختم) پر غلط «حل» نہیں جاتا */
+let FCQ = null;
+function fcAutoDone(appId, ver) {
   const L = ISSUES.filter(i => i.fcAt && i.fcApp === appId && i.status !== 'done' && i.status !== 'dup'); if (!L.length) return;
+  FCQ = { appId, ver }; const E = LANG === 'en', a = appOf(appId);
+  sheet(`<h2>🎒 ${E ? 'Which bundle issues did this zip solve?' : 'اس زپ میں کون سے گٹھڑی والے مسئلے حل ہوئے؟'}<button class="x" data-act="close">✕</button></h2>
+    <p style="font-size:14.5px;line-height:1.9;margin:0 0 8px">${esc(ZN(a))} ${ver && ver !== 'server' ? '· <b>' + esc(ver) + '</b> ' : ''}${E ? 'is live. Free Claude told you, issue by issue, which are solved — keep ✓ only on those. Unticked ones stay with free Claude.' : 'لائیو ہو گئی۔ فری Claude نے آخر میں ہر نمبر کا بتایا تھا کہ حل ہوا یا نہیں — ✓ صرف حل والوں پر رہنے دیں۔ جن پر ✓ نہیں وہ «🎒 فری Claude کے پاس» ہی رہیں گے۔'}</p>
+    ${L.map(i => `<label class="card" style="display:flex;gap:10px;align-items:flex-start;padding:10px;margin:6px 0;box-shadow:none;border:1.5px solid #c4b5fd;cursor:pointer"><input type="checkbox" data-fc="${i.id}" checked style="width:22px;height:22px;flex:0 0 22px;margin-top:3px"><span style="font-size:14px;line-height:1.7" dir="auto"><b class="num">#${i.no}</b> · ${esc(String(i.text || '').slice(0, 110))}${String(i.text || '').length > 110 ? '…' : ''}</span></label>`).join('')}
+    <button class="bigBtn" data-act="fcAskOk">✅ ${E ? 'Mark ticked as solved & reply to customers' : '✓ والے حل کریں + گاہکوں کو جواب'}</button>
+    <button class="bigBtn" style="background:#64748b" data-act="close">⏳ ${E ? 'None yet — keep all with free Claude' : 'ابھی کوئی نہیں — سب فری Claude کے پاس رہیں'}</button>`);
+}
+async function fcMarkDone(ids, ver) {
+  const L = ISSUES.filter(i => ids.includes(i.id) && i.status !== 'done' && i.status !== 'dup'); if (!L.length) return;
   const now = Date.now(); let n = 0;
   for (const i of L) {
     const en = i.lang === 'en';
@@ -2471,6 +2483,8 @@ document.addEventListener('click', async e => {
     case 'aiTab': AI.tab = id; AI.edit = ''; AI.rest = ''; AI.conf = ''; if (id === 'arch') AI.sel = {}; if (id === 'exp' && !Object.keys(AI.sel).length) aiList().forEach(i => { AI.sel[i.id] = { t: 1, s: 1, z: 1 }; }); aiRedraw(); break;
     case 'fcBundles': fcBundles(); break;
     case 'fcBack': fcBack(id); break;
+    case 'fcAskOk': { const ids = [...document.querySelectorAll('#sheet input[data-fc]:checked')].map(x => x.dataset.fc), q = FCQ || {}; closeSheet(); FCQ = null;
+      if (ids.length) await fcMarkDone(ids, q.ver); else toast(LANG === 'en' ? 'Nothing marked — all stay with free Claude' : 'کوئی حل نہیں کیا — سب فری Claude کے پاس'); break; }
     case 'bnAll': bnGo().catch(e => { BN_BUSY = false; busy(false); toast('⚠️ ' + (e && e.message || e), 5000); }); break;
     case 'aiEdit': AI.edit = AI.edit === id ? '' : id; AI.rest = ''; AI.conf = ''; aiRedraw(); if (AI.edit) setTimeout(() => { const ta = $('#aiEdTx'); if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } }, 60); break;
     case 'aiEdSave': {
