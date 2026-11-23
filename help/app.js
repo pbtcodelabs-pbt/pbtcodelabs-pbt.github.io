@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2311MO171';
-const UPDATE_NOTE = '💬 سوال پوچھیں (چیٹ): گاہک ایپ سے سیدھا سوال / رہنمائی پوچھے، جواب ڈویلپر پینل «💬 سوالات» سے — مسائل کی فہرست میں نہیں جاتا، ذاتی واٹس ایپ کی ضرورت نہیں';
+const APP_VERSION = 'HD2311MO172';
+const UPDATE_NOTE = '📖 تیار جواب (FAQ): گاہک چیٹ میں لکھتے ہی ملتے جلتے جواب تصویروں کے ساتھ فوراً؛ «⏳ سوال پہنچ گیا» کا پیغام؛ آپ کے جواب پر «⭐ عام جواب بنائیں»؛ مدرسہ ایپ کے 14 جواب';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -1903,7 +1903,7 @@ function settingsSheet() {
 /* ---------- رینڈر ---------- */
 function render() {
   header();
-  const V = { home: vHome, app: vApp, new: vForm, thanks: vThanks, mine: vMine, i: vOne, owner: vOwner, party: vParty, chat: vChat, chats: vChats, ochat: vOChat }[R.v] || vHome;
+  const V = { home: vHome, app: vApp, new: vForm, thanks: vThanks, mine: vMine, i: vOne, owner: vOwner, party: vParty, chat: vChat, chats: vChats, ochat: vOChat, faqs: vFaqs }[R.v] || vHome;
   $('#main').innerHTML = V();
   if (R.v === 'new' && F && F.acct) { setTimeout(acctSend, 300); }
   else if (R.v === 'new') { bindForm(); const ft = $('#fText'); if (ft && ft.value) { ft.style.height = 'auto'; ft.style.height = Math.min(ft.scrollHeight + 4, Math.round(innerHeight * 0.6)) + 'px'; } }
@@ -1947,12 +1947,45 @@ function chatMsgs(d, side) {
   const L = (d && d.msgs) || [];
   if (!L.length) return `<div class="chEmpty">${side === 'c' ? (chatE() ? '👋 Ask your question — we will reply right here.' : '👋 اپنا سوال لکھیں — جواب اسی جگہ آئے گا۔') : '—'}</div>`;
   return L.slice().sort((a, b) => a.t - b.t).map(m => { const mine = m.by === side;
-    return `<div class="chM ${mine ? 'me' : 'th'}"><div class="b" dir="auto">${m.by === 'o' && !mine ? '<i>PBT Help Desk</i>' : ''}${esc(m.x).replace(/\n/g, '<br>')}<span class="tm">${chatTime(m.t)}</span></div></div>`; }).join('');
+    const star = side === 'o' && m.by === 'o' ? `<button class="faqStar" data-act="faqSave" data-id="${m.t}">⭐ ${chatE() ? 'Make common answer' : 'عام جواب بنائیں'}</button>` : '';
+    return `<div class="chM ${mine ? 'me' : 'th'}"><div class="b" dir="auto">${m.by === 'o' && !mine ? '<i>PBT Help Desk</i>' : ''}${esc(m.x).replace(/\n/g, '<br>')}<span class="tm">${chatTime(m.t)}</span>${star}</div></div>`; }).join('');
 }
+/* ---------- 📖 تیار جواب (FAQ، HD2311MO172): faq.js (window.HD_FAQ) + مالک کے «⭐ عام جواب» (CFG.faq) ---------- */
+const FAQ_STOP = new Set(['کیسے', 'کیا', 'ہے', 'ہیں', 'میں', 'کی', 'کا', 'کے', 'کو', 'سے', 'کریں', 'کرنا', 'کروں', 'اور', 'یہ', 'وہ', 'ہم', 'آپ', 'پر', 'نہیں', 'جی', 'تو', 'بھی', 'اگر', 'کیوں', 'کب', 'کہاں', 'ایک', 'السلام', 'علیکم', 'سر', 'بھائی', 'please', 'how', 'the', 'is', 'to', 'a', 'i', 'my']);
+const faqNorm = s => String(s || '').toLowerCase().replace(/[ً-ٰٟ]/g, '').replace(/ي/g, 'ی').replace(/ك/g, 'ک').replace(/ۃ/g, 'ہ').replace(/[؟?!،,.۔:;()«»"'\-–—/]/g, ' ').replace(/\s+/g, ' ').trim();
+function faqAll(app) { const a = appOf(app || '').id; return [...(window.HD_FAQ || []), ...((CFG && CFG.faq) || [])].filter(f => f && !f.off && (f.app === '*' || f.app === a)); }
+function faqMatch(text, app) {
+  const t = faqNorm(text); if (t.length < 3) return [];
+  const words = t.split(' ').filter(w => w.length > 1 && !FAQ_STOP.has(w)); if (!words.length) return [];
+  return faqAll(app).map(f => { const hay = faqNorm(f.q + ' ' + (f.k || []).join(' ')); let s = 0;
+      words.forEach(w => { if (hay.includes(w)) s += w.length > 3 ? 2 : 1; });
+      (f.k || []).forEach(k => { if (t.includes(faqNorm(k))) s += 2; });
+      return { f, s }; }).filter(x => x.s >= 2).sort((x, y) => y.s - x.s).slice(0, 3).map(x => x.f);
+}
+function faqCard(f) {
+  const imgs = (f.img || []).map(src => `<a href="${esc(src)}" target="_blank"><img src="${esc(src)}" alt="" loading="lazy"></a>`).join('');
+  return `<div class="chM th"><div class="b faqB" dir="auto"><i>📖 ${chatE() ? 'Ready answer' : 'تیار جواب'}</i><b>${esc(f.q)}</b><div>${esc(f.a).replace(/\n/g, '<br>')}</div>${imgs ? `<div class="faqImgs">${imgs}</div>` : ''}
+    <small>${chatE() ? 'Not solved? Just type your question below.' : 'حل نہیں ہوا؟ نیچے اپنا سوال لکھ کر بھیج دیں۔'}</small></div></div>`;
+}
+function faqSug() {
+  const box = $('#chSug'), tx = $('#chTx'); if (!box || !tx) return;
+  const app = R.v === 'chat' ? R.a : '', v = tx.value.trim();
+  let L = v ? faqMatch(v, app) : (CHAT.mine && (CHAT.mine.msgs || []).length ? [] : faqAll(app).slice(0, 6));
+  L = L.filter(f => !CHAT.local.includes(f.id));
+  box.innerHTML = L.length ? `<div class="sgT">${v ? (chatE() ? '📖 Is this your question?' : '📖 کیا آپ یہ پوچھ رہے ہیں؟') : (chatE() ? '📖 Common questions' : '📖 عام سوالات — دبائیں، جواب فوراً')}</div>` + L.map(f => `<button class="sgB" data-act="faqOpen" data-id="${esc(f.id)}">${esc(f.q)}</button>`).join('') : '';
+}
+CHAT.local = [];
 function chatPaint() {
   const box = $('#chatMsgs'); if (!box) { softRender(); return; }
   const d = R.v === 'chat' ? CHAT.mine : CHAT.all.find(c => c.id === R.a);
-  box.innerHTML = chatMsgs(d, R.v === 'chat' ? 'c' : 'o'); box.scrollTop = box.scrollHeight;
+  box.innerHTML = chatMsgs(d, R.v === 'chat' ? 'c' : 'o');
+  if (R.v === 'chat') {
+    const L = (d && d.msgs) || [], last = L.slice().sort((a, b) => a.t - b.t).pop();
+    if (last && last.by === 'c') box.innerHTML += `<div class="chM th"><div class="b chAck">⏳ ${chatE() ? 'Your question has reached us — the reply will come right here. You can close the app.' : 'آپ کا سوال ہم تک پہنچ گیا ہے — جواب اسی جگہ آئے گا، آپ ایپ بند کر سکتے ہیں۔'}</div></div>`;
+    const all = faqAll(R.a); CHAT.local.forEach(id => { const f = all.find(x => x.id === id); if (f) box.innerHTML += faqCard(f); });
+    faqSug();
+  }
+  box.scrollTop = box.scrollHeight;
   if (R.v === 'chat' && d && d.unC && Store.chatSeen) Store.chatSeen('', 'c').catch(() => {});
   if (R.v === 'ochat' && d && d.unO && Store.chatSeen) Store.chatSeen(d.id, 'o').catch(() => {});
   if (R.v === 'chats') { const l = $('#chatList'); if (l) l.innerHTML = chatListHTML(); }
@@ -1963,8 +1996,9 @@ function vChat() {
   setTimeout(chatPaint, 30);
   return `<div class="card chBox"><div class="chH">${appIcon(a, 'appMini')}<div><b>💬 ${E ? 'Ask a question' : 'سوال پوچھیں / رہنمائی'}</b><small>${E ? 'Not a problem report — just ask. The reply comes here.' : 'یہ مسئلہ رپورٹ نہیں — بس پوچھیں؛ جواب اسی جگہ آئے گا'}</small></div></div>
     <div id="chatMsgs" class="chMsgs"></div>
+    <div id="chSug" class="chSug"></div>
     ${me.name ? '' : `<input id="chName" class="inp" maxlength="40" placeholder="${E ? 'Your name' : 'آپ کا نام'}" value="${esc(new URLSearchParams(location.search).get('name') || '')}">`}
-    <div class="chIn"><textarea id="chTx" dir="auto" rows="2" maxlength="1000" placeholder="${E ? 'Type your question…' : 'اپنا سوال لکھیں…'}"></textarea><button class="chSend" data-act="chSend" aria-label="send">➤</button></div></div>
+    <div class="chIn"><textarea id="chTx" dir="auto" rows="2" maxlength="1000" oninput="faqSug()" placeholder="${E ? 'Type your question…' : 'اپنا سوال لکھیں…'}"></textarea><button class="chSend" data-act="chSend" aria-label="send">➤</button></div></div>
     <div class="tip">${E ? 'Something not working?' : 'کوئی خرابی / مسئلہ ہے؟'} <button class="tb" data-act="new" data-id="${esc(a.id)}">➕ ${T('tellBtn')}</button></div>${foot()}`;
 }
 function chatListHTML() {
@@ -1977,7 +2011,7 @@ function chatListHTML() {
 function vChats() {
   if (!Store.isOwner()) { go('#/owner'); return ''; }
   chatAllOn();
-  return `<div class="card" style="display:flex;align-items:center;gap:8px"><b style="flex:1;font-size:18px">💬 ${chatE() ? 'Questions (chat)' : 'سوالات — چیٹ'}</b><button class="tb" data-act="owner">← ${chatE() ? 'Panel' : 'پینل'}</button></div>
+  return `<div class="card" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><b style="flex:1;font-size:18px">💬 ${chatE() ? 'Questions (chat)' : 'سوالات — چیٹ'}</b><button class="tb" data-act="faqs">📖 ${chatE() ? 'Ready answers' : 'تیار جواب'} (${(window.HD_FAQ || []).length + ((CFG && CFG.faq) || []).length})</button><button class="tb" data-act="owner">← ${chatE() ? 'Panel' : 'پینل'}</button></div>
     <div class="tip">${chatE() ? 'Guidance only — not added to problems.' : 'صرف رہنمائی والے سوال — یہ مسائل کی فہرست میں نہیں جاتے۔'}</div><div id="chatList">${chatListHTML()}</div>${foot()}`;
 }
 function vOChat() {
@@ -1988,6 +2022,33 @@ function vOChat() {
   return `<div class="card chBox"><div class="chH">${appIcon(a, 'appMini')}<div><b>${esc(c.name || '—')} <span class="num">${esc(c.phone || '')}</span></b><small>${esc(AN(a))}${c.ver ? ' · ' + esc(c.ver) : ''}</small></div><button class="tb" data-act="chats" style="margin-inline-start:auto">←</button></div>
     <div id="chatMsgs" class="chMsgs"></div>
     <div class="chIn"><textarea id="chTx" dir="auto" rows="2" maxlength="1000" placeholder="${E ? 'Reply…' : 'جواب لکھیں…'}"></textarea><button class="chSend" data-act="ocSend" data-id="${esc(R.a)}" aria-label="send">➤</button></div></div>${foot()}`;
+}
+/* مالک: اپنے جواب کو «⭐ عام جواب» بنائیں — meta/cfg.faq (گاہک پڑھ سکتے ہیں؛ گاہک کا نام / نمبر کبھی نہیں) */
+async function faqSave(t) {
+  const c = CHAT.all.find(x => x.id === R.a); if (!c) return;
+  const L = (c.msgs || []).slice().sort((a, b) => a.t - b.t), i = L.findIndex(m => m.t === t); if (i < 0) return;
+  const prevQ = (L.slice(0, i).reverse().find(m => m.by === 'c') || {}).x || '';
+  const q = prompt(chatE() ? 'Question (as customers will see it):' : 'سوال (گاہکوں کو یہی نظر آئے گا — نام / نمبر نہ لکھیں):', prevQ.slice(0, 120)); if (!q || q.trim().length < 4) return;
+  const a = prompt(chatE() ? 'Answer:' : 'جواب (ضرورت ہو تو بہتر کر دیں):', L[i].x); if (!a || a.trim().length < 4) return;
+  const app = appOf(c.app).id, f = { id: 'u' + Date.now().toString(36), app, q: q.trim(), k: [], a: a.trim(), img: [], at: Date.now() };
+  const NL = [...((CFG && CFG.faq) || []), f];
+  try { await Store.setCfg({ faq: NL }); CFG.faq = NL; toast('⭐ ' + (chatE() ? 'Added to ready answers' : 'تیار جوابوں میں جڑ گیا — اگلے گاہک کو خود ملے گا'), 4000); }
+  catch (e) { toast('⚠️ ' + (e.message || e), 4000); }
+}
+async function faqDel(id) {
+  if (!confirm(chatE() ? 'Remove this answer?' : 'یہ تیار جواب ہٹا دیں؟')) return;
+  const L = ((CFG && CFG.faq) || []).filter(f => f.id !== id);
+  try { await Store.setCfg({ faq: L }); CFG.faq = L; render(); } catch (e) { toast('⚠️ ' + (e.message || e), 4000); }
+}
+function vFaqs() {
+  if (!Store.isOwner()) { go('#/owner'); return ''; }
+  const E = chatE(), mine = (CFG && CFG.faq) || [], st = window.HD_FAQ || [];
+  const row = (f, del) => `<div class="card faqRow"><div class="h">${appIcon(appOf(f.app === '*' ? '' : f.app), 'appMini')}<b dir="auto">${esc(f.q)}</b>${del ? `<button class="tb" data-act="faqDel" data-id="${esc(f.id)}">🗑️</button>` : '<span class="chip">📌</span>'}</div>
+    <div class="x" dir="auto">${esc(f.a).replace(/\n/g, '<br>')}</div>${(f.img || []).length ? `<div class="faqImgs">${f.img.map(s => `<img src="${esc(s)}" loading="lazy" alt="">`).join('')}</div>` : ''}</div>`;
+  return `<div class="card" style="display:flex;align-items:center;gap:8px"><b style="flex:1;font-size:18px">📖 ${E ? 'Ready answers' : 'تیار جواب (FAQ)'}</b><button class="tb" data-act="chats">← 💬</button></div>
+    <div class="tip">${E ? 'Customers see these instantly while typing. ⭐ = your saved replies; 📌 = prepared with screenshots.' : 'گاہک لکھتے ہی یہ جواب فوراً دیکھتا ہے۔ ⭐ = آپ کے محفوظ جواب؛ 📌 = تصویروں کے ساتھ تیار شدہ (صبح / شام کی باری میں بڑھتے رہیں گے)۔'}</div>
+    ${mine.length ? `<div class="secT">⭐ ${E ? 'Your answers' : 'آپ کے جواب'} (${mine.length})</div>` + mine.slice().reverse().map(f => row(f, true)).join('') : ''}
+    <div class="secT">📌 ${E ? 'Prepared' : 'تیار شدہ'} (${st.length})</div>${st.map(f => row(f, false)).join('')}${foot()}`;
 }
 async function chatSend(owner, uid) {
   const tx = $('#chTx'), x = String(tx && tx.value || '').trim(); if (!x) { if (tx) tx.focus(); return; }
@@ -2011,7 +2072,14 @@ async function chatSend(owner, uid) {
 .chSend{width:48px;height:48px;border-radius:50%;border:0;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;font-size:20px;flex:none;cursor:pointer}
 .chRow{display:flex;align-items:center;gap:10px;cursor:pointer}.chRow .t{flex:1;min-width:0}.chRow .x{color:var(--mut);font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .chRow .r{text-align:center}.chRow .r small{display:block;font:11px Arial;color:var(--mut)}.chRow .r i{display:inline-block;font:700 12px Arial;background:#dc2626;color:#fff;border-radius:999px;padding:1px 8px;font-style:normal}
-.chRow.un{border-inline-start:4px solid #16a34a}.chAsk{background:linear-gradient(135deg,#0ea5e9,#2563eb)!important}`; document.head.appendChild(s); })();
+.chRow.un{border-inline-start:4px solid #16a34a}.chAsk{background:linear-gradient(135deg,#0ea5e9,#2563eb)!important}
+.chSug:empty{display:none}.chSug{display:flex;flex-direction:column;gap:5px}.chSug .sgT{font-size:13.5px;color:#0f766e;font-weight:700}
+.chSug .sgB{text-align:start;border:1.5px solid #93c5fd;background:#eff6ff;color:#1e3a8a;border-radius:12px;padding:7px 10px;font:inherit;font-size:15px;cursor:pointer;line-height:1.6}
+.faqB{max-width:92%!important;background:#fffbeb!important;border:1.5px solid #fcd34d}.faqB b{display:block;font-size:16px;margin-bottom:4px}.faqB small{display:block;color:#64748b;font-size:12.5px;margin-top:6px}
+.faqImgs{display:flex;gap:6px;overflow-x:auto;margin-top:8px}.faqImgs img{height:220px;border-radius:10px;border:1px solid #e2e8f0;flex:none}
+.chAck{background:#f1f5f9!important;color:#475569;font-size:14px!important}
+.faqStar{display:block;margin-top:4px;border:1px solid #fcd34d;background:#fffbeb;color:#92400e;border-radius:999px;padding:1px 10px;font:inherit;font-size:12.5px;cursor:pointer}
+.faqRow .h{display:flex;align-items:center;gap:8px}.faqRow .h b{flex:1}.faqRow .x{color:var(--mut);font-size:14px;line-height:1.9;margin-top:4px}`; document.head.appendChild(s); })();
 
 /* ---------- واقعات ---------- */
 let taps = 0, tapT = 0;
@@ -2523,6 +2591,10 @@ document.addEventListener('click', async e => {
     case 'chat': go('#/chat/' + encodeURIComponent(id)); break;
     case 'chats': go('#/chats'); break;
     case 'ochat': go('#/ochat/' + encodeURIComponent(id)); break;
+    case 'faqOpen': if (!CHAT.local.includes(id)) CHAT.local.push(id); chatPaint(); break;
+    case 'faqSave': faqSave(+id); break;
+    case 'faqDel': faqDel(id); break;
+    case 'faqs': go('#/faqs'); break;
     case 'chSend': chatSend(false); break;
     case 'ocSend': chatSend(true, id); break;
     case 'atab': appTab = id; render(); break;
