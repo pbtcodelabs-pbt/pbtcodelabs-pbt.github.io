@@ -36,6 +36,9 @@
     try { if (window.Store && Store.setCfg) Store.setCfg({ licSendLog: SLOG }); } catch (e) {}
   }
   const d0 = t => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
+  /* HD2311MO170 (مالک کا حکم): گاہک نے ایپ میں جو پیکج چنا (سرور want) — فہرست میں نظر، تفصیل کھولیں تو پہلے سے چنا */
+  function wantTag(w){ if(!w || !w.pkg) return ''; const p = PK.find(x => x.id === w.pkg), pr = PRICE[w.pkg] || (p && p.price) || '';
+    return '<div class="aSub" style="margin-top:3px;font-weight:800;color:#7c2d12;background:#ffedd5;border-radius:8px;padding:2px 8px;display:inline-block">📩 گاہک نے مانگا: ' + esc(p ? p.name : w.pkg) + (pr ? ' · ' + Number(String(pr).replace(/,/g, '')).toLocaleString('en-US') + ' روپے' : '') + (w.at ? ' · ' + dmy(w.at) : '') + '</div>'; }
   function slTag(aio, full) {
     const a = SLOG[APP + '|' + aio] || [];
     if (!a.length) return '<div class="aSub" style="margin-top:3px;color:#64748b">📭 ابھی تک پیغام نہیں بھیجا</div>';
@@ -236,6 +239,7 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
     const ds = await Promise.all(others.slice(0, 6).map(o => call({ op: 'aiolook', aio: o.aio }).then(x => x.who.dev).catch(() => '')));
     others.forEach((o, i) => { o.dev = ds[i] || ''; });
     SEL = { who: r.who, ent: r.ent, others, staff: r.staff || [], devmap: {} };
+    if (r.who && r.who.want && r.who.want.pkg && PK.some(x => x.id === r.who.want.pkg) && !APK) { APK = r.who.want.pkg; SHOWPK = true; }
     try {   /* HD2111SA144: پیکج پر جڑے فونز کے نام / موبائل / ID */
       const devs = []; related({ aio: r.who.aio, gmail: r.who.gmail, mobile: r.who.mobile }, [r.who.dev]).forEach(x => (Array.isArray(x.claims) ? x.claims : []).forEach(c => { if (c && c.dev && devs.indexOf(c.dev) < 0) devs.push(c.dev); }));
       if (devs.length) { const r2 = await call({ op: 'aiolook', aio, devs }); SEL.devmap = r2.devmap || {}; }
@@ -388,7 +392,7 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
     return '<div class="aBox" style="border:2px solid #0e7490">' + resHTML() +
       '<div style="font:900 15px/1.4 inherit">👤 ' + esc(w.name || '—') + ' <span class="aCode" style="font-size:14px;color:#0e7490">' + esc(w.aio) + '</span></div>' +
       '<div class="aSub" style="font-size:12px;color:#0f172a;direction:ltr;text-align:right">📱 ' + esc(aPh(w.mobile)) + (w.gmail ? ' · ✉️ ' + esc(w.gmail) : '') + '</div>' +
-      capsHTML(w, own) +
+      capsHTML(w, own) + wantTag(w.want) +
       '<div class="aSub">🗓️ بنی ' + dmy(w.made) + ' ' + hm(w.made) + (w.replacedBy ? ' · 🔁 ' + esc(w.replacedBy) : '') + '</div>' + hist + othHTML +
       '<h3 style="margin:8px 0 4px">➕ اس ID میں دن جوڑیں</h3>' +
       '<div class="aRow"><button class="aBtn grn" data-a="aadd" data-v="1" ' + (BUSY ? 'disabled' : '') + '>+1 دن</button><button class="aBtn grn" data-a="aadd" data-v="30" ' + (BUSY ? 'disabled' : '') + '>+1 مہینہ</button><button class="aBtn grn" data-a="aadd" data-v="365" ' + (BUSY ? 'disabled' : '') + '>+1 سال</button><button class="aBtn" data-a="aadd" data-v="life" ' + (BUSY ? 'disabled' : '') + '>♾️ لائف ٹائم</button></div>' +
@@ -429,7 +433,7 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
       if (st.k === 'trial') btn = tel + '<button class="aBtn grn" data-a="trialmsg" data-v="' + esc(a.aio) + '" style="padding:4px 9px;font-size:12px">💬 پیغام</button>';
       if (st.k === 'tend') btn = (st.extra ? '' : tel + '<button class="aBtn grn" data-a="trialmsg" data-v="' + esc(a.aio) + '" style="padding:4px 9px;font-size:12px">💬 پیغام</button>') + '<button class="aBtn red" data-a="adel" data-v="' + esc(a.aio) + '" style="padding:4px 9px;font-size:12px">🗑️ ہٹائیں</button>';
       const tl = (st.k === 'trial' || st.k === 'tend') ? ' · ڈاؤن لوڈ ' + dmy(a.made) + ' · ٹرائل ' + (st.k === 'trial' ? 'ختم ہو گا ' : 'ختم ہوا ') + dmy(st.exp) : (a.made ? ' · ' + dmy(a.made) : '');
-      return '<div class="aItem" data-a="pick" data-v="' + esc(a.aio) + '" style="cursor:pointer' + (dup > 1 ? ';border-right:4px solid #f59e0b' : '') + (SEL && SEL.who.aio === a.aio ? ';background:#ecfeff' : '') + '"><div class="aRow" style="flex-wrap:nowrap"><span class="aCode" style="color:#0e7490">' + esc(a.aio) + '</span><b style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(a.name || '—') + (dup > 1 ? ' <small>⚠️×' + dup + '</small>' : '') + '</b><span class="aTag ' + ch[0] + '">' + esc(ch[1]) + '</span></div><div class="aRow" style="flex-wrap:nowrap;justify-content:space-between"><div class="aSub" style="flex:1;min-width:0">' + [aPh(a.mobile), a.gmail].filter(Boolean).map(esc).join(' · ') + tl + (live(st) ? ' · 📦 ' + esc(pkn(a, st)) + (a.ent && a.ent.paid ? ' · 💰 ' + Number(a.ent.paid).toLocaleString('en-US') + ' روپے' : '') + (a.ent && a.ent.lastAt ? ' · ' + Math.max(0, Math.floor((Date.now() - a.ent.lastAt) / 864e5)) + ' دن گزرے' : '') : '') + '</div><div style="display:flex;gap:6px;flex:0 0 auto">' + btn + '</div></div>' + ((st.k === 'trial' || st.k === 'tend') && !st.extra ? slTag(a.aio) : '') + (FIL === 'act' ? (a.staff || []).map((x, i) => '<div class="aStfL">👷 ' + esc(x.name || '—') + ' · ' + esc(aPh(x.mobile)) + ' · ' + esc(x.aio) + '</div>').join('') : '') + '</div>';
+      return '<div class="aItem" data-a="pick" data-v="' + esc(a.aio) + '" style="cursor:pointer' + (dup > 1 ? ';border-right:4px solid #f59e0b' : '') + (SEL && SEL.who.aio === a.aio ? ';background:#ecfeff' : '') + '"><div class="aRow" style="flex-wrap:nowrap"><span class="aCode" style="color:#0e7490">' + esc(a.aio) + '</span><b style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(a.name || '—') + (dup > 1 ? ' <small>⚠️×' + dup + '</small>' : '') + '</b><span class="aTag ' + ch[0] + '">' + esc(ch[1]) + '</span></div><div class="aRow" style="flex-wrap:nowrap;justify-content:space-between"><div class="aSub" style="flex:1;min-width:0">' + [aPh(a.mobile), a.gmail].filter(Boolean).map(esc).join(' · ') + tl + (live(st) ? ' · 📦 ' + esc(pkn(a, st)) + (a.ent && a.ent.paid ? ' · 💰 ' + Number(a.ent.paid).toLocaleString('en-US') + ' روپے' : '') + (a.ent && a.ent.lastAt ? ' · ' + Math.max(0, Math.floor((Date.now() - a.ent.lastAt) / 864e5)) + ' دن گزرے' : '') : '') + '</div><div style="display:flex;gap:6px;flex:0 0 auto">' + btn + '</div></div>' + ((st.k === 'trial' || st.k === 'tend') && !st.extra ? slTag(a.aio) : '') + (live(st) ? '' : wantTag(a.want)) + (FIL === 'act' ? (a.staff || []).map((x, i) => '<div class="aStfL">👷 ' + esc(x.name || '—') + ' · ' + esc(aPh(x.mobile)) + ' · ' + esc(x.aio) + '</div>').join('') : '') + '</div>';
     }).join('') + (list.length > SHOW ? '<button class="aBtn" data-a="amore" style="width:100%;margin-top:8px">⬇️ مزید دکھائیں (' + (list.length - SHOW) + ')</button>' : '') || '<div class="aSub" style="margin-top:8px">' + (BUSY ? '⏳' : 'اس خانے میں کوئی ID نہیں') + '</div>';
   }
   function drawList() { const n = document.getElementById('aiList'); if (n) n.innerHTML = listHTML(); }
