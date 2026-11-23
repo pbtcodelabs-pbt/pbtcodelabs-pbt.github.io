@@ -9,9 +9,9 @@
   const OLD = window.licOpen;
   if (typeof OLD !== 'function') return;
   const API = 'https://aio-pos-verify.pbtcodelabs.workers.dev/entadmin';
-  const TRIAL_DAYS = 7;   /* ⚠️ AIO POS کے مفت ٹرائل کے دن — ID بننے کی تاریخ سے گنے جاتے ہیں */
-  const TABS = [['MCS', 'My City Shines'], ['SM', 'سبزی منڈی'], ['DR', 'AIO Direct'], ['AIO', 'AIO POS']];   /* HD2211SU163 (مالک کا حکم): سبزی منڈی بھی SM ID پر — AIO Direct جیسا */
-  const IDN = () => APP === 'SM' ? 'SM ID' : 'AIO ID';
+  const TD = () => APP === 'MD' ? 3 : 7;   /* ⚠️ مفت ٹرائل کے دن — ID بننے کی تاریخ سے؛ MD2311MO028: مدرسہ 3 دن */
+  const TABS = [['MCS', 'My City Shines'], ['SM', 'سبزی منڈی'], ['MD', 'مدرسہ'], ['DR', 'AIO Direct'], ['AIO', 'AIO POS']];   /* MD2311MO028 (مالک کا حکم): مدرسہ سافٹ ویئر بھی MD ID پر — سبزی منڈی جیسا */   /* HD2211SU163 (مالک کا حکم): سبزی منڈی بھی SM ID پر — AIO Direct جیسا */
+  const IDN = () => APP === 'SM' ? 'SM ID' : APP === 'MD' ? 'MD ID' : 'AIO ID';
   let APP = 'AIO', AIDS = [], ENTS = [], PK = [], PRICE = {}, AQ = '', SHOW = 40, SEL = null, APK = '', SHOWPK = false, BUSY = false, MSG = '', OK = true, RES = null, SHARE = '', GRP = {}, FIL = 'su', ST = {};
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const p2 = n => String(n).padStart(2, '0');
@@ -170,7 +170,7 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
     const ss = list.map(stOne).filter(Boolean), g = k => ss.filter(s => s.k === k);
     return g('life')[0] || g('act').sort((p, q) => q.exp - p.exp)[0] || g('rev')[0] || g('exp').sort((p, q) => q.exp - p.exp)[0] || null;
   }
-  function trial(a) { const end = (a.made || 0) + TRIAL_DAYS * 864e5, left = dayLeft(end); return left > 0 ? { k: 'trial', left, exp: end } : { k: 'tend', exp: end }; }
+  function trial(a) { const end = (a.made || 0) + TD() * 864e5, left = dayLeft(end); return left > 0 ? { k: 'trial', left, exp: end } : { k: 'tend', exp: end }; }
   const actAt = e => { const h = (e.hist || [])[(e.hist || []).length - 1]; return (h && h.at) || e.usedAt || e.redeemed || e.at || 0; };
   const live = s => !!s && (s.k === 'act' || s.k === 'life');
   function chip(s) {
@@ -213,6 +213,9 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
   const waNum = m => { const d = String(m || '').replace(/\D/g, ''); return d.startsWith('92') ? d : d.startsWith('0') ? '92' + d.slice(1) : d.length === 10 ? '92' + d : d; };
   function trialMsg(a) {
     const t = a && a.made ? trial(a) : null;
+    if (APP === 'MD') return t && t.k === 'trial'
+      ? ['السلام علیکم' + (a.name ? ' ' + a.name : '') + '! 🌹', '', 'امید ہے مدرسہ سافٹ ویئر (جامعہ مینجمنٹ) آپ کو پسند آ رہا ہے۔ کوئی مشورہ یا مشکل ہو تو ضرور بتائیں۔', '', '⏳ آپ کے مفت ٹرائل کے ' + t.left + ' دن باقی ہیں۔', '📦 پیکج: ایک موبائل — 500 روپے مہینہ یا 5,000 روپے سال؛ دو موبائل (منتظم + استاد، والدین کا لنک شامل) — 1,000 روپے مہینہ یا 10,000 روپے سال۔', 'پیکج لگوانا ہو تو اسی پیغام کا جواب دیں — آپ کی MD ID پر لگ جائے گا، کوئی کوڈ نہیں۔', '', 'جزاک اللہ 🙏'].join('\n')
+      : ['السلام علیکم' + (a && a.name ? ' ' + a.name : '') + '! 🌹', '', 'مدرسہ سافٹ ویئر کا آپ کا مفت ٹرائل ختم ہو چکا ہے۔', '📦 پیکج: ایک موبائل — 500 روپے مہینہ یا 5,000 روپے سال؛ دو موبائل (منتظم + استاد، والدین کا لنک شامل) — 1,000 روپے مہینہ یا 10,000 روپے سال۔', 'جاری رکھنے کے لیے اسی پیغام کا جواب دیں — آپ کی MD ID پر پیکج لگ جائے گا اور ایپ خود چالو ہو جائے گی۔', '', 'جزاک اللہ 🙏'].join('\n');
     if (APP === 'SM') return t && t.k === 'trial'
       ? ['السلام علیکم' + (a.name ? ' ' + a.name + ' صاحب' : '') + '! 🌹', '', 'امید ہے سبزی منڈی ایپ آپ کو پسند آ رہی ہے۔ کوئی مشورہ یا مشکل ہو تو ضرور بتائیں۔', '', '⏳ آپ کے مفت ٹرائل کے ' + t.left + ' دن باقی ہیں۔', 'ایپ لگاتار چلانے کے لیے پیکج لگوانا ہو تو اسی پیغام کا جواب دیں — آپ کی SM ID پر پیکج لگا دیا جائے گا، کوئی کوڈ نہیں۔', '', 'جزاک اللہ 🙏'].join('\n')
       : ['السلام علیکم' + (a && a.name ? ' ' + a.name + ' صاحب' : '') + '! 🌹', '', 'سبزی منڈی ایپ کا آپ کا مفت ٹرائل ختم ہو چکا ہے۔', 'ایپ جاری رکھنے کے لیے پیکج لگوائیں — اسی پیغام کا جواب دیں، آپ کی SM ID پر پیکج لگا دیا جائے گا اور ایپ خود چالو ہو جائے گی۔', '', 'جزاک اللہ 🙏'].join('\n');
@@ -274,7 +277,7 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
       if (!own1) rows.push('ℹ️ یہ پیکج اس بندے کی جی میل / موبائل کی چابی سے ہے');
     } else if (s.k === 'trial') {
       cls = 't'; head = '🎁 ٹرائل چل رہا ہے — ' + s.left + ' دن باقی';
-      rows.push('📥 ڈاؤن لوڈ (ID بنی): <b>' + dmy(w.made) + '</b> · ٹرائل ختم ہو گا: <b>' + dmy(s.exp) + '</b> <small>(ٹرائل ' + TRIAL_DAYS + ' دن)</small>');
+      rows.push('📥 ڈاؤن لوڈ (ID بنی): <b>' + dmy(w.made) + '</b> · ٹرائل ختم ہو گا: <b>' + dmy(s.exp) + '</b> <small>(ٹرائل ' + TD() + ' دن)</small>');
       btn = '<div class="aRow" style="margin-top:8px"><button class="aBtn grn" data-a="trialmsg" data-v="' + esc(w.aio) + '">💬 ٹرائل کا پیغام بنائیں</button></div>';
     } else if (s.extra) {
       cls = 'd'; head = '🗂️ فالتو ID — اس بندے کا پیکج دوسری ID پر چل رہا ہے';
@@ -291,6 +294,7 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
   function aioMsg(w, e) {
     if (!w || !e) return '';
     const h = (e.hist || [])[(e.hist || []).length - 1] || {};
+    if (APP === 'MD') return ['✅ مدرسہ سافٹ ویئر — آپ کا پیکج چالو ہو گیا', '', '🕌 ' + (w.name || e.name || ''), '🆔 MD ID: ' + w.aio, w.mobile ? '📱 موبائل: ' + aPh(w.mobile) : '', '📦 پیکج: ' + (h.pkg || e.pkgName || ''), '📅 شروع: ' + dmy(h.at || Date.now()), e.life ? '♾️ لائف ٹائم' : '⏳ ختم: ' + dmy(e.exp), e.revoked ? '⛔ معطل' : '', '', 'اپنے فون پر مدرسہ ایپ کھولیں — پیکج خود لگ جائے گا، کوئی کوڈ نہیں۔'].filter((x, i) => x || i === 1 || i === 9).join('\n');
     if (APP === 'SM') return ['✅ سبزی منڈی — آپ کا پیکج چالو ہو گیا', '', '👤 نام: ' + (w.name || e.name || ''), '🆔 SM ID: ' + w.aio, w.mobile ? '📱 موبائل: ' + aPh(w.mobile) : '', '📦 پیکج: ' + (h.pkg || e.pkgName || ''), '📅 شروع: ' + dmy(h.at || Date.now()), e.life ? '♾️ لائف ٹائم' : '⏳ ختم: ' + dmy(e.exp), e.revoked ? '⛔ معطل' : '', '', 'اپنے فون پر سبزی منڈی ایپ کھولیں — پیکج خود لگ جائے گا، کوئی کوڈ نہیں۔'].filter((x, i) => x || i === 1 || i === 9).join('\n');
     const L1 = ['✅ ' + (APP === 'DR' ? 'AIO POS Direct' : 'AIO POS') + ' — package activated', '', '👤 Name: ' + (w.name || e.name || ''), '🆔 AIO ID: ' + w.aio];
     if (w.mobile) L1.push('📱 Mobile: ' + aPh(w.mobile)); if (w.gmail) L1.push('✉️ Gmail: ' + w.gmail);
@@ -332,7 +336,7 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
     const tot = (e.hist || []).reduce((x, h) => x + (parseFloat(String(h.price || '').replace(/,/g, '')) || 0), 0);
     const row = (k, v) => '<div style="display:flex;justify-content:space-between;gap:8px;padding:3px 0;border-bottom:1px dashed #cbd5e1"><span style="color:#475569">' + k + '</span><b style="text-align:left">' + v + '</b></div>';
     return '<div style="background:#f8fafc;border:1.5px solid #0e7490;border-radius:12px;padding:8px 10px;margin-top:6px;font-size:13.5px;line-height:1.7">'
-      + row('📦 پیکج', esc(pi.name || '—')) + row('👥 فون', (e.devices || 1) + (APP === 'SM' && (e.devices || 1) > 1 ? ' (مالک + ' + ((e.devices || 1) - 1) + ' ملازم)' : ''))
+      + row('📦 پیکج', esc(pi.name || '—')) + row('👥 فون', (e.devices || 1) + (APP === 'SM' && (e.devices || 1) > 1 ? ' (مالک + ' + ((e.devices || 1) - 1) + ' ملازم)' : APP === 'MD' && (e.devices || 1) > 1 ? ' (منتظم + استاد)' : ''))
       + row('💰 اس پیکج کی رقم', pi.price ? fm(pi.price) + ' روپے' : '<span style="color:#b91c1c">نہیں لکھی</span>')
       + (tot && String(tot) !== String(pi.price).replace(/,/g, '') ? row('💵 اس ID کی کل ادائیگی', fm(tot) + ' روپے') : '')
       + row('📅 لگا', at ? dmy(at) + ' ' + hm(at) : '—') + row('⏳ ختم', e.life ? '♾️ لائف ٹائم' : dmy(e.exp) + (s.k === 'act' ? ' · باقی ' + s.left + ' دن' : ''))
@@ -437,7 +441,7 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
       (MSG ? '<div class="aMsg ' + (OK ? 'ok' : 'bad') + '">' + esc(MSG) + '</div>' : '') + detailHTML() +
       '<div class="aBox">' + filHTML() +
       '<div class="aRow" style="flex-wrap:nowrap"><input type="text" id="aiQ" maxlength="40" value="' + esc(AQ) + '" placeholder="تلاش: نام / ' + IDN() + ' / موبائل" style="direction:ltr"><button class="aBtn" data-a="aref" ' + (BUSY ? 'disabled' : '') + '>🔄</button></div><div id="aiList">' + listHTML() + '</div></div>' +
-      '<div class="aBox"><button class="aBtn" data-a="oldscr" style="width:100%">🛠️ پیکج بنانا / بدلنا (پرانی سکرین)</button></div>';
+      (APP === 'MD' ? '' : '<div class="aBox"><button class="aBtn" data-a="oldscr" style="width:100%">🛠️ پیکج بنانا / بدلنا (پرانی سکرین)</button></div>');   /* MD: پرانی سکرین مدرسہ نہیں جانتی — قیمت یہیں پیکج کے ساتھ */
   }
 
   /* ———— ڈویلپر پاس ورڈ — ہر تبدیلی سے پہلے ———— */
@@ -517,6 +521,7 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
     if (a === 'ashare') { SHARE = aioMsg(w, SEL.ent); draw(); return; }
     if (a === 'apay') {
       const p = PK.find(x => x.id === APK); if (!p) return;
+      if (APP === 'MD') { SHARE = ['مدرسہ سافٹ ویئر — ' + p.name, '🆔 MD ID: ' + w.aio, '🕌 ' + name, '⏳ ' + p.days + ' دن · 📱 ' + (p.devices > 1 ? 'دو موبائل (منتظم + استاد، والدین کا لنک)' : 'ایک موبائل'), PRICE[p.id] ? '💰 رقم: ' + PRICE[p.id] + ' روپے' : '', '', 'رقم بھیج کر اسکرین شاٹ بھیج دیں — تصدیق کے بعد پیکج آپ کی ایپ میں خود لگ جائے گا، کوئی کوڈ نہیں۔'].filter((x, i) => x || i === 5).join('\n'); draw(); return; }
       if (APP === 'SM') { SHARE = ['سبزی منڈی — ' + p.name, '🆔 SM ID: ' + w.aio, '👤 ' + name, (p.life ? '♾️ لائف ٹائم' : '⏳ ' + p.days + ' دن') + ' · 👥 مالک' + (p.devices > 1 ? ' + ' + (p.devices - 1) + ' ملازم' : ''), PRICE[p.id] ? '💰 رقم: ' + PRICE[p.id] + ' روپے' : '', '', 'رقم بھیج کر اسکرین شاٹ بھیج دیں — پیکج فوراً آپ کی ایپ میں خود لگ جائے گا، کوئی کوڈ نہیں۔'].filter((x, i) => x || i === 5).join('\n'); draw(); return; }
       SHARE = [(APP === 'DR' ? 'AIO POS Direct — ' : 'AIO POS — ') + p.name, '🆔 AIO ID: ' + w.aio, '👤 ' + name, (p.life ? '♾️ Lifetime' : '⏳ ' + p.days + ' days') + ' · 📱 ' + p.devices + ' phone(s)', PRICE[p.id] ? '💰 Amount: Rs ' + PRICE[p.id] : '', '', 'Please send the payment and a screenshot. Your package will be switched on right after — no code needed.'].filter((x, i) => x || i === 5).join('\n');
       draw(); return;
@@ -532,7 +537,9 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
     }
     if (a === 'aact') {
       const p = PK.find(x => x.id === APK); if (!p) return;
-      guarded('<b>' + esc(w.aio) + '</b> (' + esc(name) + ') پر <b>«' + esc(p.name) + '»</b>' + (PRICE[p.id] ? ' (Rs ' + esc(PRICE[p.id]) + ')' : '') + ' ایکٹیو ہو گا۔ پاس ورڈ لکھیں:', async () => {
+      /* MD2311MO028 (مالک کا حکم — سب ایپس): پیسے وصول ہونے سے پہلے ایکٹیو نہیں — پہلے پیسوں کی تصدیق، پھر ایکٹیو کی دوسری تصدیق */
+      if (!window.confirm('💰 پیسوں کی تصدیق (1/2)\n\n' + (name || w.aio) + ' (' + w.aio + ')\nپیکج: ' + p.name + (PRICE[p.id] ? '\nرقم: ' + PRICE[p.id] + ' روپے' : '') + '\n\nکیا یہ رقم آپ کے اکاؤنٹ میں واقعی وصول ہو چکی ہے؟')) { say('⏸️ پیکج نہیں لگا — پہلے رقم وصول کریں («💰 ادائیگی کا پیغام» بھیج سکتے ہیں)', false); return; }
+      guarded('<b>' + esc(w.aio) + '</b> (' + esc(name) + ') پر <b>«' + esc(p.name) + '»</b>' + (PRICE[p.id] ? ' (Rs ' + esc(PRICE[p.id]) + ')' : '') + ' ایکٹیو ہو گا (2/2 — آخری تصدیق)۔ پاس ورڈ لکھیں:', async () => {
         const r = await call({ op: 'aiogrant', aio: w.aio, pkgId: p.id, price: PRICE[p.id] || '' });
         APK = ''; SHOWPK = false; SHARE = aioMsg(r.who, r.ent); await refresh(w.aio); makeRes('✅ پیکج ایکٹیو ہو گیا', SEL && SEL.ent ? SEL : r); MSG = '';
       });
@@ -552,7 +559,7 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
     if (!window.Store || !Store.isOwner || !Store.isOwner()) { try { toast('🔒'); } catch (e) {} return; }
     window.__licBypass = false;
     const old = document.getElementById('licOv'); if (old) old.remove();
-    APP = app === 'DR' ? 'DR' : app === 'SM' ? 'SM' : 'AIO'; try { localStorage.setItem('lic_app', APP); } catch (e) {}
+    APP = app === 'DR' ? 'DR' : app === 'SM' ? 'SM' : app === 'MD' ? 'MD' : 'AIO'; try { localStorage.setItem('lic_app', APP); } catch (e) {}
     SEL = null; APK = ''; SHOWPK = false; RES = null; SHARE = ''; MSG = ''; AQ = ''; SHOW = 40; loadLocal();
     css();
     let o = document.getElementById('aiOv'); if (o) o.remove();
