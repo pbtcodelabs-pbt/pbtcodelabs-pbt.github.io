@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2311MO169';
-const UPDATE_NOTE = '🕌 «📦 تازہ زپ» میں مدرسے کے آئیکن کے ساتھ بھی «✅ Activate package (MD ID)» — مدرسے کی سب IDs، ٹرائل اور چار پیکج سیدھے وہیں سے';
+const APP_VERSION = 'HD2311MO170';
+const UPDATE_NOTE = '📩 Activate package: گاہک نے ایپ میں جو پیکج چنا وہ فہرست میں ID کے ساتھ نظر آتا ہے اور کھولنے پر پہلے سے چنا ہوتا ہے';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
