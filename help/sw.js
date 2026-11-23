@@ -1,6 +1,6 @@
 // PBT Help Desk — صرف اپنا کیش (pbt-helpdesk-) چھیڑتا ہے، اسی ویب سائٹ کی دوسری ایپس کا نہیں
-const CACHE_NAME = 'pbt-helpdesk-HD2311MO171';
-const FILES = ['./', './index.html', './app.js', './zips.js', './store.js', './cloud-config.js', './upd.js', './widget.js', './lic.js', './aioid.js', './manifest.json', './icons/icon-192.png'];
+const CACHE_NAME = 'pbt-helpdesk-HD2311MO172';
+const FILES = ['./', './index.html', './app.js', './faq.js', './zips.js', './store.js', './cloud-config.js', './upd.js', './widget.js', './lic.js', './aioid.js', './manifest.json', './icons/icon-192.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(FILES)).catch(() => {}));
   self.skipWaiting();
