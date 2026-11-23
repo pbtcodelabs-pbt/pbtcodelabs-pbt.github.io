@@ -63,7 +63,8 @@
       if (o[k]) q.push((k === 'ver' ? 'v' : k) + '=' + encodeURIComponent(o[k]));
     });
     // HD0411WE038: پہلے سے لکھا پیغام (text) ہو تو سیدھا فارم
-    return BASE + '?' + q.join('&') + (o.app ? (o.text ? '#/new/' : '#/app/') + encodeURIComponent(o.app) : '#/');
+    // HD2311MO171: type 'chat' = سیدھا «💬 سوال پوچھیں» کی چیٹ
+    return BASE + '?' + q.join('&') + (o.app ? (o.type === 'chat' ? '#/chat/' : o.text ? '#/new/' : '#/app/') + encodeURIComponent(o.app) : '#/');
   }
   function open(o) {
     o = Object.assign({}, CFG, o || {});
