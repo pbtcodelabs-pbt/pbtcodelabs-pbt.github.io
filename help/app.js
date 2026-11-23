@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2311MO168';
-const UPDATE_NOTE = '🕌 «✅ Activate package» میں نیا ٹیب «مدرسہ» (MD ID) — سائن اپ / 3 دن ٹرائل / پیغام، چار پیکج قیمت کے ساتھ؛ ہر ایکٹیویشن سے پہلے «💰 پیسے وصول ہوئے؟» کی دوہری تصدیق';
+const APP_VERSION = 'HD2311MO169';
+const UPDATE_NOTE = '🕌 «📦 تازہ زپ» میں مدرسے کے آئیکن کے ساتھ بھی «✅ Activate package (MD ID)» — مدرسے کی سب IDs، ٹرائل اور چار پیکج سیدھے وہیں سے';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -672,7 +672,7 @@ function zipSheet() {
         <div class="zpMv"><button type="button" data-act="zUp" data-id="${esc(a.id)}" aria-label="Up"${ix === 0 ? ' disabled' : ''}>▲</button><button type="button" data-act="zDn" data-id="${esc(a.id)}" aria-label="Down"${ix === L.length - 1 ? ' disabled' : ''}>▼</button></div>
         <div class="zpIc">${appIcon(a, 'appMini')}</div>
         <div class="zpNm"><b>${esc(ZN(a))}</b><small class="num">${c && c.err ? '⚠️ ' + esc(c.err) : c && c.busy ? '⏳ ' + esc(c.busy) : zipLbl(a.id, c).replace('⬇️ Download latest zip', '📦 Latest zip')}</small></div>
-        ${(a.id === 'AIO' || a.id === 'MCS' || a.id === 'AIO-POS-DIRECT' || a.id === 'SM') ? `<div class="zpLic"><button class="tb zpRf" data-act="zipRf" data-id="${esc(a.id)}">🔄</button><div class="zpLicBox"><button class="zpLicB" data-act="lic" data-id="${esc(a.id === 'AIO-POS-DIRECT' ? 'DR' : a.id)}">${a.id === 'MCS' ? '✅ Activate business (1 year)' : a.id === 'SM' ? '✅ Activate package (SM ID)' : '✅ Activate package (AIO ID)'}</button></div></div>` : `<button class="tb zpRf" data-act="zipRf" data-id="${esc(a.id)}">🔄</button>`}
+        ${(a.id === 'AIO' || a.id === 'MCS' || a.id === 'AIO-POS-DIRECT' || a.id === 'SM' || a.id === 'Hifz-progress') ? `<div class="zpLic"><button class="tb zpRf" data-act="zipRf" data-id="${esc(a.id)}">🔄</button><div class="zpLicBox"><button class="zpLicB" data-act="lic" data-id="${esc(a.id === 'AIO-POS-DIRECT' ? 'DR' : a.id === 'Hifz-progress' ? 'MD' : a.id)}">${a.id === 'MCS' ? '✅ Activate business (1 year)' : a.id === 'SM' ? '✅ Activate package (SM ID)' : a.id === 'Hifz-progress' ? '✅ Activate package (MD ID)' : '✅ Activate package (AIO ID)'}</button></div></div>` : `<button class="tb zpRf" data-act="zipRf" data-id="${esc(a.id)}">🔄</button>`}
       </div>
       <div class="zpCols">
         <div class="zpCol zpDl"><div class="zpH">⬇️ DOWNLOAD</div>
