@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2311MO170';
-const UPDATE_NOTE = '📩 Activate package: گاہک نے ایپ میں جو پیکج چنا وہ فہرست میں ID کے ساتھ نظر آتا ہے اور کھولنے پر پہلے سے چنا ہوتا ہے';
+const APP_VERSION = 'HD2311MO171';
+const UPDATE_NOTE = '💬 سوال پوچھیں (چیٹ): گاہک ایپ سے سیدھا سوال / رہنمائی پوچھے، جواب ڈویلپر پینل «💬 سوالات» سے — مسائل کی فہرست میں نہیں جاتا، ذاتی واٹس ایپ کی ضرورت نہیں';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -495,7 +495,7 @@ function issueCard(i, opts) {
     </div></div>`;
 }
 function vApp() {
-  const a = appOf(R.a);
+  const a = appOf(R.a); chatMineOn();
   const pub = publicList().filter(i => i.app === a.id);
   const mine = myList().filter(i => i.app === a.id && !i.pub);
   const open = pub.filter(isOpen), done = pub.filter(i => i.status === 'done');
@@ -507,6 +507,7 @@ function vApp() {
       <small>🔧 ${open.length} ${T('pending')} · ✅ ${weekSolved(pub)} ${T('solvedWeek')}</small></div></div>
       ${weekSolved(pub) ? `<div class="goodBar">✅ ${T('solvedWeek')}: ${weekSolved(pub)}</div>` : ''}</div>
     <button class="bigBtn" data-act="new" data-id="${esc(a.id)}">➕ ${T('tellBtn')}</button>
+    <button class="bigBtn chAsk" data-act="chat" data-id="${esc(a.id)}">💬 ${LANG === 'en' ? 'Ask a question (chat)' : 'سوال پوچھیں / رہنمائی (چیٹ)'}${CHAT.mine && CHAT.mine.unC ? ` <span class="chip mine">🔔 ${CHAT.mine.unC} ${LANG === 'en' ? 'new reply' : 'نیا جواب'}</span>` : ''}</button>
     <div class="tip">${T('dupTip')}</div>`;
   const cards = list.length ? list.map(i => issueCard(i)).join('') :
     `<div class="empty"><span class="e">${appTab === 'open' ? '🌿' : '🗂️'}</span>${appTab === 'open' ? T('noOpen') : T('noDone')}</div>`;
@@ -1594,6 +1595,7 @@ function vOwner() {
   if (!Store.isOwner()) { setTimeout(loginSheet, 50); return `<div class="card empty"><span class="e">🔒</span>Developer</div>`; }
   cleanup();
   if (!PANEL) loadPanel();
+  chatAllOn();
   const C = s => ISSUES.filter(i => tabOk(i, s) && (!O.app || i.app === O.app)).length;
   const tabs = [['urg', '⚡ ' + (LANG === 'en' ? 'Urgent' : 'فوری')], ['open', '🔓 ' + (LANG === 'en' ? 'Open' : 'کھلے')], ['req', '🔑 ' + (LANG === 'en' ? 'Account / Ad requests' : 'اکاؤنٹ / اشتہار درخواستیں')], ['hold', '⏳ ' + (LANG === 'en' ? 'Approval' : 'منظوری')], ['park', '⏸️ ' + (LANG === 'en' ? 'Parked' : 'رکے')], ['send', '📨 ' + (LANG === 'en' ? 'To send' : 'بھیجنا باقی')], ['new', '📥 ' + T('s_new')], ['seen', '👀 ' + T('s_seen')], ['work', '🔧 ' + T('s_work')], ['done', '✅ ' + T('s_done')], ['dup', '🔗 ' + T('s_dup')], ['all', LANG === 'en' ? 'All' : 'سب']];
   const list = ownFiltered();
@@ -1620,7 +1622,7 @@ function vOwner() {
   return `<div class="own">
     <div class="card" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
       <b style="font-size:19px;flex:1">🛠️ ${LANG === 'en' ? 'Developer panel' : 'ڈویلپر پینل'}</b>
-      <button class="tb ${pushOn() ? 'grn' : 'pri'}" data-act="push" title="Notifications">🔔${pushOn() ? ' ✓' : ` ${LANG === 'en' ? 'Turn on alerts' : 'اطلاعات چالو کریں'}`}</button><button class="tb" data-act="settings">⚙️</button><button class="tb" data-act="logout">🚪</button></div>
+      <button class="tb ${chatUnreadO() ? 'grn' : ''}" data-act="chats">💬 ${LANG === 'en' ? 'Questions' : 'سوالات'}${chatUnreadO() ? ` <b>(${chatUnreadO()})</b>` : ''}</button><button class="tb ${pushOn() ? 'grn' : 'pri'}" data-act="push" title="Notifications">🔔${pushOn() ? ' ✓' : ` ${LANG === 'en' ? 'Turn on alerts' : 'اطلاعات چالو کریں'}`}</button><button class="tb" data-act="settings">⚙️</button><button class="tb" data-act="logout">🚪</button></div>
     <div class="card stats" style="grid-template-columns:repeat(4,1fr)">
       ${countsHTML(hdCounts(ISSUES.filter(i => !O.app || i.app === O.app)))}
       <div class="st g"><span class="v">${weekSolved(ISSUES.filter(i => !O.app || i.app === O.app))}</span><span class="l">✅ ${T('solvedWeek')}</span></div></div>
@@ -1901,7 +1903,7 @@ function settingsSheet() {
 /* ---------- رینڈر ---------- */
 function render() {
   header();
-  const V = { home: vHome, app: vApp, new: vForm, thanks: vThanks, mine: vMine, i: vOne, owner: vOwner, party: vParty }[R.v] || vHome;
+  const V = { home: vHome, app: vApp, new: vForm, thanks: vThanks, mine: vMine, i: vOne, owner: vOwner, party: vParty, chat: vChat, chats: vChats, ochat: vOChat }[R.v] || vHome;
   $('#main').innerHTML = V();
   if (R.v === 'new' && F && F.acct) { setTimeout(acctSend, 300); }
   else if (R.v === 'new') { bindForm(); const ft = $('#fText'); if (ft && ft.value) { ft.style.height = 'auto'; ft.style.height = Math.min(ft.scrollHeight + 4, Math.round(innerHeight * 0.6)) + 'px'; } }
@@ -1930,6 +1932,86 @@ function bindForm() {
   d.ondragleave = () => d.classList.remove('over');
   d.ondrop = e => { e.preventDefault(); d.classList.remove('over'); addShots([...e.dataTransfer.files]); };
 }
+
+/* ---------- 💬 سوال / رہنمائی کی چیٹ (HD2311MO171، مالک کا حکم) ----------
+   مسئلہ رپورٹ نہیں — صرف پوچھنا / رہنمائی؛ ذاتی واٹس ایپ کی جگہ۔ ہر موبائل کی ایک گفتگو: chats/<uid> {uid, app, name, phone, ver, created, upd, lastBy, unO, unC, msgs:[{t, by:'c'|'o', x}]}
+   گاہک: #/chat/<ایپ> · مالک: ڈویلپر پینل «💬 سوالات» → #/chats → #/ochat/<uid> */
+const CHAT = { mine: null, all: [], offM: null, offA: null };
+const chatE = () => LANG === 'en';
+/* سننا ایک بار؛ آنے والی تبدیلی پر اسکرین اگلی باری میں (رینڈر کے اندر رینڈر نہیں) */
+function chatMineOn() { if (CHAT.offM || !Store.chatMine) return; CHAT.offM = 1; const o = Store.chatMine(d => { CHAT.mine = d; setTimeout(() => { if (R.v === 'chat') chatPaint(); else if (R.v === 'app') softRender(); }, 0); }); CHAT.offM = o || 1; }
+function chatAllOn() { if (CHAT.offA || !Store.chatAll || !Store.isOwner()) return; CHAT.offA = 1; const o = Store.chatAll(l => { CHAT.all = l; setTimeout(() => { if (R.v === 'chats' || R.v === 'ochat') chatPaint(); else if (R.v === 'owner') softRender(); }, 0); }); CHAT.offA = o || 1; }
+const chatUnreadO = () => CHAT.all.filter(c => (c.unO || 0) > 0).length;
+function chatTime(t) { const d = new Date(t), n = new Date(); const hm = d.getHours() % 12 || 12; const tm = hm + ':' + String(d.getMinutes()).padStart(2, '0') + (d.getHours() < 12 ? ' AM' : ' PM'); return d.toDateString() === n.toDateString() ? tm : d.getDate() + '/' + (d.getMonth() + 1) + ' ' + tm; }
+function chatMsgs(d, side) {
+  const L = (d && d.msgs) || [];
+  if (!L.length) return `<div class="chEmpty">${side === 'c' ? (chatE() ? '👋 Ask your question — we will reply right here.' : '👋 اپنا سوال لکھیں — جواب اسی جگہ آئے گا۔') : '—'}</div>`;
+  return L.slice().sort((a, b) => a.t - b.t).map(m => { const mine = m.by === side;
+    return `<div class="chM ${mine ? 'me' : 'th'}"><div class="b" dir="auto">${m.by === 'o' && !mine ? '<i>PBT Help Desk</i>' : ''}${esc(m.x).replace(/\n/g, '<br>')}<span class="tm">${chatTime(m.t)}</span></div></div>`; }).join('');
+}
+function chatPaint() {
+  const box = $('#chatMsgs'); if (!box) { softRender(); return; }
+  const d = R.v === 'chat' ? CHAT.mine : CHAT.all.find(c => c.id === R.a);
+  box.innerHTML = chatMsgs(d, R.v === 'chat' ? 'c' : 'o'); box.scrollTop = box.scrollHeight;
+  if (R.v === 'chat' && d && d.unC && Store.chatSeen) Store.chatSeen('', 'c').catch(() => {});
+  if (R.v === 'ochat' && d && d.unO && Store.chatSeen) Store.chatSeen(d.id, 'o').catch(() => {});
+  if (R.v === 'chats') { const l = $('#chatList'); if (l) l.innerHTML = chatListHTML(); }
+}
+function vChat() {
+  chatMineOn();
+  const a = appOf(R.a), me = ls.get('me', {}), E = chatE();
+  setTimeout(chatPaint, 30);
+  return `<div class="card chBox"><div class="chH">${appIcon(a, 'appMini')}<div><b>💬 ${E ? 'Ask a question' : 'سوال پوچھیں / رہنمائی'}</b><small>${E ? 'Not a problem report — just ask. The reply comes here.' : 'یہ مسئلہ رپورٹ نہیں — بس پوچھیں؛ جواب اسی جگہ آئے گا'}</small></div></div>
+    <div id="chatMsgs" class="chMsgs"></div>
+    ${me.name ? '' : `<input id="chName" class="inp" maxlength="40" placeholder="${E ? 'Your name' : 'آپ کا نام'}" value="${esc(new URLSearchParams(location.search).get('name') || '')}">`}
+    <div class="chIn"><textarea id="chTx" dir="auto" rows="2" maxlength="1000" placeholder="${E ? 'Type your question…' : 'اپنا سوال لکھیں…'}"></textarea><button class="chSend" data-act="chSend" aria-label="send">➤</button></div></div>
+    <div class="tip">${E ? 'Something not working?' : 'کوئی خرابی / مسئلہ ہے؟'} <button class="tb" data-act="new" data-id="${esc(a.id)}">➕ ${T('tellBtn')}</button></div>${foot()}`;
+}
+function chatListHTML() {
+  const L = CHAT.all.slice().sort((x, y) => ((y.unO || 0) > 0) - ((x.unO || 0) > 0) || y.upd - x.upd);
+  if (!L.length) return `<div class="card empty"><span class="e">💬</span>${chatE() ? 'No questions yet' : 'ابھی کوئی سوال نہیں'}</div>`;
+  return L.map(c => { const a = appOf(c.app), last = (c.msgs || []).slice().sort((x, y) => y.t - x.t)[0] || {};
+    return `<div class="card chRow${c.unO ? ' un' : ''}" data-act="ochat" data-id="${esc(c.id)}">${appIcon(a, 'appMini')}<div class="t"><b>${esc(c.name || '—')}</b> <span class="num">${esc(c.phone || '')}</span> · ${esc(AN(a))}<div class="x" dir="auto">${last.by === 'o' ? '↩️ ' : ''}${esc(String(last.x || '').slice(0, 90))}</div></div>
+      <div class="r"><small>${c.upd ? chatTime(c.upd) : ''}</small>${c.unO ? `<i>${c.unO}</i>` : ''}</div></div>`; }).join('');
+}
+function vChats() {
+  if (!Store.isOwner()) { go('#/owner'); return ''; }
+  chatAllOn();
+  return `<div class="card" style="display:flex;align-items:center;gap:8px"><b style="flex:1;font-size:18px">💬 ${chatE() ? 'Questions (chat)' : 'سوالات — چیٹ'}</b><button class="tb" data-act="owner">← ${chatE() ? 'Panel' : 'پینل'}</button></div>
+    <div class="tip">${chatE() ? 'Guidance only — not added to problems.' : 'صرف رہنمائی والے سوال — یہ مسائل کی فہرست میں نہیں جاتے۔'}</div><div id="chatList">${chatListHTML()}</div>${foot()}`;
+}
+function vOChat() {
+  if (!Store.isOwner()) { go('#/owner'); return ''; }
+  chatAllOn();
+  const c = CHAT.all.find(x => x.id === R.a) || {}, a = appOf(c.app || ''), E = chatE();
+  setTimeout(chatPaint, 30);
+  return `<div class="card chBox"><div class="chH">${appIcon(a, 'appMini')}<div><b>${esc(c.name || '—')} <span class="num">${esc(c.phone || '')}</span></b><small>${esc(AN(a))}${c.ver ? ' · ' + esc(c.ver) : ''}</small></div><button class="tb" data-act="chats" style="margin-inline-start:auto">←</button></div>
+    <div id="chatMsgs" class="chMsgs"></div>
+    <div class="chIn"><textarea id="chTx" dir="auto" rows="2" maxlength="1000" placeholder="${E ? 'Reply…' : 'جواب لکھیں…'}"></textarea><button class="chSend" data-act="ocSend" data-id="${esc(R.a)}" aria-label="send">➤</button></div></div>${foot()}`;
+}
+async function chatSend(owner, uid) {
+  const tx = $('#chTx'), x = String(tx && tx.value || '').trim(); if (!x) { if (tx) tx.focus(); return; }
+  if (!Store.chatSend) { toast('⚠️ offline'); return; }
+  try {
+    if (owner) await Store.chatReply(uid, x);
+    else { const me = ls.get('me', {}), ni = $('#chName'); if (ni) { const n = ni.value.trim(); if (n.length < 2) { ni.focus(); toast(chatE() ? 'Write your name' : 'اپنا نام لکھیں'); return; } me.name = n; ls.set('me', me); }
+      const P = new URLSearchParams(location.search);
+      await Store.chatSend({ app: appOf(R.a).id, name: me.name || '', phone: me.phone || normPhone(P.get('phone') || ''), ver: P.get('v') || '' }, x); }
+    tx.value = ''; tx.focus();
+    if (!owner && $('#chName')) softRender();
+  } catch (e) { toast('⚠️ ' + (e.message || e), 4000); }
+}
+(function () { if (document.getElementById('chCss')) return; const s = document.createElement('style'); s.id = 'chCss'; s.textContent = `
+.chBox{display:flex;flex-direction:column;gap:8px}.chH{display:flex;align-items:center;gap:10px}.chH b{display:block;font-size:17px}.chH small{display:block;color:var(--mut);font-size:13px}
+.chMsgs{height:min(58vh,520px);overflow-y:auto;background:#eef2f7;border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:6px}
+.chM{display:flex}.chM.me{justify-content:flex-end}.chM .b{max-width:80%;padding:7px 11px 4px;border-radius:14px;font-size:15.5px;line-height:1.7;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.12);word-wrap:break-word}
+.chM.me .b{background:#d9fdd3}.chM .b i{display:block;font-style:normal;font-size:11.5px;color:#0f766e;font-weight:700}.chM .tm{display:block;font:11px Arial;color:#64748b;text-align:end;margin-top:2px;direction:ltr;unicode-bidi:isolate}
+.chEmpty{margin:auto;color:#64748b;text-align:center;font-size:15px}
+.chIn{display:flex;gap:6px;align-items:flex-end}.chIn textarea{flex:1;border:1.5px solid #cbd5e1;border-radius:14px;padding:8px 10px;font:inherit;font-size:16px;resize:none;max-height:140px}
+.chSend{width:48px;height:48px;border-radius:50%;border:0;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;font-size:20px;flex:none;cursor:pointer}
+.chRow{display:flex;align-items:center;gap:10px;cursor:pointer}.chRow .t{flex:1;min-width:0}.chRow .x{color:var(--mut);font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chRow .r{text-align:center}.chRow .r small{display:block;font:11px Arial;color:var(--mut)}.chRow .r i{display:inline-block;font:700 12px Arial;background:#dc2626;color:#fff;border-radius:999px;padding:1px 8px;font-style:normal}
+.chRow.un{border-inline-start:4px solid #16a34a}.chAsk{background:linear-gradient(135deg,#0ea5e9,#2563eb)!important}`; document.head.appendChild(s); })();
 
 /* ---------- واقعات ---------- */
 let taps = 0, tapT = 0;
@@ -2438,6 +2520,11 @@ document.addEventListener('click', async e => {
     case 'party': PF = 'all'; go('#/party/' + encodeURIComponent(id)); break;
     case 'pfilt': PF = id || 'all'; render(); window.scrollTo(0, 0); break;
     case 'new': go('#/new/' + encodeURIComponent(id)); break;
+    case 'chat': go('#/chat/' + encodeURIComponent(id)); break;
+    case 'chats': go('#/chats'); break;
+    case 'ochat': go('#/ochat/' + encodeURIComponent(id)); break;
+    case 'chSend': chatSend(false); break;
+    case 'ocSend': chatSend(true, id); break;
     case 'atab': appTab = id; render(); break;
     case 'expand': t.classList.toggle('clamp'); break;
     case 'metoo': {

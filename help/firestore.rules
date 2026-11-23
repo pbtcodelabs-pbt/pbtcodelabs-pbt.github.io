@@ -48,6 +48,15 @@ service cloud.firestore {
     match /push/{doc} {
       allow read, write: if owner();
     }
+    // 💬 HD2311MO171: سوال / رہنمائی کی چیٹ — ہر موبائل کی اپنی ایک گفتگو؛ گاہک صرف اپنی، مالک سب
+    match /chats/{uid} {
+      allow read: if owner() || (signed() && uid == me());
+      allow create, update: if owner() || (signed() && uid == me() && request.resource.data.uid == me()
+        && request.resource.data.keys().hasOnly(['uid', 'app', 'name', 'phone', 'ver', 'created', 'upd', 'lastBy', 'unO', 'unC', 'msgs'])
+        && request.resource.data.msgs is list && request.resource.data.msgs.size() <= 400
+        && request.resource.data.name is string && request.resource.data.name.size() <= 60);
+      allow delete: if owner();
+    }
     match /meta/cfg {
       allow read: if true;
       allow write: if owner();

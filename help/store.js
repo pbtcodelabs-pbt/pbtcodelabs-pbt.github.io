@@ -117,6 +117,18 @@
       await b.commit();
     },
     async wipeDemo() {},
+    /* 💬 HD2311MO171: سوال / رہنمائی کی چیٹ — chats/<uid> (گاہک صرف اپنی؛ مالک سب) */
+    chatMine(cb) { if (!user) return () => {}; return F.onSnapshot(F.doc(db, 'chats', user.uid), s => cb(s.exists() ? Object.assign({ id: s.id }, s.data()) : null), e => console.warn('[chat]', e && e.code)); },
+    chatAll(cb) { return F.onSnapshot(F.collection(db, 'chats'), s => { const l = []; s.forEach(d => l.push(Object.assign({ id: d.id }, d.data()))); cb(l); }, e => console.warn('[chat]', e && e.code)); },
+    async chatSend(meta, text) {
+      if (!user) throw new Error('offline');
+      const t = Date.now(), ref = F.doc(db, 'chats', user.uid), s = await F.getDoc(ref);
+      const d = { uid: user.uid, app: meta.app || '', name: meta.name || '', phone: meta.phone || '', ver: meta.ver || '', upd: t, lastBy: 'c', unO: F.increment(1), msgs: F.arrayUnion({ t, by: 'c', x: String(text).slice(0, 1000) }) };
+      if (!s.exists()) { d.created = t; d.unC = 0; }
+      await F.setDoc(ref, d, { merge: true });
+    },
+    async chatReply(uid, text) { const t = Date.now(); await F.updateDoc(F.doc(db, 'chats', uid), { upd: t, lastBy: 'o', unO: 0, unC: F.increment(1), msgs: F.arrayUnion({ t, by: 'o', x: String(text).slice(0, 1000) }) }); },
+    async chatSeen(uid, who) { await F.updateDoc(F.doc(db, 'chats', who === 'o' ? uid : user.uid), who === 'o' ? { unO: 0 } : { unC: 0 }); },
     async ownerLogin(pw) {
       try { await Au.signInWithEmailAndPassword(auth, OWNER_EMAIL, pw); return isOwner(); }
       catch (e) { console.warn(e && e.code); return false; }
@@ -252,6 +264,16 @@
       return changed();
     },
     // مالک کا داخلہ: ڈیمو میں اسی فون پر رکھا پاس ورڈ؛ فائربیس میں ای میل/پاس ورڈ (Firebase Auth)
+    /* 💬 ڈیمو چیٹ (اسی براؤزر میں) */
+    _cg() { try { return JSON.parse(localStorage.getItem('pbthd_demo_chats') || '{}'); } catch (e) { return {}; } },
+    _cs(o) { localStorage.setItem('pbthd_demo_chats', JSON.stringify(o)); (this._cl || []).forEach(f => f()); },
+    _me() { let d = localStorage.getItem('pbthd_demo_uid'); if (!d) { d = 'u' + Date.now().toString(36); localStorage.setItem('pbthd_demo_uid', d); } return d; },
+    chatMine(cb) { const f = () => { const c = this._cg()[this._me()]; cb(c ? Object.assign({ id: this._me() }, c) : null); }; (this._cl = this._cl || []).push(f); f(); window.addEventListener('storage', f); return () => {}; },
+    chatAll(cb) { const f = () => { const o = this._cg(); cb(Object.keys(o).map(k => Object.assign({ id: k }, o[k]))); }; (this._cl = this._cl || []).push(f); f(); window.addEventListener('storage', f); return () => {}; },
+    async chatSend(meta, text) { const o = this._cg(), u = this._me(), t = Date.now(), c = o[u] || { uid: u, created: t, unC: 0, unO: 0, msgs: [] };
+      Object.assign(c, { app: meta.app, name: meta.name, phone: meta.phone, ver: meta.ver, upd: t, lastBy: 'c', unO: (c.unO || 0) + 1 }); c.msgs.push({ t, by: 'c', x: text }); o[u] = c; this._cs(o); },
+    async chatReply(uid, text) { const o = this._cg(), c = o[uid], t = Date.now(); if (!c) return; c.msgs.push({ t, by: 'o', x: text }); Object.assign(c, { upd: t, lastBy: 'o', unO: 0, unC: (c.unC || 0) + 1 }); this._cs(o); },
+    async chatSeen(uid, who) { const o = this._cg(), c = o[who === 'o' ? uid : this._me()]; if (!c) return; if (who === 'o') c.unO = 0; else c.unC = 0; this._cs(o); },
     async ownerLogin(pw) {
       const h = await sha('PBTHD:' + pw);
       const saved = localStorage.getItem('pbthd_ownerH');
