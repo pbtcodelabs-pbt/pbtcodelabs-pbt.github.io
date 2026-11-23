@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2211SU167';
-const UPDATE_NOTE = '🛡️ واٹس ایپ کی حفاظت — ہر 💬 پیغام میں ڈھائی منٹ کا وقفہ، اس فون سے روزانہ زیادہ سے زیادہ 5 (My City Shines کی دعوتی فہرست کے ساتھ ایک ہی گنتی)';
+const APP_VERSION = 'HD2311MO168';
+const UPDATE_NOTE = '🕌 «✅ Activate package» میں نیا ٹیب «مدرسہ» (MD ID) — سائن اپ / 3 دن ٹرائل / پیغام، چار پیکج قیمت کے ساتھ؛ ہر ایکٹیویشن سے پہلے «💰 پیسے وصول ہوئے؟» کی دوہری تصدیق';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
