@@ -39,12 +39,12 @@
   const d0 = t => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
   /* HD2311MO170 (مالک کا حکم): گاہک نے ایپ میں جو پیکج چنا (سرور want) — فہرست میں نظر، تفصیل کھولیں تو پہلے سے چنا */
   function wantTag(w){ if(!w || !w.pkg) return ''; const p = PK.find(x => x.id === w.pkg), pr = PRICE[w.pkg] || (p && p.price) || '';
-    return '<div class="aSub" style="margin-top:3px;font-weight:800;color:#7c2d12;background:#ffedd5;border-radius:8px;padding:2px 8px;display:inline-block">📩 گاہک نے مانگا: ' + esc(p ? p.name : w.pkg) + (pr ? ' · ' + Number(String(pr).replace(/,/g, '')).toLocaleString('en-US') + ' روپے' : '') + (w.at ? ' · ' + dmy(w.at) : '') + '</div>'; }
+    return '<div class="aSub" style="margin-top:3px;font-weight:800;color:#7c2d12;background:#ffedd5;border-radius:8px;padding:2px 8px;display:inline-block">📩 گاہک نے مانگا: ' + esc(p ? p.name : w.pkg) + ((w.amt || pr) ? ' · ' + Number(String(w.amt || pr).replace(/,/g, '')).toLocaleString('en-US') + ' روپے' : '') + (w.at ? ' · ' + dmy(w.at) : '') + '</div>'; }
   function slTag(aio, full) {
     const a = SLOG[APP + '|' + aio] || [];
     if (!a.length) return '<div class="aSub" style="margin-top:3px;color:#64748b">📭 ابھی تک پیغام نہیں بھیجا</div>';
     const last = a[a.length - 1], d = Math.round((d0(Date.now()) - d0(last)) / 864e5);
-    return '<div class="aSub" style="margin-top:3px;font-weight:800;color:' + (d <= 2 ? '#b45309' : '#15803d') + '">📨 پیغام بھیجا جا چکا: <b>' + dmy(last) + '</b> ' + hm(last) + ' (' + (d <= 0 ? 'آج' : d + ' دن پہلے') + ')' + (a.length > 1 ? ' · کل ' + a.length + ' بار' : '') + '</div>'
+    return '<div class="aSub" style="margin-top:3px;font-weight:800;color:' + (d <= 2 ? '#b45309' : '#15803d') + '">📨 پیغام بھیجا جا چکا: <b>' + dmy(last) + '</b> ' + hm(last) + ' (' + (d <= 0 ? 'آج' : d + ' دن پہلے') + ')' + (a.length > 1 ? ' · کل ' + a.length + ' بار' : '') + (a.filter(t => d0(t) === d0(Date.now())).length ? ' · <b style="color:#b91c1c">آج ' + a.filter(t => d0(t) === d0(Date.now())).length + ' بار</b>' : '') + '</div>'
       + (full && a.length > 1 ? '<div class="aSub">' + a.slice().reverse().slice(0, 6).map((t, i) => (a.length - i) + '. ' + dmy(t) + ' ' + hm(t)).join(' · ') + '</div>' : '');
   }
   /* HD2211SU167 (مالک کا حکم — واٹس ایپ نمبر بند نہ ہو): ہر پیغام میں کم از کم ڈھائی منٹ کا وقفہ، اس فون سے روزانہ زیادہ سے زیادہ 5 —
@@ -638,9 +638,16 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
     if (a === 'aact') {
       const p = PK.find(x => x.id === APK); if (!p) return;
       /* MD2311MO028 (مالک کا حکم — سب ایپس): پیسے وصول ہونے سے پہلے ایکٹیو نہیں — پہلے پیسوں کی تصدیق، پھر ایکٹیو کی دوسری تصدیق */
-      if (!window.confirm('💰 پیسوں کی تصدیق (1/2)\n\n' + (name || w.aio) + ' (' + w.aio + ')\nپیکج: ' + p.name + (PRICE[p.id] ? '\nرقم: ' + PRICE[p.id] + ' روپے' : '') + '\n\nکیا یہ رقم آپ کے اکاؤنٹ میں واقعی وصول ہو چکی ہے؟')) { say('⏸️ پیکج نہیں لگا — پہلے رقم وصول کریں («💰 ادائیگی کا پیغام» بھیج سکتے ہیں)', false); return; }
-      guarded('<b>' + esc(w.aio) + '</b> (' + esc(name) + ') پر <b>«' + esc(p.name) + '»</b>' + (PRICE[p.id] ? ' (Rs ' + esc(PRICE[p.id]) + ')' : '') + ' ایکٹیو ہو گا (2/2 — آخری تصدیق)۔ پاس ورڈ لکھیں:', async () => {
-        const r = await call({ op: 'aiogrant', aio: w.aio, pkgId: p.id, price: PRICE[p.id] || '' });
+      /* HD2411TU185 (مالک کا حکم — «کتنی رقم وصول کی ہے، دو دفعہ تصدیق»): (1/2) پہلے پوچھیں کتنی رقم وصول ہوئی (پیکج کی رقم / گاہک کی مانگی رقم پہلے سے لکھی)؛ کم ہو تو الگ تنبیہ؛ پھر (2/2) پاس ورڈ */
+      const wa = (w.want && w.want.pkg === p.id && w.want.amt) ? String(w.want.amt) : '', due = String(PRICE[p.id] || wa || '').replace(/[^0-9]/g, '');
+      const got0 = window.prompt('💰 پیسوں کی تصدیق (1/2)\n\n' + (name || w.aio) + ' (' + w.aio + ')\nپیکج: ' + p.name + (due ? '\nپیکج کی رقم: ' + Number(due).toLocaleString('en-US') + ' روپے' : '') + (wa && wa !== due ? '\nگاہک کو ایپ میں دکھی رقم: ' + Number(wa).toLocaleString('en-US') + ' روپے' : '') + '\n\nآپ کے اکاؤنٹ میں کتنی رقم واقعی وصول ہو چکی ہے؟ (روپے لکھیں)', due);
+      if (got0 === null) { say('⏸️ پیکج نہیں لگا — پہلے رقم وصول کریں («💰 ادائیگی کا پیغام» بھیج سکتے ہیں)', false); return; }
+      const got = String(pn(got0)).replace(/[^0-9]/g, '');
+      if (!got || Number(got) <= 0) { say('⏸️ پیکج نہیں لگا — وصول شدہ رقم نہیں لکھی', false); return; }
+      if (due && Number(got) < Number(due) && !window.confirm('⚠️ وصول رقم (' + Number(got).toLocaleString('en-US') + ') پیکج کی رقم (' + Number(due).toLocaleString('en-US') + ') سے کم ہے۔\n\nپھر بھی یہ پیکج لگانا ہے؟')) { say('⏸️ پیکج نہیں لگا', false); return; }
+      PRICE[p.id] = PRICE[p.id] || due;
+      guarded('<b>' + esc(w.aio) + '</b> (' + esc(name) + ') پر <b>«' + esc(p.name) + '»</b> · 💰 وصول: <b>Rs ' + esc(Number(got).toLocaleString('en-US')) + '</b> — ایکٹیو ہو گا (2/2 — آخری تصدیق)۔ پاس ورڈ لکھیں:', async () => {
+        const r = await call({ op: 'aiogrant', aio: w.aio, pkgId: p.id, price: got });
         APK = ''; SHOWPK = false; SHARE = aioMsg(r.who, r.ent); await refresh(w.aio); makeRes('✅ پیکج ایکٹیو ہو گیا', SEL && SEL.ent ? SEL : r); MSG = '';
       });
       return;

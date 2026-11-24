@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2411TU184';
-const UPDATE_NOTE = '🛟 سبزی منڈی بحالی: نئے فون پر «کلاؤڈ میں نہیں ملی» (503) کی صاف وجہ اور حل';
+const APP_VERSION = 'HD2411TU185';
+const UPDATE_NOTE = '💰 پیکج لگاتے وقت «کتنی رقم وصول ہوئی؟» (کم ہو تو تنبیہ) + پاس ورڈ؛ گاہک کی مانگی رقم نظر؛ پیغام «آج N بار»';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
