@@ -152,7 +152,27 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
         if (!BUSY) draw(); } catch (e) {}
       if (!R.live) RCW = setTimeout(tick, 15000); };
     RCW = setTimeout(tick, 15000); }
-  function rcHTML(){ let h = '';
+  /* HD2411TU181 (مالک کا حکم — «کوئی لسٹ نہیں آ رہی»): سبزی منڈی ٹیب پر انتظار والے فون پیغام پیسٹ کیے بغیر سیدھے سامنے (`WL`)؛ کسی فون پر «✅ اس فون پر چالو» → دکان کا پیغام پیسٹ → وہیں بھیج */
+  let WL = null, WLB = false;
+  function parseShop(t){ const u = String(t || '').replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+    const mm = u.replace(/[\s-]/g, '').match(/(?:\+?92|0)3\d{9}/), mob = mm ? '0' + mm[0].replace(/^\+?92|^0/, '') : '';
+    const kc = u.match(/(?:کوڈ|code)\s*[:：]?\s*([A-Za-z0-9]{4})\s*-?\s*([A-Za-z0-9]{4})/i), code = kc ? (kc[1] + kc[2]).toUpperCase() : '';
+    const sh = (u.match(/(?:دکان|shop)\s*[:：]\s*([^\n]+)/i) || [])[1] || ''; return { mob, code, shop: sh.trim() }; }
+  async function wlLoad(){ if (WLB) return; WLB = true; try { const r = await call({ op: 'shopwaits', app: 'SM', aio: '' }); WL = r.list || []; } catch (e) { WL = WL || []; } WLB = false; if (!BUSY) draw(); }
+  function failTxt(f){ if (!f) return ''; const w = String(f.r || ''), why = /auth|net/.test(w) ? 'فون پر انٹرنیٹ / کلاؤڈ لاگ اِن نہیں ہوا — گاہک نیٹ چیک کرے، پھر دوبارہ بھیجیں' : /403/.test(w) ? 'کلاؤڈ نے اجازت نہیں دی' : 'اس موبائل + کوڈ کی دکان کلاؤڈ میں نہیں — نمبر یا کوڈ غلط ہے (منشی / ملازم کے فون والا «دکان سے جڑیں» پیغام سب سے درست)';
+    return '<span class="aSub" style="display:block;color:#b91c1c;font-weight:800">❌ پچھلی بار بھیجی دکان نہیں کھلی' + (f.m || f.c ? ' (<span dir="ltr">' + esc(f.m || '') + (f.c ? ' · ' + esc(String(f.c).slice(0, 4) + '-' + String(f.c).slice(4)) : '') + '</span>)' : '') + ' — ' + why + '</span>'; }
+  function wlHTML(){ if (WL === null) { setTimeout(wlLoad, 0); return '<div class="aSub" style="margin-top:8px">⏳ انتظار والے فون لا رہا ہوں…</div>'; }
+    const ago = t => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'ابھی' : m < 60 ? m + ' منٹ پہلے' : Math.round(m / 60) + ' گھنٹے پہلے'; };
+    return '<div style="margin-top:10px"><b>📲 رجسٹریشن صفحے پر انتظار والے فون (' + WL.length + ')</b><div class="aSub">گاہک کے نارنجی ڈبے والے 4 حروف یا اس کا لکھا موبائل ملائیں ← «✅ اس فون پر چالو» ← دکان کا پیغام پیسٹ کریں۔</div>'
+      + (WL.length ? WL.map(x => '<div class="aRow" style="margin-top:7px;padding:6px;border:1px solid #fcd34d;border-radius:10px;background:#fff;flex-wrap:nowrap"><b dir="ltr" style="flex:0 0 auto;margin-inline-end:8px;padding:2px 8px;border:2px dashed #b45309;border-radius:8px;background:#fffbeb;font:900 20px/1.3 Arial,sans-serif;letter-spacing:3px;color:#7c2d12">' + esc(String(x.w || '').slice(-4)) + '</b><span style="flex:1;min-width:0"><b>' + esc(x.ua || 'فون') + '</b><span class="aSub" style="display:block">' + (x.live ? '🟢 ابھی کھلا ہے' : '⚪ ' + ago(x.ts)) + (x.sent ? ' · 📨 بھیج دیا' : '') + '</span>'
+          + (x.mob || x.nm ? '<span class="aSub" style="display:block;color:#0f172a">✍️ فارم میں لکھا: <b dir="ltr">' + esc(x.mob || '') + '</b>' + (x.nm ? ' · ' + esc(x.nm) : '') + '</span>' : '')
+          + ((x.idn || []).length ? '<span class="aSub" style="display:block;color:#0f172a">🆔 ' + x.idn.map(i => '<b>' + esc(i.id) + '</b> ' + esc(i.name || '')).join('، ') + '</span>' : '')
+          + ((x.alt || []).length ? '<span class="aSub" style="display:block;color:#7c3aed">🔁 اسی فون کی پرانی پہچان: <b dir="ltr">' + x.alt.map(esc).join('، ') + '</b></span>' : '')
+          + (x.done ? '<span style="display:block;margin-top:4px;padding:6px 8px;border-radius:9px;background:#16a34a;color:#fff;font-weight:800">✅ دکان لائیو ہو گئی — «' + esc(x.done.shop || '') + '» · ' + ago(x.done.at) + '</span>' : failTxt(x.fail))
+          + '</span><button class="aBtn grn" data-a="rpushq" data-v="' + esc(x.w) + '" style="flex:0 0 auto">✅ اس فون پر چالو</button></div>').join('')
+        : '<div class="aSub" style="color:#b45309;margin-top:6px">⏳ ابھی کوئی فون انتظار میں نہیں — گاہک سبزی منڈی ایپ کھول کر رجسٹریشن صفحہ کھلا رکھے، پھر «🔄 تازہ کریں»</div>')
+      + '<button class="aBtn" data-a="wlr" style="width:100%;margin-top:8px">🔄 تازہ کریں</button></div>'; }
+  function rcHTML(){ let h = ''; if (!RC && APP === 'SM') return wlHTML();
     if (RC) {   /* HD2411TU174 (مالک کا حکم — گاہک کوئی کوڈ نہ لکھے): رجسٹریشن صفحے پر کھلے (انتظار والے) فون — ایک ٹچ سے دکان اسی فون پر */
       const ago = t => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'ابھی' : m < 60 ? m + ' منٹ پہلے' : Math.round(m / 60) + ' گھنٹے پہلے'; };
       h += '<div class="aItem" style="background:#ecfdf5;border-color:#34d399"><b>📲 «' + esc(RC.shop || 'دکان') + '» کس فون پر چالو کریں؟</b><div class="aSub">گاہک سے کہیں: سبزی منڈی ایپ کھول کر رجسٹریشن والا صفحہ کھلا رکھیں — کچھ لکھنا نہیں۔ اس کے نارنجی ڈبے میں «📱 اس فون کی پہچان» کے 4 حروف پوچھیں، نیچے وہی حروف والا فون چنیں۔</div>'
@@ -163,7 +183,7 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
             + ((x.idn || []).length ? '<span class="aSub" style="display:block;color:#0f172a">🆔 ' + (x.idn || []).map(i => '<b>' + esc(i.id) + '</b> ' + esc(i.name || '') + ' <span dir="ltr">' + esc(i.mobile || '') + '</span>').join('، ') + '</span>' : '')
             + ((x.alt || []).length ? '<span class="aSub" style="display:block;color:#7c3aed">🔁 اسی فون کی پرانی پہچان: <b dir="ltr">' + (x.alt || []).map(esc).join('، ') + '</b> — ایک ہی فون ہے، کسی پر بھی بھیجیں، دکان خود نئی پہچان پر پہنچے گی</span>' : '')
             + (x.done ? '<span style="display:block;margin-top:4px;padding:6px 8px;border-radius:9px;background:#16a34a;color:#fff;font-weight:800">✅ دکان لائیو ہو گئی — «' + esc(x.done.shop || '') + '» اس فون پر کھل گئی، ریکارڈ آ گیا' + ((x.done.n || 0) > 0 ? ' (📒 ' + x.done.n + ': 👥 ' + (x.done.cu || 0) + ' گاہک · 🧾 ' + (x.done.inv || 0) + ' بل)' : ' (ریکارڈ ابھی آ رہا ہے)') + ' · ' + ago(x.done.at) + '</span>' : '')
-            + (x.fail && !x.done ? '<span class="aSub" style="display:block;color:#b91c1c;font-weight:800">❌ پچھلی بار بھیجی دکان کلاؤڈ میں نہیں ملی' + (x.fail.c ? ' (کوڈ <span dir="ltr">' + esc(String(x.fail.c).slice(0, 4) + '-' + String(x.fail.c).slice(4)) + '</span>)' : '') + ' — دکان کا موبائل / کوڈ دوبارہ دیکھیں (منشی کے فون والا سب سے درست)</span>' : '')
+            + (x.done ? '' : failTxt(x.fail))
             + '</span>'
             + '<button class="aBtn grn" data-a="rpush" data-v="' + esc(x.w) + '" style="flex:0 0 auto">✅ اس فون پر چالو</button></div>').join('')
           : '<div class="aSub" style="color:#b45309;margin-top:6px">⏳ ابھی کوئی فون انتظار میں نہیں — گاہک ایپ کھول کر رجسٹریشن صفحہ کھلا رکھے (نئی اپڈیٹ SM2411TU306 کے بعد)، پھر «🔄 تازہ کریں»</div>')
@@ -549,6 +569,11 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
       const sh = (u.match(/(?:دکان|shop)\s*[:：]\s*([^\n]+)/i) || [])[1] || '';
       if (!/^03\d{9}$/.test(mob) || code.length !== 8) { say('⚠️ پیغام میں موبائل (03…) اور 8 حروف کا کوڈ (مثلاً R4S7-RM97) نہیں ملا', false); return; }
       RC = { m: mob, c: code, shop: sh.trim(), owner: '', list: [] }; v = ''; a = 'rwait'; }
+    if (a === 'wlr') { WL = null; draw(); return; }
+    if (a === 'rpushq') { const x0 = (WL || []).find(y => y.w === v) || {};
+      const t = prompt('📲 فون ' + String(v).slice(-4) + (x0.mob ? ' (' + x0.mob + ')' : '') + ' پر کون سی دکان؟\n\nدکان کا پیغام پیسٹ کریں (دکان / موبائل / کوڈ):'); if (!t) return;
+      const P = parseShop(t); if (!/^03\d{9}$/.test(P.mob) || P.code.length !== 8) { say('⚠️ پیغام میں موبائل (03…) اور 8 حروف کا کوڈ (مثلاً R4S7-RM97) نہیں ملا', false); return; }
+      RC = { m: P.mob, c: P.code, shop: P.shop, owner: '', list: WL || [] }; a = 'rpush'; }
     if (a === 'rpick' || a === 'rwait') { if (a === 'rpick') { const p = String(v || '').split('|'); RC = { m: p[0], c: p[1], shop: p[2] || '', owner: p[3] || '', list: [] }; } if (!RC) return;
       BUSY = true; draw(); try { const r = await call({ op: 'shopwaits', app: 'SM', aio: SEL && SEL.who ? SEL.who.aio : '' }); RC.list = r.list || []; MSG = ''; } catch (e) { say('⚠️ ' + e.message, false); } BUSY = false; draw(); return; }
     if (a === 'rpush') { if (!RC) return; const x = (RC.list || []).find(y => y.w === v) || {};
