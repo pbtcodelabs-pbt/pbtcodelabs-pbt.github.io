@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2411TU177';
-const UPDATE_NOTE = '🛟 دکان کی بحالی: فون کی فہرست میں ہر فون کی 4 حروف کی پہچان — گاہک اپنے نارنجی ڈبے سے پڑھ کر بتائے، وہی فون چنیں';
+const APP_VERSION = 'HD2411TU178';
+const UPDATE_NOTE = '🛟 دکان کی بحالی: انتظار والے فون کے ساتھ اس کی پرانی SM ID کا نام و موبائل، اور فارم میں لکھا نمبر یا نام (ملے تو ✅)';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
