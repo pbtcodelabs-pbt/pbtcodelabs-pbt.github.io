@@ -142,12 +142,7 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
       + '<div class="aSub" style="direction:ltr;text-align:right">📱 ' + esc(x.m) + ' · 🔐 ' + esc(String(x.c).slice(0, 4) + '-' + String(x.c).slice(4)) + (x.last ? ' · ' + dmy(x.last) : '') + (x.src ? ' · ' + esc(x.src) : '') + '</div>'
       + '<button class="aBtn grn" data-a="rpick" data-v="' + esc(x.m + '|' + x.c + '|' + (x.shop || '') + '|' + (x.owner || '')) + '" style="width:100%;margin-top:6px">📲 یہ دکان گاہک کے فون پر چالو کریں</button></div>').join('');
   }
-  function shopHTML(w){
-    let h = '<h3 style="margin:8px 0 4px">🛟 دکان کی بحالی (ریکارڈ غائب ہو جائے تو)</h3>';
-    const la = (AIDS || []).find(x => x.aio === w.aio), sh = (w.shops && w.shops.length ? w.shops : (la && la.shops) || []);
-    h += sh.length ? shopRows(sh) : '<div class="aSub">اس ID پر ابھی دکان کا پتہ نہیں آیا (نئی اپڈیٹ کے بعد مالک کا فون کھلتے ہی آ جاتا ہے) — موبائل سے تلاش کریں:</div>';
-    h += '<button class="aBtn" data-a="sfind" data-v="' + esc(w.mobile || (la && la.mobile) || '') + '" style="width:100%;margin-top:6px">🔎 اسی موبائل کی سب دکانیں تلاش کریں</button>';
-    if (SFIND) h += SFIND.length ? shopRows(SFIND) : '<div class="aSub" style="color:#b91c1c">اس موبائل کی کوئی دکان سرور پر نہیں ملی — پرانا واٹس ایپ پیغام (موبائل + کوڈ) والا طریقہ استعمال کریں</div>';
+  function rcHTML(){ let h = '';
     if (RC) {   /* HD2411TU174 (مالک کا حکم — گاہک کوئی کوڈ نہ لکھے): رجسٹریشن صفحے پر کھلے (انتظار والے) فون — ایک ٹچ سے دکان اسی فون پر */
       const ago = t => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'ابھی' : m < 60 ? m + ' منٹ پہلے' : Math.round(m / 60) + ' گھنٹے پہلے'; };
       h += '<div class="aItem" style="background:#ecfdf5;border-color:#34d399"><b>📲 «' + esc(RC.shop || 'دکان') + '» کس فون پر چالو کریں؟</b><div class="aSub">گاہک سے کہیں: سبزی منڈی ایپ کھول کر رجسٹریشن والا صفحہ کھلا رکھیں — کچھ لکھنا نہیں۔ اس کا فون نیچے آ جائے گا۔</div>'
@@ -157,6 +152,16 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
           : '<div class="aSub" style="color:#b45309;margin-top:6px">⏳ ابھی کوئی فون انتظار میں نہیں — گاہک ایپ کھول کر رجسٹریشن صفحہ کھلا رکھے (نئی اپڈیٹ SM2411TU306 کے بعد)، پھر «🔄 تازہ کریں»</div>')
         + '<button class="aBtn" data-a="rwait" style="width:100%;margin-top:8px">🔄 تازہ کریں</button></div>';
     }
+    return h;
+  }
+  function shopHTML(w){
+    let h = '<h3 style="margin:8px 0 4px">🛟 دکان کی بحالی (ریکارڈ غائب ہو جائے تو)</h3>';
+    const la = (AIDS || []).find(x => x.aio === w.aio), sh = (w.shops && w.shops.length ? w.shops : (la && la.shops) || []);
+    h += sh.length ? shopRows(sh) : '<div class="aSub">اس ID پر ابھی دکان کا پتہ نہیں آیا (نئی اپڈیٹ کے بعد مالک کا فون کھلتے ہی آ جاتا ہے) — موبائل سے تلاش کریں:</div>';
+    h += '<button class="aBtn" data-a="rpaste" style="width:100%;margin-top:6px;border-color:#b45309;color:#92400e">📋 دکان کا پیغام (موبائل + کوڈ) پیسٹ کریں — اسی سے فون پر چالو</button>';
+    h += '<button class="aBtn" data-a="sfind" data-v="' + esc(w.mobile || (la && la.mobile) || '') + '" style="width:100%;margin-top:6px">🔎 اسی موبائل کی سب دکانیں تلاش کریں</button>';
+    if (SFIND) h += SFIND.length ? shopRows(SFIND) : '<div class="aSub" style="color:#b91c1c">اس موبائل کی کوئی دکان سرور پر نہیں ملی — پرانا واٹس ایپ پیغام (موبائل + کوڈ) والا طریقہ استعمال کریں</div>';
+    h += rcHTML();
     return h;
   }
   function say(t, ok) { MSG = t; OK = ok !== false; draw(); }
@@ -470,7 +475,7 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
     const o = document.getElementById('aiOv'); if (!o) return;
     o.innerHTML = '<div class="aTop"><b>✅ ' + IDN() + ' — پیکج ایکٹیو کریں</b><button class="aX" data-a="close">✕</button></div>' +
       '<div class="aBox" style="padding:8px"><div class="aTabs">' + TABS.map(([k, t]) => '<button class="' + (APP === k ? 'on' : '') + '" data-a="tab" data-v="' + k + '">' + t + '</button>').join('') + '</div></div>' +
-      (MSG ? '<div class="aMsg ' + (OK ? 'ok' : 'bad') + '">' + esc(MSG) + '</div>' : '') + detailHTML() +
+      (MSG ? '<div class="aMsg ' + (OK ? 'ok' : 'bad') + '">' + esc(MSG) + '</div>' : '') + (APP === 'SM' && !SEL ? '<div class="aBox" style="border:2px solid #b45309"><button class="aBtn" data-a="rpaste" style="width:100%;border-color:#b45309;color:#92400e">🛟 دکان بحال کریں — دکان کا پیغام (موبائل + کوڈ) پیسٹ کریں</button>' + rcHTML() + '</div>' : '') + detailHTML() +
       '<div class="aBox">' + filHTML() +
       '<div class="aRow" style="flex-wrap:nowrap"><input type="text" id="aiQ" maxlength="40" value="' + esc(AQ) + '" placeholder="تلاش: نام / ' + IDN() + ' / موبائل" style="direction:ltr"><button class="aBtn" data-a="aref" ' + (BUSY ? 'disabled' : '') + '>🔄</button></div><div id="aiList">' + listHTML() + '</div></div>' +
       (APP === 'MD' ? '' : '<div class="aBox"><button class="aBtn" data-a="oldscr" style="width:100%">🛠️ پیکج بنانا / بدلنا (پرانی سکرین)</button></div>');   /* MD: پرانی سکرین مدرسہ نہیں جانتی — قیمت یہیں پیکج کے ساتھ */
@@ -511,7 +516,7 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
   async function onClick(ev) {
     const t = ev.target.closest('[data-a]'); if (!t) return;
     if (t.dataset.a === 'tel') return;   /* کال کا لنک — تفصیل نہ کھلے */
-    const a = t.dataset.a, v = t.dataset.v, id = t.dataset.id;
+    let a = t.dataset.a, v = t.dataset.v; const id = t.dataset.id;
     if (a === 'close') { const o = document.getElementById('aiOv'); if (o) o.remove(); document.body.style.overflow = ''; return; }
     if (a === 'tab') {
       if (v === 'MCS') { const o = document.getElementById('aiOv'); if (o) o.remove(); document.body.style.overflow = ''; OLD('MCS'); return; }
@@ -519,6 +524,14 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
     }
     if (a === 'oldscr') { const o = document.getElementById('aiOv'); if (o) o.remove(); document.body.style.overflow = ''; window.__licBypass = true; OLD(APP); return; }
     if (a === 'sfind') { const mob = String(v || '').replace(/\D/g, ''); if (mob.length < 10) { say('موبائل نمبر نہیں', false); return; } BUSY = true; draw(); try { const r = await call({ op: 'shopfind', mobile: mob }); SFIND = r.list || []; RC = null; } catch (e) { MSG = '⚠️ ' + e.message; OK = false; } BUSY = false; draw(); return; }
+    if (a === 'rpaste') {   /* HD2411TU176 (مالک کا حکم): پرانا «دکان: … موبائل: … کوڈ: …» پیغام پیسٹ → وہی دکان انتظار والے فون پر */
+      const t = prompt('📋 دکان کا پیغام پیسٹ کریں (دکان / موبائل / کوڈ):'); if (!t) return;
+      const u = String(t).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+      const mm = u.replace(/[\s-]/g, '').match(/(?:\+?92|0)3\d{9}/), mob = mm ? '0' + mm[0].replace(/^\+?92|^0/, '') : '';
+      const kc = u.match(/(?:کوڈ|code)\s*[:：]?\s*([A-Za-z0-9]{4})\s*-?\s*([A-Za-z0-9]{4})/i), code = kc ? (kc[1] + kc[2]).toUpperCase() : '';
+      const sh = (u.match(/(?:دکان|shop)\s*[:：]\s*([^\n]+)/i) || [])[1] || '';
+      if (!/^03\d{9}$/.test(mob) || code.length !== 8) { say('⚠️ پیغام میں موبائل (03…) اور 8 حروف کا کوڈ (مثلاً R4S7-RM97) نہیں ملا', false); return; }
+      RC = { m: mob, c: code, shop: sh.trim(), owner: '', list: [] }; v = ''; a = 'rwait'; }
     if (a === 'rpick' || a === 'rwait') { if (a === 'rpick') { const p = String(v || '').split('|'); RC = { m: p[0], c: p[1], shop: p[2] || '', owner: p[3] || '', list: [] }; } if (!RC) return;
       BUSY = true; draw(); try { const r = await call({ op: 'shopwaits', app: 'SM', aio: SEL && SEL.who ? SEL.who.aio : '' }); RC.list = r.list || []; MSG = ''; } catch (e) { say('⚠️ ' + e.message, false); } BUSY = false; draw(); return; }
     if (a === 'rpush') { if (!RC) return; const x = (RC.list || []).find(y => y.w === v) || {};
