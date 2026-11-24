@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2311MO172';
-const UPDATE_NOTE = '📖 تیار جواب (FAQ): گاہک چیٹ میں لکھتے ہی ملتے جلتے جواب تصویروں کے ساتھ فوراً؛ «⏳ سوال پہنچ گیا» کا پیغام؛ آپ کے جواب پر «⭐ عام جواب بنائیں»؛ مدرسہ ایپ کے 14 جواب';
+const APP_VERSION = 'HD2411TU173';
+const UPDATE_NOTE = '🛟 سبزی منڈی: دکان کی بحالی — SM ID میں دکان کا پتہ، «🔎 موبائل سے تلاش» اور 6 ہندسوں کا بحالی کوڈ (گاہک لکھے تو پوری دکان واپس)';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -1950,7 +1950,7 @@ function chatMsgs(d, side) {
     const star = side === 'o' && m.by === 'o' ? `<button class="faqStar" data-act="faqSave" data-id="${m.t}">⭐ ${chatE() ? 'Make common answer' : 'عام جواب بنائیں'}</button>` : '';
     return `<div class="chM ${mine ? 'me' : 'th'}"><div class="b" dir="auto">${m.by === 'o' && !mine ? '<i>PBT Help Desk</i>' : ''}${esc(m.x).replace(/\n/g, '<br>')}<span class="tm">${chatTime(m.t)}</span>${star}</div></div>`; }).join('');
 }
-/* ---------- 📖 تیار جواب (FAQ، HD2311MO172): faq.js (window.HD_FAQ) + مالک کے «⭐ عام جواب» (CFG.faq) ---------- */
+/* ---------- 📖 تیار جواب (FAQ، HD2411TU173): faq.js (window.HD_FAQ) + مالک کے «⭐ عام جواب» (CFG.faq) ---------- */
 const FAQ_STOP = new Set(['کیسے', 'کیا', 'ہے', 'ہیں', 'میں', 'کی', 'کا', 'کے', 'کو', 'سے', 'کریں', 'کرنا', 'کروں', 'اور', 'یہ', 'وہ', 'ہم', 'آپ', 'پر', 'نہیں', 'جی', 'تو', 'بھی', 'اگر', 'کیوں', 'کب', 'کہاں', 'ایک', 'السلام', 'علیکم', 'سر', 'بھائی', 'please', 'how', 'the', 'is', 'to', 'a', 'i', 'my']);
 const faqNorm = s => String(s || '').toLowerCase().replace(/[ً-ٰٟ]/g, '').replace(/ي/g, 'ی').replace(/ك/g, 'ک').replace(/ۃ/g, 'ہ').replace(/[؟?!،,.۔:;()«»"'\-–—/]/g, ' ').replace(/\s+/g, ' ').trim();
 function faqAll(app) { const a = appOf(app || '').id; return [...(window.HD_FAQ || []), ...((CFG && CFG.faq) || [])].filter(f => f && !f.off && (f.app === '*' || f.app === a)); }
