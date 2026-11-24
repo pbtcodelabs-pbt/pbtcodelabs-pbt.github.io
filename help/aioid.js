@@ -669,12 +669,15 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
       /* HD2411TU186 (مالک کا حکم — «دو تین دفعہ کنفرم، اور پیسے باقی ہوں تب بھی چالو مگر بار بار یاد»): (1/3) کتنی رقم وصول ہوئی (0 = ابھی کچھ نہیں) → (2/3) «واقعی Rs X وصول؟» → کم ہو تو «باقی Rs Y ادھار — پھر بھی چالو؟» → (3/3) پاس ورڈ؛ باقی رقم سرور پر (`due`) — فہرست میں «⏳ پیسے باقی» ہر بار */
       const got0 = window.prompt('💰 پیسوں کی تصدیق (1/3)\n\n' + (name || w.aio) + ' (' + w.aio + ')' + (w.mobile ? ' · ' + aPh(w.mobile) : '') + '\nپیکج: ' + p.name + (due ? '\nپیکج کی رقم: ' + Number(due).toLocaleString('en-US') + ' روپے' : '') + (wa && wa !== due ? '\nگاہک کو ایپ میں دکھی رقم: ' + Number(wa).toLocaleString('en-US') + ' روپے' : '') + '\n\nآپ کے اکاؤنٹ میں کتنی رقم واقعی وصول ہو چکی ہے؟ (روپے لکھیں — ابھی کچھ نہیں آیا تو 0)', due);
       if (got0 === null) { say('⏸️ پیکج نہیں لگا', false); return; }
-      const got = Number(String(pn(got0)).replace(/[^0-9]/g, '') || 0), dueN = Number(due || 0), left = Math.max(0, dueN - got);
-      if (!window.confirm('💰 دوسری تصدیق (2/3)\n\nکیا آپ نے واقعی ' + got.toLocaleString('en-US') + ' روپے وصول کر لیے ہیں؟' + (left ? '\n\n⏳ باقی: ' + left.toLocaleString('en-US') + ' روپے' : '\n\n✅ پوری رقم وصول'))) { say('⏸️ پیکج نہیں لگا', false); return; }
+      const got = Number(String(pn(got0)).replace(/[^0-9]/g, '') || 0), dueN = Number(due || 0);
+      /* HD2511WE187 (مالک کا حکم — اپنا / ٹیسٹ مدرسہ): 0 لکھیں تو پوچھے «مفت؟» — ہاں = کوئی باقی (ادھار) نہیں لکھا جاتا */
+      const free = got === 0 && dueN > 0 && window.confirm('🎁 کیا یہ پیکج مفت ہے؟ (اپنا / ٹیسٹ / تحفہ)\n\nOK = مفت — کوئی باقی رقم نہیں لکھی جائے گی\nCancel = نہیں، پیسے بعد میں آئیں گے (ادھار)');
+      const left = free ? 0 : Math.max(0, dueN - got);
+      if (!free && !window.confirm('💰 دوسری تصدیق (2/3)\n\nکیا آپ نے واقعی ' + got.toLocaleString('en-US') + ' روپے وصول کر لیے ہیں؟' + (left ? '\n\n⏳ باقی: ' + left.toLocaleString('en-US') + ' روپے' : '\n\n✅ پوری رقم وصول'))) { say('⏸️ پیکج نہیں لگا', false); return; }
       if (left && !window.confirm('⏳ پیسے باقی (ادھار)\n\n' + left.toLocaleString('en-US') + ' روپے ابھی باقی ہیں۔\n\nپھر بھی پیکج ابھی چالو کرنا ہے؟\n(ہیلپ ڈیسک میں «⏳ پیسے باقی» کی یاد دہانی تب تک آتی رہے گی جب تک آپ «✅ باقی رقم وصول» نہ کریں)')) { say('⏸️ پیکج نہیں لگا', false); return; }
       PRICE[p.id] = PRICE[p.id] || due;
-      guarded('<b>' + esc(w.aio) + '</b> (' + esc(name) + ') پر <b>«' + esc(p.name) + '»</b> · 💰 وصول: <b>Rs ' + esc(got.toLocaleString('en-US')) + '</b>' + (left ? ' · <b style="color:#b91c1c">⏳ باقی Rs ' + esc(left.toLocaleString('en-US')) + '</b>' : '') + ' — ایکٹیو ہو گا (3/3 — آخری تصدیق)۔ پاس ورڈ لکھیں:', async () => {
-        const r = await call({ op: 'aiogrant', aio: w.aio, pkgId: p.id, price: String(got), got, due: left });
+      guarded('<b>' + esc(w.aio) + '</b> (' + esc(name) + ') پر <b>«' + esc(p.name) + '»</b> · 💰 وصول: <b>Rs ' + esc(got.toLocaleString('en-US')) + '</b>' + (left ? ' · <b style="color:#b91c1c">⏳ باقی Rs ' + esc(left.toLocaleString('en-US')) + '</b>' : '') + (free ? ' · <b style="color:#15803d">🎁 مفت</b>' : '') + ' — ایکٹیو ہو گا (3/3 — آخری تصدیق)۔ پاس ورڈ لکھیں:', async () => {
+        const r = await call({ op: 'aiogrant', aio: w.aio, pkgId: p.id, price: free ? '0 (مفت)' : String(got), got, due: left });
         APK = ''; SHOWPK = false; SHARE = aioMsg(r.who, r.ent); await refresh(w.aio); makeRes('✅ پیکج ایکٹیو ہو گیا' + (left ? ' — ⏳ باقی ' + left.toLocaleString('en-US') + ' روپے' : ''), SEL && SEL.ent ? SEL : r); MSG = '';
       });
       return;
