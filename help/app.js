@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2411TU179';
-const UPDATE_NOTE = '🛟 دکان کی بحالی: ایک ہی فون کی کئی پہچانیں ایک قطار میں (پرانی پہچان بھی)، اور دکان کلاؤڈ میں نہ ملے تو ❌ نشان';
+const APP_VERSION = 'HD2411TU180';
+const UPDATE_NOTE = '🎉 دکان کی بحالی: فون پر دکان کھل کر ریکارڈ آ جائے تو یہیں «دکان لائیو ہو گئی» کی اطلاع (گاہک / بل کی گنتی کے ساتھ)';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
