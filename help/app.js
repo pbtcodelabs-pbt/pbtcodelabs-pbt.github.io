@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2411TU173';
-const UPDATE_NOTE = '🛟 سبزی منڈی: دکان کی بحالی — SM ID میں دکان کا پتہ، «🔎 موبائل سے تلاش» اور 6 ہندسوں کا بحالی کوڈ (گاہک لکھے تو پوری دکان واپس)';
+const APP_VERSION = 'HD2411TU174';
+const UPDATE_NOTE = '✅ کھڑے مسائل میں ہر مسئلے پر «حل ہو گیا» بٹن — دبانے پر گاہک کو جواب تیار، مسئلہ فہرست سے غائب اور «حل شدہ» میں؛ دوبارہ کھڑے مسائل میں نہیں آئے گا';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -2116,7 +2116,7 @@ function aiCard(i) {
       <button class="tb" data-act="aiRestGo" data-id="${i.id}|next">⏭️ ${E ? 'Normal list / next review' : 'نارمل لسٹ، اگلے جائزے پر'}</button></div>` : '';
   const acts = `<div class="aiOpts">
       <button class="tb" data-act="aiEdit" data-id="${i.id}">✏️ ${E ? 'Edit' : 'ایڈٹ'}</button>
-      ${ar ? `<button class="tb grn" data-act="aiRest" data-id="${i.id}">↩️ ${E ? 'Restore' : 'نارمل لسٹ میں شامل کریں'}</button>` : `<button class="tb amb" data-act="aiArch" data-id="${i.id}">🗄️ ${E ? 'Archive' : 'آرکائیو'}</button>`}
+      ${ar ? `<button class="tb grn" data-act="aiRest" data-id="${i.id}">↩️ ${E ? 'Restore' : 'نارمل لسٹ میں شامل کریں'}</button>` : `<button class="tb grn" data-act="aiSolve" data-id="${i.id}">✅ ${E ? 'Solved' : 'حل ہو گیا'}</button><button class="tb amb" data-act="aiArch" data-id="${i.id}">🗄️ ${E ? 'Archive' : 'آرکائیو'}</button>`}
       <button class="tb red" data-act="aiDel" data-id="${i.id}">🗑️ ${E ? 'Delete' : 'حذف'}</button></div>`;
   const cfBox = cf ? `<div class="aiOpts aiConf"><div style="width:100%;font-weight:800;font-size:15px">🗄️ ${E ? 'Archive issue' : 'مسئلہ نمبر'} <b class="num">#${i.no}</b> ${E ? '?' : 'آرکائیو کرنا چاہتے ہیں؟'}</div>
       <button class="tb grn" data-act="aiArchGo" data-id="${i.id}">✅ ${E ? 'OK' : 'اوکے'}</button><button class="tb" data-act="aiArchNo" data-id="${i.id}">✖️ ${E ? 'Cancel' : 'رہنے دیں'}</button></div>` : '';
@@ -2147,7 +2147,7 @@ function aiHTML() {
     <div class="aiBar"><select class="inp" data-aiapp="1">${aiAppOpts()}</select></div>
     ${ex ? `<div class="aiBar"><button class="tb" data-act="aiAll">☑️ ${E ? 'Select all' : 'سب چنیں'}</button><button class="tb" data-act="aiNone">⬜ ${E ? 'Clear' : 'ہٹائیں'}</button><span style="align-self:center;color:var(--mut);font-size:13.5px">${E ? 'Selected' : 'چنے ہوئے'}: <b>${n}</b></span></div>` : ''}
     ${body}
-    ${ex ? (() => { const W = ISSUES.filter(i => i.fcAt && i.status !== 'done' && i.status !== 'dup'); return W.length ? `<div class="card" style="padding:10px;margin:8px 0;border:1.5px dashed #7c3aed"><b>🎒 ${E ? 'With free Claude (waiting for the zip upload)' : 'فری Claude کے پاس (زپ اپلوڈ کا انتظار)'}: ${W.length}</b>${W.map(i => `<div style="display:flex;gap:6px;align-items:center;margin-top:6px;font-size:13.5px">${appIcon(appOf(i.app), 'appMini')}<span>${esc(AN(appOf(i.app)))} <b class="num">#${i.no}</b> · ${ago(i.fcAt)}</span><button class="tb" style="margin-inline-start:auto" data-act="fcBack" data-id="${i.id}">↩️ ${E ? 'Back to list' : 'واپس فہرست میں'}</button></div>`).join('')}</div>` : ''; })() : ''}
+    ${ex ? (() => { const W = ISSUES.filter(i => i.fcAt && i.status !== 'done' && i.status !== 'dup'); return W.length ? `<div class="card" style="padding:10px;margin:8px 0;border:1.5px dashed #7c3aed"><b>🎒 ${E ? 'With free Claude (waiting for the zip upload)' : 'فری Claude کے پاس (زپ اپلوڈ کا انتظار)'}: ${W.length}</b>${W.map(i => `<div style="display:flex;gap:6px;align-items:center;margin-top:6px;font-size:13.5px">${appIcon(appOf(i.app), 'appMini')}<span>${esc(AN(appOf(i.app)))} <b class="num">#${i.no}</b> · ${ago(i.fcAt)}</span><button class="tb grn" style="margin-inline-start:auto" data-act="aiSolve" data-id="${i.id}">✅ ${E ? 'Solved' : 'حل ہو گیا'}</button><button class="tb" data-act="fcBack" data-id="${i.id}">↩️ ${E ? 'Back to list' : 'واپس فہرست میں'}</button></div>`).join('')}</div>` : ''; })() : ''}
     ${ex ? `<div class="aiAct" style="flex-direction:column"><button class="tb grn" data-act="fcBundles" ${n ? '' : 'disabled'} style="width:100%;padding:14px;font-size:16px;background:linear-gradient(135deg,#7c3aed,#4c1d95);border-color:#4c1d95;color:#fff">🎒 ${E ? 'Make free-Claude bundles — one zip per app' : 'فری Claude کی گٹھڑیاں بنائیں — ہر ایپ کی ایک زپ'} (${n})</button><div style="display:flex;gap:8px"><button class="tb pri" data-act="aiCopy" ${n ? '' : 'disabled'}>📋 ${E ? 'Copy text' : 'متن کاپی'}</button><button class="tb" data-act="bnAll">📦 ${E ? 'All open issues in one zip (all apps)' : 'سب مسائل ایک زپ میں (سب ایپس)'}</button></div></div>` : ''}`;
 }
 function aiOpen(tab) {
@@ -2704,6 +2704,18 @@ document.addEventListener('click', async e => {
         try { await Store.update(i.id, patch); Object.assign(i, patch); toast('✅'); } catch (er) { toast('⚠️ ' + (er.message || er), 4000); break; }
       }
       AI.edit = ''; aiRedraw(); break; }
+    case 'aiSolve': {   /* HD2411TU174 (مالک کا حکم): کسی بھی کھڑے مسئلے کو ہاتھ سے «حل ہو گیا» — گاہک کو جواب تیار، فہرست سے غائب، «حل شدہ» میں */
+      const i = ISSUES.find(x => x.id === id); if (!i) break;
+      if (!confirm(LANG === 'en' ? 'Mark issue #' + i.no + ' as solved and send the reply to the customer?' : 'مسئلہ نمبر ' + i.no + ' «حل ہو گیا» کریں اور گاہک کو جواب بھیج دیں؟')) break;
+      const now = Date.now(), en = i.lang === 'en';
+      const reply = en ? '✅ Your issue has been solved. Please refresh the app once to get the update.' : '✅ آپ کا مسئلہ حل کر دیا گیا ہے۔ ایپ ایک بار تازہ کر لیں تاکہ نئی اپڈیٹ آ جائے۔';
+      const p = { status: 'done', stage: 'done', stageAt: now, doneAt: now, reply, replyAt: now, hold: '', urgent: false, fcAt: 0, fcApp: '' };
+      const old = { status: i.status, stage: i.stage, stageAt: i.stageAt, doneAt: i.doneAt, reply: i.reply, replyAt: i.replyAt, hold: i.hold, urgent: i.urgent, fcAt: i.fcAt, fcApp: i.fcApp };
+      AI.conf = ''; AI.edit = ''; AI.rest = ''; delete AI.sel[id]; Object.assign(i, p);   // فوراً — لکھائی پس منظر میں
+      aiSmoke(id); toast('✅ #' + i.no + ' ' + (LANG === 'en' ? 'solved — reply ready for the customer' : 'حل — گاہک کو جواب تیار'), 2500);
+      try { render(); ownerBadge(); } catch (er) {}
+      Store.update(i.id, p).catch(er => { Object.assign(i, old); toast('⚠️ ' + (er.message || er), 4500); aiRedraw(); try { render(); ownerBadge(); } catch (e2) {} });
+      break; }
     case 'aiArch': AI.conf = AI.conf === id ? '' : id; AI.edit = ''; AI.rest = ''; aiRedraw(); break;
     case 'aiArchNo': AI.conf = ''; aiRedraw(); break;
     case 'aiArchGo': {
