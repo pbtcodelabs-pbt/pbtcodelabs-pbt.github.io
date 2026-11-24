@@ -153,6 +153,25 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
       if (!R.live) RCW = setTimeout(tick, 15000); };
     RCW = setTimeout(tick, 15000); }
   /* HD2411TU181 (مالک کا حکم — «کوئی لسٹ نہیں آ رہی»): سبزی منڈی ٹیب پر انتظار والے فون پیغام پیسٹ کیے بغیر سیدھے سامنے (`WL`)؛ کسی فون پر «✅ اس فون پر چالو» → دکان کا پیغام پیسٹ → وہیں بھیج */
+  /* HD2411TU186 (مالک کا حکم): «📩 پیکج کی درخواستیں» (گاہک نے ایپ سے مانگا — SM ID، نام، موبائل، پیکج، رقم) اور «⏳ پیسے باقی» (ادھار پر دیے پیکج) — فہرست کے اوپر ہمیشہ، اور ہر بار کھولنے پر ایک پاپ اپ */
+  function rqHTML(){
+    const R = (AIDS || []).filter(x => x.want && x.want.pkg), D = (AIDS || []).filter(x => x.ent && x.ent.due && x.ent.due.amt > 0);
+    if (!R.length && !D.length) return '';
+    const amtOf = w => { const p = PK.find(x => x.id === w.pkg); return Number(String(w.amt || PRICE[w.pkg] || (p && p.price) || 0).replace(/[^0-9]/g, '')) || 0; };
+    let h = '';
+    if (R.length) h += '<div class="aBox" style="border:3px solid #ea580c;background:#fff7ed"><b style="font-size:17px;color:#9a3412">📩 پیکج کی درخواستیں (' + R.length + ')</b><div class="aSub">گاہک نے ایپ سے پیکج مانگا ہے — پیسے وصول کر کے چالو کریں، فون خود چالو ہو جائے گا۔</div>'
+      + R.map(x => { const p = PK.find(y => y.id === x.want.pkg), am = amtOf(x.want); return '<div style="margin-top:8px;padding:8px;border:1px solid #fdba74;border-radius:12px;background:#fff"><div class="aRow" style="flex-wrap:nowrap"><b dir="ltr" style="color:#0369a1;font:900 17px Arial,sans-serif">' + esc(x.aio) + '</b><b style="flex:1;min-width:0;margin-inline-start:8px">' + esc(x.name || '') + '</b></div>'
+        + '<div class="aSub" style="color:#0f172a">📱 <span dir="ltr">' + esc(aPh(x.mobile) || '—') + '</span> · 📦 ' + esc(p ? p.name : x.want.pkg) + ' · 💰 <b dir="ltr">Rs ' + am.toLocaleString('en-US') + '</b>' + (x.want.at ? ' · ' + dmy(x.want.at) + ' ' + hm(x.want.at) : '') + '</div>'
+        + '<button class="aBtn grn" data-a="rqopen" data-v="' + esc(x.aio) + '" style="width:100%;margin-top:6px">💰 پیسے وصول کر کے چالو کریں</button></div>'; }).join('') + '</div>';
+    if (D.length) h += '<div class="aBox" style="border:3px solid #dc2626;background:#fef2f2"><b style="font-size:17px;color:#991b1b">⏳ پیسے باقی (' + D.length + ') — کل Rs ' + D.reduce((t, x) => t + (x.ent.due.amt || 0), 0).toLocaleString('en-US') + '</b>'
+      + D.map(x => '<div style="margin-top:8px;padding:8px;border:1px solid #fca5a5;border-radius:12px;background:#fff"><div class="aRow" style="flex-wrap:nowrap"><b dir="ltr" style="color:#0369a1;font:900 17px Arial,sans-serif">' + esc(x.aio) + '</b><b style="flex:1;min-width:0;margin-inline-start:8px">' + esc(x.name || '') + '</b></div>'
+        + '<div class="aSub" style="color:#0f172a">📱 <span dir="ltr">' + esc(aPh(x.mobile) || '—') + '</span> · 📦 ' + esc(x.ent.due.pkg || x.ent.pkg || '') + ' · <b style="color:#b91c1c">⏳ باقی Rs ' + Number(x.ent.due.amt).toLocaleString('en-US') + '</b> · ' + dmy(x.ent.due.at) + ' سے</div>'
+        + '<div class="aRow" style="margin-top:6px"><button class="aBtn grn" data-a="dpay" data-v="' + esc(x.aio) + '">✅ باقی رقم وصول</button><button class="aBtn" data-a="rqopen" data-v="' + esc(x.aio) + '">👁️ تفصیل</button></div></div>').join('') + '</div>';
+    return h;
+  }
+  let RQPOP = {};
+  function rqPop(){ try { const R = (AIDS || []).filter(x => x.want && x.want.pkg), D = (AIDS || []).filter(x => x.ent && x.ent.due && x.ent.due.amt > 0); if (!R.length && !D.length || RQPOP[APP]) return; RQPOP[APP] = 1;
+    setTimeout(() => alert((R.length ? '📩 ' + R.length + ' نئی پیکج درخواست' + (R.length > 1 ? 'یں' : '') + ':\n' + R.slice(0, 5).map(x => '• ' + x.aio + ' ' + (x.name || '') + ' — ' + aPh(x.mobile)).join('\n') + '\n\n' : '') + (D.length ? '⏳ ' + D.length + ' گاہک کے پیسے ابھی باقی ہیں — کل Rs ' + D.reduce((t, x) => t + (x.ent.due.amt || 0), 0).toLocaleString('en-US') + '\n' + D.slice(0, 5).map(x => '• ' + x.aio + ' ' + (x.name || '') + ' — Rs ' + Number(x.ent.due.amt).toLocaleString('en-US')).join('\n') : '')), 300); } catch (e) {} }
   let WL = null, WLB = false;
   function parseShop(t){ const u = String(t || '').replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
     const mm = u.replace(/[\s-]/g, '').match(/(?:\+?92|0)3\d{9}/), mob = mm ? '0' + mm[0].replace(/^\+?92|^0/, '') : '';
@@ -215,6 +234,7 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
     try { const l = await call({ op: 'list' }); ENTS = l.list || []; } catch (e) { if (!err) err = '⚠️ ' + e.message; }
     try { const n = await call({ op: 'aionew' }); AIDS = n.list || []; buildGroups(); } catch (e) { if (!err) err = '⚠️ ' + e.message; }
     if (err) { MSG = err; OK = false; } else if (!SEL) MSG = '';
+    if (!err) rqPop();
   }
 
   /* اس بندے (ID) سے جڑے سب پیکج: چابی AIO ID / جی میل / موبائل، نوٹ میں ID یا نمبر، یا اسی ID والے فون نے جوڑا ہو */
@@ -476,7 +496,7 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
       (sel ? '<div class="aMsg ok" style="margin:10px 0 0">✔️ چنا ہوا: <b>' + esc(sel.name) + '</b><br>' + (sel.life ? '♾️ لائف ٹائم' : sel.days + ' دن') + ' · 📱 ' + (sel.devices || 1) + ' فون<br>💰 ' + (PRICE[sel.id] ? 'Rs ' + esc(PRICE[sel.id]) : 'قیمت نہیں لکھی') + '</div>' : '') +
       (SHOWPK ? (act.map(p => '<div class="aPk"><label class="' + (APK === p.id ? 'on' : '') + '"><input type="checkbox" data-a="apk" data-v="' + esc(p.id) + '" ' + (APK === p.id ? 'checked' : '') + '><span style="flex:1;min-width:0"><b>' + esc(p.name) + '</b><span class="aSub" style="display:block">' + (p.life ? 'لائف ٹائم' : p.days + ' دن') + ' · ' + p.devices + ' فون</span></span></label><input type="text" inputmode="numeric" data-pr="' + esc(p.id) + '" value="' + esc(PRICE[p.id] || '') + '" placeholder="قیمت"></div>').join('') || '<div class="aSub">کوئی پیکج نہیں — نیچے «پیکج بنانا / بدلنا» سے بنائیں</div>') : '') +
       (sel ? '<div class="aRow" style="margin-top:10px"><button class="aBtn" data-a="apay" style="flex:1">💰 ادائیگی کا پیغام</button><button class="aBtn grn" data-a="aact" style="flex:1" ' + (BUSY ? 'disabled' : '') + '>✅ ایکٹیویٹ</button></div>' : '') +
-      (e && (e.keys || []).includes('a:' + w.aio) ? '<div class="aRow" style="margin-top:12px"><button class="aBtn pri" data-a="ashare">📤 ایکٹیویشن کا پیغام</button>' + (e.revoked ? '<button class="aBtn" data-a="aop" data-op="unrevoke" data-id="' + esc(e.id) + '">↩️ بحال</button>' : '<button class="aBtn" data-a="aop" data-op="revoke" data-id="' + esc(e.id) + '">⛔ معطل</button>') + '<button class="aBtn" data-a="aop" data-op="reset" data-id="' + esc(e.id) + '">📱 فون صاف</button><button class="aBtn red" data-a="aop" data-op="delete" data-id="' + esc(e.id) + '">🗑️</button></div>' : '') +
+      (e && e.due && e.due.amt > 0 ? '<div style="margin-top:10px;padding:8px;border:2px solid #dc2626;border-radius:12px;background:#fef2f2"><b style="color:#991b1b">⏳ پیسے باقی: Rs ' + Number(e.due.amt).toLocaleString('en-US') + '</b> <span class="aSub">(' + esc(e.due.pkg || '') + ' · ' + dmy(e.due.at) + ')</span><button class="aBtn grn" data-a="dpay" data-v="' + esc(w.aio) + '" style="width:100%;margin-top:6px">✅ باقی رقم وصول</button></div>' : '') + (e && (e.keys || []).includes('a:' + w.aio) ? '<div class="aRow" style="margin-top:12px"><button class="aBtn pri" data-a="ashare">📤 ایکٹیویشن کا پیغام</button>' + (e.revoked ? '<button class="aBtn" data-a="aop" data-op="unrevoke" data-id="' + esc(e.id) + '">↩️ بحال</button>' : '<button class="aBtn" data-a="aop" data-op="revoke" data-id="' + esc(e.id) + '">⛔ معطل</button>') + '<button class="aBtn" data-a="aop" data-op="reset" data-id="' + esc(e.id) + '">📱 فون صاف</button><button class="aBtn red" data-a="aop" data-op="delete" data-id="' + esc(e.id) + '">🗑️</button></div>' : '') +
       (SHARE ? '<textarea readonly style="width:100%;box-sizing:border-box;margin-top:8px;min-height:170px;border:1.5px solid #dbe1ea;border-radius:10px;padding:8px;font-size:13px;direction:ltr">' + esc(SHARE) + '</textarea><div class="aRow" style="margin-top:6px"><button class="aBtn grn" data-a="copy" data-v="' + esc(SHARE) + '">📋 کاپی</button><button class="aBtn pri" data-a="send" data-v="' + esc(SHARE) + '">📤 شیئر</button></div>' : '') +
       '<button class="aBtn" data-a="aclose" style="width:100%;margin-top:10px">↩️ بند</button></div>';
   }
@@ -516,7 +536,7 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
     const o = document.getElementById('aiOv'); if (!o) return;
     o.innerHTML = '<div class="aTop"><b>✅ ' + IDN() + ' — پیکج ایکٹیو کریں</b><button class="aX" data-a="close">✕</button></div>' +
       '<div class="aBox" style="padding:8px"><div class="aTabs">' + TABS.map(([k, t]) => '<button class="' + (APP === k ? 'on' : '') + '" data-a="tab" data-v="' + k + '">' + t + '</button>').join('') + '</div></div>' +
-      (MSG ? '<div class="aMsg ' + (OK ? 'ok' : 'bad') + '">' + esc(MSG) + '</div>' : '') + (APP === 'SM' && !SEL ? '<div class="aBox" style="border:2px solid #b45309"><button class="aBtn" data-a="rpaste" style="width:100%;border-color:#b45309;color:#92400e">🛟 دکان بحال کریں — دکان کا پیغام (موبائل + کوڈ) پیسٹ کریں</button>' + rcHTML() + '</div>' : '') + detailHTML() +
+      (MSG ? '<div class="aMsg ' + (OK ? 'ok' : 'bad') + '">' + esc(MSG) + '</div>' : '') + (!SEL ? rqHTML() : '') + (APP === 'SM' && !SEL ? '<div class="aBox" style="border:2px solid #b45309"><button class="aBtn" data-a="rpaste" style="width:100%;border-color:#b45309;color:#92400e">🛟 دکان بحال کریں — دکان کا پیغام (موبائل + کوڈ) پیسٹ کریں</button>' + rcHTML() + '</div>' : '') + detailHTML() +
       '<div class="aBox">' + filHTML() +
       '<div class="aRow" style="flex-wrap:nowrap"><input type="text" id="aiQ" maxlength="40" value="' + esc(AQ) + '" placeholder="تلاش: نام / ' + IDN() + ' / موبائل" style="direction:ltr"><button class="aBtn" data-a="aref" ' + (BUSY ? 'disabled' : '') + '>🔄</button></div><div id="aiList">' + listHTML() + '</div></div>' +
       (APP === 'MD' ? '' : '<div class="aBox"><button class="aBtn" data-a="oldscr" style="width:100%">🛠️ پیکج بنانا / بدلنا (پرانی سکرین)</button></div>');   /* MD: پرانی سکرین مدرسہ نہیں جانتی — قیمت یہیں پیکج کے ساتھ */
@@ -574,6 +594,12 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
       if (!/^03\d{9}$/.test(mob) || code.length !== 8) { say('⚠️ پیغام میں موبائل (03…) اور 8 حروف کا کوڈ (مثلاً R4S7-RM97) نہیں ملا', false); return; }
       RC = { m: mob, c: code, shop: sh.trim(), owner: '', list: [] }; v = ''; a = 'rwait'; }
     if (a === 'wlr') { WL = null; draw(); return; }
+    if (a === 'rqopen') { await pick(v); if (SEL && SEL.who && SEL.who.want && SEL.who.want.pkg) { APK = SEL.who.want.pkg; SHOWPK = true; draw(); } return; }
+    if (a === 'dpay') { const x = (AIDS || []).find(y => y.aio === v) || (SEL && SEL.who && SEL.who.aio === v ? { aio: v, name: SEL.who.name, ent: SEL.ent } : null); const left = x && x.ent && x.ent.due ? x.ent.due.amt : 0;
+      const g0 = prompt('💰 باقی رقم وصول — ' + v + ' ' + ((x && x.name) || '') + '\n\nباقی: ' + Number(left).toLocaleString('en-US') + ' روپے\nکتنی رقم وصول ہوئی؟', String(left || '')); if (g0 === null) return;
+      const g = Number(String(pn(g0)).replace(/[^0-9]/g, '') || 0); if (!g) { say('رقم نہیں لکھی', false); return; }
+      if (!confirm('کیا آپ نے واقعی ' + g.toLocaleString('en-US') + ' روپے وصول کر لیے ہیں؟' + (g < left ? '\n(پھر بھی ' + (left - g).toLocaleString('en-US') + ' باقی رہیں گے)' : '\n✅ پوری رقم — یاد دہانی ختم'))) return;
+      BUSY = true; draw(); try { const r = await call({ op: 'aiodue', aio: v, got: g }); if (r && r.ok) { say(r.ent && r.ent.due ? '✅ وصول — ابھی باقی ' + Number(r.ent.due.amt).toLocaleString('en-US') + ' روپے' : '✅ پوری رقم وصول — یاد دہانی ختم', true); await loadAll(); if (SEL) await loadDetail(SEL.who.aio); } else say('⚠️ ' + ((r && r.reason) || 'نہیں ہوا'), false); } catch (e) { say('⚠️ ' + e.message, false); } BUSY = false; draw(); return; }
     if (a === 'trend') { /* HD2411TU183 (مالک کا حکم — SM2411TU314): اسی موبائل کا مفت ٹرائل فوراً ختم (پیکج پر اثر نہیں) */
       if (!confirm('⛔ موبائل ' + v + ' کا مفت ٹرائل ابھی ختم کریں؟\n\nگاہک کے فون پر (انٹرنیٹ ملتے ہی، چند منٹ میں) ٹرائل ختم ہو جائے گا — پیکج لینا ہو گا۔\nپیکج والے گاہک پر کوئی اثر نہیں۔')) return;
       BUSY = true; draw(); try { const r = await call({ op: 'smtrialend', mob: v }); if (r && r.ok) { if (SEL) SEL.trial = r; say('✅ اس موبائل کا مفت ٹرائل ختم کر دیا', true); } else say('⚠️ ' + ((r && r.reason) || 'نہیں ہوا'), false); } catch (e) { say('⚠️ ' + e.message, false); } BUSY = false; draw(); return; }
@@ -640,15 +666,16 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
       /* MD2311MO028 (مالک کا حکم — سب ایپس): پیسے وصول ہونے سے پہلے ایکٹیو نہیں — پہلے پیسوں کی تصدیق، پھر ایکٹیو کی دوسری تصدیق */
       /* HD2411TU185 (مالک کا حکم — «کتنی رقم وصول کی ہے، دو دفعہ تصدیق»): (1/2) پہلے پوچھیں کتنی رقم وصول ہوئی (پیکج کی رقم / گاہک کی مانگی رقم پہلے سے لکھی)؛ کم ہو تو الگ تنبیہ؛ پھر (2/2) پاس ورڈ */
       const wa = (w.want && w.want.pkg === p.id && w.want.amt) ? String(w.want.amt) : '', due = String(PRICE[p.id] || wa || '').replace(/[^0-9]/g, '');
-      const got0 = window.prompt('💰 پیسوں کی تصدیق (1/2)\n\n' + (name || w.aio) + ' (' + w.aio + ')\nپیکج: ' + p.name + (due ? '\nپیکج کی رقم: ' + Number(due).toLocaleString('en-US') + ' روپے' : '') + (wa && wa !== due ? '\nگاہک کو ایپ میں دکھی رقم: ' + Number(wa).toLocaleString('en-US') + ' روپے' : '') + '\n\nآپ کے اکاؤنٹ میں کتنی رقم واقعی وصول ہو چکی ہے؟ (روپے لکھیں)', due);
-      if (got0 === null) { say('⏸️ پیکج نہیں لگا — پہلے رقم وصول کریں («💰 ادائیگی کا پیغام» بھیج سکتے ہیں)', false); return; }
-      const got = String(pn(got0)).replace(/[^0-9]/g, '');
-      if (!got || Number(got) <= 0) { say('⏸️ پیکج نہیں لگا — وصول شدہ رقم نہیں لکھی', false); return; }
-      if (due && Number(got) < Number(due) && !window.confirm('⚠️ وصول رقم (' + Number(got).toLocaleString('en-US') + ') پیکج کی رقم (' + Number(due).toLocaleString('en-US') + ') سے کم ہے۔\n\nپھر بھی یہ پیکج لگانا ہے؟')) { say('⏸️ پیکج نہیں لگا', false); return; }
+      /* HD2411TU186 (مالک کا حکم — «دو تین دفعہ کنفرم، اور پیسے باقی ہوں تب بھی چالو مگر بار بار یاد»): (1/3) کتنی رقم وصول ہوئی (0 = ابھی کچھ نہیں) → (2/3) «واقعی Rs X وصول؟» → کم ہو تو «باقی Rs Y ادھار — پھر بھی چالو؟» → (3/3) پاس ورڈ؛ باقی رقم سرور پر (`due`) — فہرست میں «⏳ پیسے باقی» ہر بار */
+      const got0 = window.prompt('💰 پیسوں کی تصدیق (1/3)\n\n' + (name || w.aio) + ' (' + w.aio + ')' + (w.mobile ? ' · ' + aPh(w.mobile) : '') + '\nپیکج: ' + p.name + (due ? '\nپیکج کی رقم: ' + Number(due).toLocaleString('en-US') + ' روپے' : '') + (wa && wa !== due ? '\nگاہک کو ایپ میں دکھی رقم: ' + Number(wa).toLocaleString('en-US') + ' روپے' : '') + '\n\nآپ کے اکاؤنٹ میں کتنی رقم واقعی وصول ہو چکی ہے؟ (روپے لکھیں — ابھی کچھ نہیں آیا تو 0)', due);
+      if (got0 === null) { say('⏸️ پیکج نہیں لگا', false); return; }
+      const got = Number(String(pn(got0)).replace(/[^0-9]/g, '') || 0), dueN = Number(due || 0), left = Math.max(0, dueN - got);
+      if (!window.confirm('💰 دوسری تصدیق (2/3)\n\nکیا آپ نے واقعی ' + got.toLocaleString('en-US') + ' روپے وصول کر لیے ہیں؟' + (left ? '\n\n⏳ باقی: ' + left.toLocaleString('en-US') + ' روپے' : '\n\n✅ پوری رقم وصول'))) { say('⏸️ پیکج نہیں لگا', false); return; }
+      if (left && !window.confirm('⏳ پیسے باقی (ادھار)\n\n' + left.toLocaleString('en-US') + ' روپے ابھی باقی ہیں۔\n\nپھر بھی پیکج ابھی چالو کرنا ہے؟\n(ہیلپ ڈیسک میں «⏳ پیسے باقی» کی یاد دہانی تب تک آتی رہے گی جب تک آپ «✅ باقی رقم وصول» نہ کریں)')) { say('⏸️ پیکج نہیں لگا', false); return; }
       PRICE[p.id] = PRICE[p.id] || due;
-      guarded('<b>' + esc(w.aio) + '</b> (' + esc(name) + ') پر <b>«' + esc(p.name) + '»</b> · 💰 وصول: <b>Rs ' + esc(Number(got).toLocaleString('en-US')) + '</b> — ایکٹیو ہو گا (2/2 — آخری تصدیق)۔ پاس ورڈ لکھیں:', async () => {
-        const r = await call({ op: 'aiogrant', aio: w.aio, pkgId: p.id, price: got });
-        APK = ''; SHOWPK = false; SHARE = aioMsg(r.who, r.ent); await refresh(w.aio); makeRes('✅ پیکج ایکٹیو ہو گیا', SEL && SEL.ent ? SEL : r); MSG = '';
+      guarded('<b>' + esc(w.aio) + '</b> (' + esc(name) + ') پر <b>«' + esc(p.name) + '»</b> · 💰 وصول: <b>Rs ' + esc(got.toLocaleString('en-US')) + '</b>' + (left ? ' · <b style="color:#b91c1c">⏳ باقی Rs ' + esc(left.toLocaleString('en-US')) + '</b>' : '') + ' — ایکٹیو ہو گا (3/3 — آخری تصدیق)۔ پاس ورڈ لکھیں:', async () => {
+        const r = await call({ op: 'aiogrant', aio: w.aio, pkgId: p.id, price: String(got), got, due: left });
+        APK = ''; SHOWPK = false; SHARE = aioMsg(r.who, r.ent); await refresh(w.aio); makeRes('✅ پیکج ایکٹیو ہو گیا' + (left ? ' — ⏳ باقی ' + left.toLocaleString('en-US') + ' روپے' : ''), SEL && SEL.ent ? SEL : r); MSG = '';
       });
       return;
     }
