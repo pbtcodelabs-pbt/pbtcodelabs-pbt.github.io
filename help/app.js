@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2411TU175';
-const UPDATE_NOTE = '🛟 سبزی منڈی: دکان کی بحالی بغیر کوڈ — SM ID ← «📲 یہ دکان گاہک کے فون پر چالو کریں» ← انتظار والا فون چنیں، دکان خود واپس · ✅ کھڑے مسائل میں «حل ہو گیا» بٹن';
+const APP_VERSION = 'HD2411TU176';
+const UPDATE_NOTE = '🛟 سبزی منڈی: «🛟 دکان بحال کریں» — دکان کا پرانا پیغام (موبائل + کوڈ) پیسٹ کریں اور انتظار والے فون پر ایک ٹچ سے چالو؛ گاہک کو کچھ نہیں لکھنا';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
