@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2411TU182';
-const UPDATE_NOTE = '🛟 سبزی منڈی بحالی: دکان نہ کھلنے کی صاف وجہ (پرانی خرابی / PIN / انٹرنیٹ / غلط نمبر کوڈ)';
+const APP_VERSION = 'HD2411TU183';
+const UPDATE_NOTE = '⛔ سبزی منڈی SM ID: «اس موبائل کا مفت ٹرائل ابھی ختم کریں» + پہلے ٹرائل کی تاریخ';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
