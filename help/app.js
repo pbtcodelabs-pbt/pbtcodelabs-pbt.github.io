@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2411TU174';
-const UPDATE_NOTE = '✅ کھڑے مسائل میں ہر مسئلے پر «حل ہو گیا» بٹن — دبانے پر گاہک کو جواب تیار، مسئلہ فہرست سے غائب اور «حل شدہ» میں؛ دوبارہ کھڑے مسائل میں نہیں آئے گا';
+const APP_VERSION = 'HD2411TU175';
+const UPDATE_NOTE = '🛟 سبزی منڈی: دکان کی بحالی بغیر کوڈ — SM ID ← «📲 یہ دکان گاہک کے فون پر چالو کریں» ← انتظار والا فون چنیں، دکان خود واپس · ✅ کھڑے مسائل میں «حل ہو گیا» بٹن';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
