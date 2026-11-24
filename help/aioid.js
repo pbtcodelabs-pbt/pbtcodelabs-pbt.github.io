@@ -313,6 +313,7 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
       const devs = []; related({ aio: r.who.aio, gmail: r.who.gmail, mobile: r.who.mobile }, [r.who.dev]).forEach(x => (Array.isArray(x.claims) ? x.claims : []).forEach(c => { if (c && c.dev && devs.indexOf(c.dev) < 0) devs.push(c.dev); }));
       if (devs.length) { const r2 = await call({ op: 'aiolook', aio, devs }); SEL.devmap = r2.devmap || {}; }
     } catch (e) {}
+    if (APP === 'SM' && r.who && r.who.mobile) { try { const t = await call({ op: 'smtrialget', mob: r.who.mobile }); if (t && t.ok) SEL.trial = t; } catch (e) {} }   /* HD2411TU183 */
   }
   async function pick(aio, keep) { SFIND = null; RC = null;
     BUSY = true; SHARE = ''; if (!keep) { RES = null; APK = ''; SHOWPK = false; } draw();
@@ -464,6 +465,9 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
       capsHTML(w, own) + wantTag(w.want) +
       '<div class="aSub">🗓️ بنی ' + dmy(w.made) + ' ' + hm(w.made) + (w.replacedBy ? ' · 🔁 ' + esc(w.replacedBy) : '') + '</div>' + hist + othHTML +
       (APP === 'SM' ? shopHTML(w) : '') +
+      (APP === 'SM' && w.mobile ? '<div class="aBox" style="border:1px solid #fca5a5;background:#fef2f2"><b>🎁 مفت ٹرائل (موبائل <span dir="ltr">' + esc(w.mobile) + '</span>)</b><div class="aSub">ٹرائل اسی نمبر پر یاد ہے — دوبارہ انسٹال / نیا براؤزر کر کے نیا 7 دن نہیں ملتا۔ پیکج والے گاہک پر کوئی اثر نہیں۔</div>'
+        + (SEL && SEL.trial ? '<div class="aSub" style="color:#0f172a">پہلا ٹرائل: <b>' + (SEL.trial.first ? dmy(SEL.trial.first) : '—') + '</b>' + (SEL.trial.endAt ? ' · <b style="color:#b91c1c">⛔ ' + dmy(SEL.trial.endAt) + ' کو ختم کیا گیا</b>' : '') + '</div>' : '')
+        + '<button class="aBtn" data-a="trend" data-v="' + esc(w.mobile) + '" style="width:100%;margin-top:6px;border-color:#dc2626;color:#b91c1c">⛔ اس موبائل کا مفت ٹرائل ابھی ختم کریں</button></div>' : '') +
       '<h3 style="margin:8px 0 4px">➕ اس ID میں دن جوڑیں</h3>' +
       '<div class="aRow"><button class="aBtn grn" data-a="aadd" data-v="1" ' + (BUSY ? 'disabled' : '') + '>+1 دن</button><button class="aBtn grn" data-a="aadd" data-v="30" ' + (BUSY ? 'disabled' : '') + '>+1 مہینہ</button><button class="aBtn grn" data-a="aadd" data-v="365" ' + (BUSY ? 'disabled' : '') + '>+1 سال</button><button class="aBtn" data-a="aadd" data-v="life" ' + (BUSY ? 'disabled' : '') + '>♾️ لائف ٹائم</button></div>' +
       '<div class="aRow" style="margin-top:6px;flex-wrap:nowrap"><input type="text" id="aAddN" inputmode="numeric" maxlength="4" placeholder="دن" style="width:90px;flex:0 0 90px;text-align:center;font-weight:800"><button class="aBtn pri" data-a="aadd" data-v="n" ' + (BUSY ? 'disabled' : '') + '>➕ اتنے دن جوڑیں</button></div>' +
@@ -570,6 +574,9 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
       if (!/^03\d{9}$/.test(mob) || code.length !== 8) { say('⚠️ پیغام میں موبائل (03…) اور 8 حروف کا کوڈ (مثلاً R4S7-RM97) نہیں ملا', false); return; }
       RC = { m: mob, c: code, shop: sh.trim(), owner: '', list: [] }; v = ''; a = 'rwait'; }
     if (a === 'wlr') { WL = null; draw(); return; }
+    if (a === 'trend') { /* HD2411TU183 (مالک کا حکم — SM2411TU314): اسی موبائل کا مفت ٹرائل فوراً ختم (پیکج پر اثر نہیں) */
+      if (!confirm('⛔ موبائل ' + v + ' کا مفت ٹرائل ابھی ختم کریں؟\n\nگاہک کے فون پر (انٹرنیٹ ملتے ہی، چند منٹ میں) ٹرائل ختم ہو جائے گا — پیکج لینا ہو گا۔\nپیکج والے گاہک پر کوئی اثر نہیں۔')) return;
+      BUSY = true; draw(); try { const r = await call({ op: 'smtrialend', mob: v }); if (r && r.ok) { if (SEL) SEL.trial = r; say('✅ اس موبائل کا مفت ٹرائل ختم کر دیا', true); } else say('⚠️ ' + ((r && r.reason) || 'نہیں ہوا'), false); } catch (e) { say('⚠️ ' + e.message, false); } BUSY = false; draw(); return; }
     if (a === 'rpushq') { const x0 = (WL || []).find(y => y.w === v) || {};
       const t = prompt('📲 فون ' + String(v).slice(-4) + (x0.mob ? ' (' + x0.mob + ')' : '') + ' پر کون سی دکان؟\n\nدکان کا پیغام پیسٹ کریں (دکان / موبائل / کوڈ):'); if (!t) return;
       const P = parseShop(t); if (!/^03\d{9}$/.test(P.mob) || P.code.length !== 8) { say('⚠️ پیغام میں موبائل (03…) اور 8 حروف کا کوڈ (مثلاً R4S7-RM97) نہیں ملا', false); return; }
