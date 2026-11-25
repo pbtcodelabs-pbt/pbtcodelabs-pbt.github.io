@@ -10,8 +10,8 @@
   if (typeof OLD !== 'function') return;
   const API = 'https://aio-pos-verify.pbtcodelabs.workers.dev/entadmin';
   const TD = () => APP === 'MD' ? 3 : 7;   /* ⚠️ مفت ٹرائل کے دن — ID بننے کی تاریخ سے؛ MD2311MO028: مدرسہ 3 دن */
-  const TABS = [['MCS', 'My City Shines'], ['SM', 'سبزی منڈی'], ['MD', 'مدرسہ'], ['DR', 'AIO Direct'], ['AIO', 'AIO POS']];   /* MD2311MO028 (مالک کا حکم): مدرسہ سافٹ ویئر بھی MD ID پر — سبزی منڈی جیسا */   /* HD2211SU163 (مالک کا حکم): سبزی منڈی بھی SM ID پر — AIO Direct جیسا */
-  const IDN = () => APP === 'SM' ? 'SM ID' : APP === 'MD' ? 'MD ID' : 'AIO ID';
+  const TABS = [['MCS', 'My City Shines'], ['SM', 'سبزی منڈی'], ['MD', 'مدرسہ'], ['FM', 'فروٹ منڈی'], ['DR', 'AIO Direct'], ['AIO', 'AIO POS']];   /* MD2311MO028 (مالک کا حکم): مدرسہ سافٹ ویئر بھی MD ID پر — سبزی منڈی جیسا */   /* HD2211SU163 (مالک کا حکم): سبزی منڈی بھی SM ID پر — AIO Direct جیسا */
+  const IDN = () => APP === 'SM' ? 'SM ID' : APP === 'MD' ? 'MD ID' : APP === 'FM' ? 'FM ID' : 'AIO ID';
   let SFIND = null, RC = null;   /* HD2411TU173: دکان کی بحالی (SM) */
   let APP = 'AIO', AIDS = [], ENTS = [], PK = [], PRICE = {}, AQ = '', SHOW = 40, SEL = null, APK = '', SHOWPK = false, BUSY = false, MSG = '', OK = true, RES = null, SHARE = '', GRP = {}, FIL = 'su', ST = {};
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -262,9 +262,12 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
     const ss = list.map(stOne).filter(Boolean), g = k => ss.filter(s => s.k === k);
     return g('life')[0] || g('act').sort((p, q) => q.exp - p.exp)[0] || g('rev')[0] || g('exp').sort((p, q) => q.exp - p.exp)[0] || null;
   }
-  function trial(a) { const end = (a.made || 0) + TD() * 864e5, left = dayLeft(end); return left > 0 ? { k: 'trial', left, exp: end } : { k: 'tend', exp: end }; }
+  function trial(a) {
+    /* HD2611TH189 (مالک کا حکم — فروٹ منڈی / صدام): ایپ میں پہلے سے چلتا پیکج (پرانا کوڈ) — ایپ اپنی آخری تاریخ (`exp0`) بھیجتی ہے؛ ہیلپ ڈیسک کا پیکج لگنے تک وہی دن باقی دکھیں */
+    if (APP === 'FM' && (a.exp0 || 0) > 0) { const l0 = dayLeft(a.exp0); return l0 > 0 ? { k: 'app', left: l0, exp: a.exp0 } : { k: 'tend', exp: a.exp0 }; }
+    const end = (a.made || 0) + TD() * 864e5, left = dayLeft(end); return left > 0 ? { k: 'trial', left, exp: end } : { k: 'tend', exp: end }; }
   const actAt = e => { const h = (e.hist || [])[(e.hist || []).length - 1]; return (h && h.at) || e.usedAt || e.redeemed || e.at || 0; };
-  const live = s => !!s && (s.k === 'act' || s.k === 'life');
+  const live = s => !!s && (s.k === 'act' || s.k === 'life' || s.k === 'app');   /* HD2611TH189: فروٹ منڈی کا ایپ والا پرانا پیکج بھی چالو */
   function chip(s) {
     switch (s.k) {
       case 'life': return ['u', '✅ ♾️ لائف ٹائم'];
@@ -272,6 +275,7 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
       case 'rev': return ['r', '⛔ معطل'];
       case 'exp': return ['d', '⌛ ختم ' + dmy(s.exp)];
       case 'trial': return ['t', '🎁 ٹرائل ' + s.left + ' دن باقی'];
+      case 'app': return [s.left <= 7 ? 'r' : s.left <= 15 ? 'd' : 'u', (s.left <= 15 ? '⚠️ ' : '✅ ') + s.left + ' دن باقی (ایپ میں پرانا پیکج)'];
       default: return s.extra ? ['d', '🗂️ فالتو — ٹرائل ختم'] : ['r', '🚫 ٹرائل ختم'];
     }
   }
@@ -369,6 +373,10 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
       if (e.life) rows.push('♾️ ایکسپائری: <b>لائف ٹائم</b>');
       else rows.push('⏳ ایکسپائری: <b>' + dmy(e.exp) + '</b> · ' + (s.k === 'act' ? 'باقی <b>' + s.left + ' دن</b>' : 'ختم ہوئے <b>' + Math.abs(dayLeft(e.exp)) + ' دن</b> ہو گئے'));
       if (!own1) rows.push('ℹ️ یہ پیکج اس بندے کی جی میل / موبائل کی چابی سے ہے');
+    } else if (s.k === 'app') {
+      cls = s.left <= 7 ? 'r' : s.left <= 15 ? 'd' : 'u'; head = '✅ ایپ میں پرانا پیکج چل رہا ہے — ' + s.left + ' دن باقی';
+      rows.push('⏳ ایکسپائری: <b>' + dmy(s.exp) + '</b> · باقی <b>' + s.left + ' دن</b> <small>(ایپ کا اپنا پرانا کوڈ والا پیکج — یہاں سے نیا پیکج لگائیں تو آگے سے جڑے گا، پرانا کم نہیں ہو گا)</small>');
+      rows.push('📥 FM ID بنی: <b>' + dmy(w.made) + '</b>');
     } else if (s.k === 'trial') {
       cls = 't'; head = '🎁 ٹرائل چل رہا ہے — ' + s.left + ' دن باقی';
       rows.push('📥 ڈاؤن لوڈ (ID بنی): <b>' + dmy(w.made) + '</b> · ٹرائل ختم ہو گا: <b>' + dmy(s.exp) + '</b> <small>(ٹرائل ' + TD() + ' دن)</small>');
@@ -456,7 +464,8 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
       e = s.ent; const pi = pkInfo(e), at = actAt(e);
       cls = s.k === 'rev' ? 'r' : s.k === 'exp' ? 'd' : 'u';
       txt = '📦 <b>' + esc(pi.name || '—') + '</b>' + (pi.price ? ' · 💰 Rs ' + esc(pi.price) : '') + ' · ' + (s.k === 'life' ? '♾️ لائف ٹائم' : s.k === 'act' ? '✅ ' + s.left + ' دن باقی' : s.k === 'rev' ? '⛔ معطل' : '⌛ ختم') + (at ? ' · 📅 ' + dmy(at) : '') + (e.life ? '' : ' → ' + dmy(e.exp));
-    } else if (s.k === 'trial') { cls = 't'; txt = '🎁 ٹرائل ' + s.left + ' دن باقی · ختم ' + dmy(s.exp); btn = bt('trialmsg', '💬', 'grn'); }
+    } else if (s.k === 'app') { cls = s.left <= 7 ? 'r' : s.left <= 15 ? 'd' : 'u'; txt = (s.left <= 15 ? '⚠️ ' : '✅ ') + s.left + ' دن باقی (ایپ میں پرانا پیکج) · ختم ' + dmy(s.exp); }
+    else if (s.k === 'trial') { cls = 't'; txt = '🎁 ٹرائل ' + s.left + ' دن باقی · ختم ' + dmy(s.exp); btn = bt('trialmsg', '💬', 'grn'); }
     else if (s.extra) { cls = 'd'; txt = '🗂️ فالتو ID'; btn = bt('adel', '🗑️', 'red'); }
     else { cls = 'r'; txt = '🚫 ٹرائل ختم ' + dmy(s.exp); btn = bt('trialmsg', '💬', 'grn') + bt('adel', '🗑️', 'red'); }
     const pkb = e ? pkBox(e, s) : '';
@@ -539,7 +548,7 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
       (MSG ? '<div class="aMsg ' + (OK ? 'ok' : 'bad') + '">' + esc(MSG) + '</div>' : '') + (!SEL ? rqHTML() : '') + (APP === 'SM' && !SEL ? '<div class="aBox" style="border:2px solid #b45309"><button class="aBtn" data-a="rpaste" style="width:100%;border-color:#b45309;color:#92400e">🛟 دکان بحال کریں — دکان کا پیغام (موبائل + کوڈ) پیسٹ کریں</button>' + rcHTML() + '</div>' : '') + detailHTML() +
       '<div class="aBox">' + filHTML() +
       '<div class="aRow" style="flex-wrap:nowrap"><input type="text" id="aiQ" maxlength="40" value="' + esc(AQ) + '" placeholder="تلاش: نام / ' + IDN() + ' / موبائل" style="direction:ltr"><button class="aBtn" data-a="aref" ' + (BUSY ? 'disabled' : '') + '>🔄</button></div><div id="aiList">' + listHTML() + '</div></div>' +
-      (APP === 'MD' ? '' : '<div class="aBox"><button class="aBtn" data-a="oldscr" style="width:100%">🛠️ پیکج بنانا / بدلنا (پرانی سکرین)</button></div>');   /* MD: پرانی سکرین مدرسہ نہیں جانتی — قیمت یہیں پیکج کے ساتھ */
+      (APP === 'MD' || APP === 'FM' ? '' : '<div class="aBox"><button class="aBtn" data-a="oldscr" style="width:100%">🛠️ پیکج بنانا / بدلنا (پرانی سکرین)</button></div>');   /* MD: پرانی سکرین مدرسہ نہیں جانتی — قیمت یہیں پیکج کے ساتھ */
   }
 
   /* ———— ڈویلپر پاس ورڈ — ہر تبدیلی سے پہلے ———— */
@@ -633,6 +642,7 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
       const nm = x.name || '—', ph = aPh(x.mobile) || '—', st = idState({ aio: v, gmail: x.gmail || (SEL && SEL.who.gmail) || '', mobile: x.mobile, made: x.made, name: x.name });
       const who = '«' + nm + '» (ID: ' + v + ' · موبائل: ' + ph + ')';
       if (live(st)) { window.alert('🚫 یہ ID ڈیلیٹ نہیں کی جا سکتی\n\n' + who + '\nاس پر پیکج چل رہا ہے' + (st.k === 'life' ? ' — لائف ٹائم۔' : ' — ' + st.left + ' دن باقی ہیں۔') + '\n\nپیکج والی ID ڈیلیٹ نہیں ہو سکتی۔'); return; }
+      if (st.k === 'app') { window.alert('🚫 یہ ID ڈیلیٹ نہیں کی جا سکتی — اس فون میں پیکج چل رہا ہے (' + st.left + ' دن باقی)'); return; }
       if (st.k === 'trial') { window.alert('🚫 یہ ID ڈیلیٹ نہیں کی جا سکتی\n\n' + who + '\nاس پر ابھی ٹرائل چل رہا ہے — ' + st.left + ' دن باقی ہیں (ٹرائل ختم ہو گا: ' + dmy(st.exp) + ')۔\n\nٹرائل ختم ہونے کے بعد ڈیلیٹ کر سکتے ہیں۔'); return; }
       const why = st.k === 'tend' ? 'اس ID پر کوئی پیکج نہیں ہے۔\nاس کا ٹرائل ختم ہو چکا ہے (ختم ہوا: ' + dmy(st.exp) + ')۔' : st.k === 'rev' ? 'اس ID کا پیکج معطل ہے۔' : 'اس ID کا پیکج ختم ہو چکا ہے (' + dmy(st.exp) + ')۔';
       guarded('⚠️ کیا آپ واقعی ' + who + ' ڈیلیٹ کرنا چاہتے ہیں؟\n\n' + why + (st.extra ? '\nاس بندے کا پیکج دوسری ID پر چل رہا ہے۔' : '') + '\n\nڈیلیٹ کے بعد یہ فہرست سے غائب ہو جائے گی (ریکارڈ اندر رہے گا تاکہ اسی فون کو نیا مفت ٹرائل نہ ملے)۔', async () => {
@@ -696,7 +706,7 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
     if (!window.Store || !Store.isOwner || !Store.isOwner()) { try { toast('🔒'); } catch (e) {} return; }
     window.__licBypass = false;
     const old = document.getElementById('licOv'); if (old) old.remove();
-    APP = app === 'DR' ? 'DR' : app === 'SM' ? 'SM' : app === 'MD' ? 'MD' : 'AIO'; try { localStorage.setItem('lic_app', APP); } catch (e) {}
+    APP = app === 'DR' ? 'DR' : app === 'SM' ? 'SM' : app === 'MD' ? 'MD' : app === 'FM' ? 'FM' : 'AIO'; try { localStorage.setItem('lic_app', APP); } catch (e) {}
     SEL = null; APK = ''; SHOWPK = false; RES = null; SHARE = ''; MSG = ''; AQ = ''; SHOW = 40; loadLocal();
     css();
     let o = document.getElementById('aiOv'); if (o) o.remove();
