@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2511WE187';
-const UPDATE_NOTE = '🎁 پیکج لگاتے وقت 0 رقم لکھیں تو «مفت؟» — اپنا / ٹیسٹ پیکج بغیر ادھار کے';
+const APP_VERSION = 'HD2511WE188';
+const UPDATE_NOTE = '🆘 ہر ایپ کا ہیلپ ڈیسک یکساں: «اپنا مسئلہ یا مشورہ بتائیں» + «سوال پوچھیں / رہنمائی (چیٹ)» دونوں ہمیشہ — پہلے سے لکھا پیغام بھی فارم میں خود';
 const DEV_PHONE = '03206793793';
 
 const APPS = [

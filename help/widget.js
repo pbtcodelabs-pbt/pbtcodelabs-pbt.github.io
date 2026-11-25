@@ -64,7 +64,11 @@
     });
     // HD0411WE038: پہلے سے لکھا پیغام (text) ہو تو سیدھا فارم
     // HD2311MO171: type 'chat' = سیدھا «💬 سوال پوچھیں» کی چیٹ
-    return BASE + '?' + q.join('&') + (o.app ? (o.type === 'chat' ? '#/chat/' : o.text ? '#/new/' : '#/app/') + encodeURIComponent(o.app) : '#/');
+    // HD2511WE188 (مالک کا حکم — «ہر ایپ میں یکساں»): ہر ایپ سے ہمیشہ ایپ کا صفحہ — «➕ اپنا مسئلہ یا مشورہ بتائیں» + «💬 سوال پوچھیں / رہنمائی (چیٹ)» دونوں؛
+    //   پہلے سے لکھا پیغام (text) ہو تو بھی یہی صفحہ، اور فارم کھولنے پر وہی پیغام خود لکھا ملتا ہے (فارم `text` URL سے پڑھتا ہے)۔
+    //   صرف اکاؤنٹ / اشتہار کی درخواست (خود بھیجی جاتی ہے) سیدھی فارم پر۔
+    var t = String(o.text || ''), req = o.type === 'acct' || (/(^|\n)\s*UID\s*:/i.test(t) && /(^|\n)\s*(Gmail|Mobile)/i.test(t)) || /📢\s*Ad request|Account sign-in request/i.test(t);
+    return BASE + '?' + q.join('&') + (o.app ? (o.type === 'chat' ? '#/chat/' : req ? '#/new/' : '#/app/') + encodeURIComponent(o.app) : '#/');
   }
   function open(o) {
     o = Object.assign({}, CFG, o || {});
