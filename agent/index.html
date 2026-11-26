@@ -52,7 +52,7 @@ button.sec{background:var(--line);color:var(--ink)}button.red{background:#fee2e2
 @media print{header,.foot,.noP,#tst{display:none!important}body{background:#fff}.card{box-shadow:none;break-inside:avoid}main{margin:0;max-width:none}}
 .foot{text-align:center;font-size:12px;color:var(--mut);margin:20px 0}
 </style>
-<link rel="stylesheet" href="ui2.css?v=AGP2211SU044">
+<link rel="stylesheet" href="ui2.css?v=AGP2611TH045">
 </head>
 <body>
 <header style="position:relative"><button onclick="openHelpDesk()" title="Help Desk — مسائل و تجاویز" style="position:absolute;left:12px;top:12px;background:none;padding:0;border:0"><span class="pbthd-sos" style="display:inline-flex;align-items:center;gap:4px;background:linear-gradient(#fde047,#facc15);color:#111;border-radius:999px;padding:2px 9px;font:800 12px/1.35 Arial,sans-serif;box-shadow:0 2px 0 #ca8a04;white-space:nowrap;vertical-align:middle;direction:ltr"><b style="background:#111;color:#facc15;border-radius:50%;width:15px;height:15px;display:inline-flex;align-items:center;justify-content:center;font-size:11px">?</b>Help Desk</span></button><h1 id="hdT">🤝 MCS Agent</h1><small id="hdS">ایجنٹ · ایڈمن 2 · ایڈمن 1 — PBT Code Labs</small></header>
@@ -71,7 +71,7 @@ function toast(t){ let el = document.getElementById('tst'); if(!el){ el = docume
 const D = t => t ? new Date(t).toLocaleDateString('en-GB') : '—';
 const ls = { get(k, d){ try{ const v = localStorage.getItem('agp_' + k); return v ? JSON.parse(v) : d; }catch(e){ return d; } }, set(k, v){ try{ localStorage.setItem('agp_' + k, JSON.stringify(v)); }catch(e){} }, del(k){ try{ localStorage.removeItem('agp_' + k); }catch(e){} } };
 /* AGP0911MO013 (مالک کا حکم، ہیلپ ڈیسک #174): ایک ہی «PBT Portal» ایپ (APK) — پہلے صفحے پر تین لاگ اِن؛ پچھلا چنا ہوا کردار یاد (agp_role) */
-const AGP_VER = 'AGP2211SU044';
+const AGP_VER = 'AGP2611TH045';
 const ROLE = location.hash.startsWith('#admin') ? 'admin' : location.hash.startsWith('#codev') ? 'codev' : location.hash.startsWith('#agent') ? 'agent' : (ls.get('role', '') || '');
 const ADMIN = ROLE === 'admin', CODEV = ROLE === 'codev';
 function roleGo(r){ ls.set('role', r); location.hash = '#' + r; location.reload(); }
@@ -228,12 +228,13 @@ function admLogout(){ ls.del('admRt'); ls.del('admPps'); admTok = null; admLogin
 async function admCall(path, body){ if((!admTok || Date.now() > admTokExp) && !(await admRefresh())){ admLogin('دوبارہ لاگ اِن کریں'); throw new Error('login'); } const r = await post(path, Object.assign({admin: path === '/agportal'}, body), admTok); if(r && r.error === 'admin_only'){ admLogin('صرف ایڈمن'); throw new Error('admin'); } return r; }
 async function admHome(){
   const r = await admCall('/agadmin', {op:'list'}); admList = (r.list||[]).filter(a => a.status === 'approved'); admRate = r.rate || 0;
+  const admEnded = admList.filter(a => a.freedCode || /^XAG\d+-/.test(String(a.code||''))), admLive = admList.filter(a => !(a.freedCode || /^XAG\d+-/.test(String(a.code||''))));   /* AGP2611TH045 (ہیلپ ڈیسک #427): ختم کیے ہوئے ایجنٹ مرکزی فہرست میں نہیں — الگ تہہ میں (ڈیٹا / حساب جوں کا توں) */
   let nw = 0; try{ const ib = await admCall('/agadmin', {op:'inbox'}); nw = (ib.list||[]).reduce((a,x)=>a+(x.nw||0),0); }catch(e){}
   app.innerHTML = `<div class="card"><div class="btns" style="margin:0"><span style="align-self:center;font-weight:800">👨‍💻 ایڈمن 1</span><button class="sec" onclick="admHome()">🔄 تازہ</button><button class="sec" onclick="admLogout()">🚪 باہر</button></div></div>
     <div class="card"><h2>💬 سب چیٹس ${nw ? `<span class="tag t-w">${nw} نئے</span>` : ''}</h2><div style="font-size:14px">ایجنٹوں اور ایڈمن 2 سے بات — ہر ایک کی الگ چیٹ</div><div class="btns"><button onclick="admInbox()">💬 چیٹس کھولیں</button></div></div>
     <div class="card"><h2>💰 کمپنی کا حساب</h2><div style="font-size:14px">ہر مہینے کی فروخت اور پیسوں کی تقسیم — گوگل، مینٹیننس، ایجنٹ، ایڈمن 1، ایڈمن 2</div><div class="btns"><button onclick="admFin()">📊 ماہانہ رپورٹ کھولیں</button></div></div>
     <div class="card"><h2>⚙️ کمیشن کی شرح</h2><div style="font-size:14px">ہر خریدے سال پر ایجنٹ کا کمیشن</div><div class="btns"><input id="rate" class="num" inputmode="numeric" value="${admRate}" style="max-width:140px"><button onclick="admSetRate()">💾 محفوظ</button></div></div>
-    <div class="card"><h2>🤝 ایجنٹ (${admList.length})</h2>${admList.map(a => `<div class="row ag" onclick="admOpen('${E(a.code)}')"><b>${E(a.name)}</b> — <span class="num">${E(a.code)}</span><br><small>${E(a.biz)} · ${E(a.city)} · 🏪 ${N(a.refs)}${a.newProofs ? ` · <span class="tag t-w">📸 ${a.newProofs} نئے ثبوت</span>` : ''}${a.off ? ' · <span class="tag" style="background:#fee2e2;color:var(--red)">⛔ غیر فعال</span>' : ''}</small></div>`).join('') || '<div class="row">ابھی کوئی منظور ایجنٹ نہیں — منظوری سٹی شائنز ایپ کے کنٹرول پینل سے</div>'}</div>`;
+    <div class="card"><h2>🤝 ایجنٹ (${admLive.length})</h2>${admLive.map(a => `<div class="row ag" onclick="admOpen('${E(a.code)}')"><b>${E(a.name)}</b> — <span class="num">${E(a.code)}</span><br><small>${E(a.biz)} · ${E(a.city)} · 🏪 ${N(a.refs)}${a.newProofs ? ` · <span class="tag t-w">📸 ${a.newProofs} نئے ثبوت</span>` : ''}${a.off ? ' · <span class="tag" style="background:#fee2e2;color:var(--red)">⛔ غیر فعال</span>' : ''}</small></div>`).join('') || '<div class="row">ابھی کوئی منظور ایجنٹ نہیں — منظوری سٹی شائنز ایپ کے کنٹرول پینل سے</div>'}</div>${admEnded.length ? `<div class="card"><details><summary style="cursor:pointer;font-weight:700">🔓 ختم شدہ ایجنٹ (${admEnded.length})</summary><div style="font-size:13px;color:var(--mut);margin:6px 0">ان کے AG نمبر خالی ہو چکے ہیں؛ پرانا حساب اور کاروبار محفوظ ہیں۔</div>${admEnded.map(a => `<div class="row ag" onclick="admOpen('${E(a.code)}')"><b>${E(a.name)}</b> — <span class="num">${E(a.freedCode || a.code)}</span> <span class="tag" style="background:#e5e7eb;color:#374151">🔓 ختم</span><br><small>${E(a.biz)} · ${E(a.city)} · 🏪 ${N(a.refs)}</small></div>`).join('')}</details></div>` : ''}`;
 }
 /* AGP0511TH003 (مالک کا حکم): 1000 = گوگل 150 (اصل — فرق مینٹیننس سے) + مینٹیننس 150 + لانے والا 170 + ایڈمن 1 265 + ایڈمن 2 265؛
    لانے والا: ایجنٹ / ADMIN1 / ADMIN2؛ PBT (خود آیا) = 170 آدھا آدھا */
@@ -279,7 +280,7 @@ async function admOpen(code, extra){
   THR = ''; admCode = code; const s = await admCall('/agportal', Object.assign({code}, extra||{})); if(!s.ok) return alert('نہیں ملا'); S = s;
   app.innerHTML = `<div class="card"><div class="btns" style="margin:0 0 6px"><button class="sec" onclick="admHome()">← سب ایجنٹ</button></div><h2>${E(s.agent.name)} <span class="num" style="font-size:13px">${E(s.agent.code)}</span> ${CP(s.agent.code)} ${s.agent.off ? '<span class="tag" style="background:#fee2e2;color:var(--red)">⛔ غیر فعال</span>' : ''}</h2><div style="font-size:14px">📱 <span class="num">0${E(String(s.agent.phone).slice(2))}</span> · ${E(s.agent.biz)} · ${E(s.agent.city)} · منظور: ${D(s.agent.okAt)}</div></div>
     ${summaryHtml(s)}
-    <div class="card"><div class="btns" style="margin:0">${s.agent.off ? '<button onclick="admDeact(false)">✅ دوبارہ فعال کریں</button>' : '<button class="red" onclick="admDeact(true)">⛔ ایجنٹ غیر فعال کریں</button>'}<button class="red" onclick="admFree()">🔓 ایجنٹ ختم — AG نمبر خالی کریں</button></div><div class="btns"><button class="sec" onclick="admPin(false)">🔑 PIN دیکھیں</button><button class="sec" onclick="admPin(true)">🔄 نیا PIN بنائیں</button></div><div id="pinBox"></div><div style="font-size:13px;color:var(--mut);margin-top:4px">غیر فعال ایجنٹ کے کاروبار کی آئندہ تجدید / فروخت کا کمیشن کمپنی (PBT) کا ہوتا ہے — اب تک کا حساب نہیں بدلتا۔</div></div>
+    <div class="card">${/^XAG\d+-/.test(String(s.agent.code||'')) ? '<div style="background:#f1f5f9;border-radius:10px;padding:10px;font-size:14px;margin-bottom:6px">🔓 یہ ایجنٹ پہلے ہی <b>ختم</b> ہو چکا ہے — اس کا AG نمبر خالی ہو کر اگلے نئے ایجنٹ کے لیے جا چکا ہے۔ اس کا پرانا حساب اور کاروبار یہاں محفوظ ہیں۔</div>' : `<div class="btns" style="margin:0">${s.agent.off ? '<button onclick="admDeact(false)">✅ دوبارہ فعال کریں</button>' : '<button class="red" onclick="admDeact(true)">⛔ ایجنٹ غیر فعال کریں</button>'}<button class="red" onclick="admFree()">🔓 ایجنٹ ختم — AG نمبر خالی کریں</button></div>`}<div class="btns"><button class="sec" onclick="admPin(false)">🔑 PIN دیکھیں</button><button class="sec" onclick="admPin(true)">🔄 نیا PIN بنائیں</button></div><div id="pinBox"></div><div style="font-size:13px;color:var(--mut);margin-top:4px">غیر فعال ایجنٹ کے کاروبار کی آئندہ تجدید / فروخت کا کمیشن کمپنی (PBT) کا ہوتا ہے — اب تک کا حساب نہیں بدلتا۔</div></div>
     <div class="card"><h2>➕ ادائیگی درج کریں</h2><div class="btns"><input id="payAmt" class="num" inputmode="numeric" placeholder="رقم" style="max-width:140px"><input id="payNote" placeholder="نوٹ (ایزی پیسہ، TID…)" style="flex:1;min-width:160px"><button onclick="admPay()">💾</button></div>
       <h2 style="margin-top:10px">✅ ادائیگیاں</h2>${paysHtml(s, true)}</div>
     <div class="card"><h2>🏪 کاروبار</h2>${refsHtml(s)}</div>
@@ -294,9 +295,10 @@ async function admDeact(off){
 }
 /* AGP1711TU042 (مالک کا حکم): ایجنٹ ختم — اس کا AG نمبر خالی (ریفرل فہرست میں «Vacant — خالی»)، اگلے نئے ایجنٹ کو خود ملتا ہے؛ MCS ID / کاروبار ویسے؛ پرانا حساب الگ محفوظ */
 async function admFree(){
+  if(/^XAG\d+-/.test(String(admCode||''))){ alert('یہ ایجنٹ پہلے ہی ختم ہو چکا ہے — اس کا AG نمبر خالی ہے'); return admHome(); }   /* AGP2611TH045 (ہیلپ ڈیسک #427): دوسری بار دبانے پر غلط «ایڈمن کے لیے پکے ہیں» پیغام آتا تھا */
   if(!confirm('یہ ایجنٹ ختم کریں؟\n\n• اس کا ' + admCode + ' نمبر خالی ہو جائے گا — اگلے نئے ایجنٹ کو ملے گا\n• اس کی MCS ID اور کاروبار ویسے رہیں گے\n• اب تک کا حساب الگ محفوظ رہے گا\n• یہ واپس نہیں ہو سکتا')) return;
   const r = await admCall('/agadmin', {op: 'free', code: admCode}); if(!r || !r.ok) return alert(r && r.reason === 'admin_code' ? 'AG001 / AG002 ایڈمن کے لیے پکے ہیں — خالی نہیں ہوتے' : 'نہیں ہو سکا');
-  alert('✅ ' + admCode + ' اب خالی ہے — اگلے نئے ایجنٹ کو یہی نمبر ملے گا'); location.hash = '#admin'; try{ admList(); }catch(e){ location.reload(); }
+  alert('✅ ' + admCode + ' اب خالی ہے — اگلے نئے ایجنٹ کو یہی نمبر ملے گا؛ یہ ایجنٹ اب «ختم شدہ ایجنٹ» میں ہے'); location.hash = '#admin'; admHome();
 }
 async function admPay(){ const amount = parseInt($('#payAmt').value, 10); if(!(amount > 0)) return; if(!confirm('Rs ' + N(amount) + ' ادائیگی درج کریں؟')) return; await admCall('/agadmin', {op:'pay', code: admCode, amount, note: $('#payNote').value}); admOpen(admCode); }
 async function admUnpay(id){ if(!confirm('یہ ادائیگی ہٹا دیں؟')) return; await admCall('/agadmin', {op:'unpay', pid: id}); admOpen(admCode); }
@@ -398,7 +400,7 @@ function openHelpDesk(){
   location.href = 'https://pbtcodelabs-pbt.github.io/help/?' + new URLSearchParams({app: 'PBT-Portal', v: AGP_VER, phone: o.phone, name: o.name, text: o.text}) + '#/new/PBT-Portal';
 }
 </script>
-<script src="ui2.js?v=AGP2211SU044"></script>
-<script src="https://pbtcodelabs-pbt.github.io/help/widget.js" data-app="PBT-Portal" data-ver="AGP2211SU044" defer></script>
+<script src="ui2.js?v=AGP2611TH045"></script>
+<script src="https://pbtcodelabs-pbt.github.io/help/widget.js" data-app="PBT-Portal" data-ver="AGP2611TH045" defer></script>
 </body>
 </html>
