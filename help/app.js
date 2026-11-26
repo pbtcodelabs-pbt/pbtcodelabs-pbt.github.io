@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2611TH190';
-const UPDATE_NOTE = '📚 مکتبہ کے آئیکن پر «✅ Activate package (MA ID)» — MA ID، نام، موبائل، ضلع، پیکج کی درخواستیں اور یہیں سے پیکج';
+const APP_VERSION = 'HD2611TH191';
+const UPDATE_NOTE = '📲 «📦 تازہ زپ» میں ہر ایپ کے نیچے APK کی پٹی — ڈاؤن لوڈ، شیئر (انسٹال کا طریقہ ساتھ)، لنک کاپی، ویب؛ پلے اسٹور ایپس کا Google Play';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -686,6 +686,7 @@ function zipSheet() {
           <button class="tb" data-act="zipSrvUp" data-id="${esc(a.id)}">⬆️🖥️ Only worker.js</button>
         </div>
       </div>
+      ${apkRow(a)}
       ${zpgHtml(a.id)}
       ${ZUP[a.id] ? `<div class="zpU" dir="auto">${esc(ZUP[a.id])}</div>` : ''}
     </div>`; }).join('')}</div></div>`, true);
@@ -693,6 +694,47 @@ function zipSheet() {
 }
 /* HD1111WE079 (مالک کا حکم): غلطی سے ہاتھ لگنے پر کام شروع نہ ہو — ایک بار «Are you sure?»؛ پن / کوڈ نہیں، صرف OK */
 /* HD1611MO100 (مالک کا حکم): ڈاؤن لوڈ کے پاپ اپ میں نمبر کے آگے 📋 Copy — تاکہ ڈاؤن لوڈ مینیجر میں سرچ کر کے دیکھ سکیں کہ زپ پہلے سے موجود تو نہیں */
+/* HD2611TH191 (مالک کا حکم): «📲 APK» — ہر مقامی ایپ کی APK کا پکا لنک (ہمیشہ تازہ)، شیئر (انسٹال کا طریقہ ساتھ)، کاپی، ویب؛ پلے اسٹور ایپس کا Google Play لنک */
+const APK_GH = (tag, f) => 'https://github.com/pbtcodelabs-pbt/pbtcodelabs-pbt.github.io/releases/download/' + tag + '/' + f + '.apk';
+const APK_W = p => 'https://pbtcodelabs-pbt.github.io/' + p + '/';
+const APK_P = id => 'https://play.google.com/store/apps/details?id=' + id;
+const APKS = {
+  SM: { apk: 'https://github.com/pbtcodelabs-pbt/SM/releases/download/sm-webview-apk/SabziMandi.apk', web: APK_W('SM') },
+  FM: { apk: 'https://github.com/pbtcodelabs-pbt/FM/releases/download/fm-webview-apk/SaddamFruitMandi.apk', web: 'https://fm-saddam-mandi.web.app/' },
+  'Hifz-progress': { apk: 'https://github.com/pbtcodelabs-pbt/Hifz-progress/releases/download/madrasa-apk/Madrasa.apk', web: APK_W('Hifz-progress') },
+  AB: { apk: APK_GH('apk-arhatbook', 'ArhatBook'), web: APK_W('AB') },
+  'AIO-POS-DIRECT': { apk: APK_GH('apk-aioposdirect', 'AIOPOSDirect'), web: APK_W('AIO-POS-DIRECT') },
+  DDL: { apk: APK_GH('apk-doodhdiary', 'DoodhDiary'), web: APK_W('DDL') },
+  MA: { apk: APK_GH('apk-maktaba', 'Maktaba'), web: APK_W('MA') },
+  MS: { apk: APK_GH('apk-medicineshelf', 'MedicineShelf'), web: APK_W('MS') },
+  AIO: { play: APK_P('com.pbtcodelabs.aiopos') },
+  FFPOS: { play: APK_P('com.pbtcodelabs.ffpos') },
+  MCS: { play: APK_P('com.pbtcodelabs.mycityshines') },
+  DG: { web: APK_W('DG') }, 'hafiz-musab-app': { web: APK_W('hafiz-musab-app') }, 'Stylish-listing-': { web: APK_W('Stylish-listing-') },
+  MT: { web: APK_W('MT') }, 'urdu-fonts-studio': { web: APK_W('urdu-fonts-studio') }, HD: { web: 'https://pbtcodelabs-pbt.github.io/help/' }
+};
+function apkRow(a) {
+  const k = APKS[a.id]; if (!k) return ''; const i = esc(a.id);
+  const main = k.play ? `<a class="tb apkP" href="${esc(k.play)}" target="_blank" rel="noopener">▶️ Google Play</a>` : k.apk ? `<a class="tb apkD" href="${esc(k.apk)}" target="_blank" rel="noopener">⬇️ APK</a>` : '';
+  return `<div class="zpApk"><div class="zpH">📲 ${k.play ? 'PLAY STORE' : k.apk ? 'APK (always latest)' : 'WEB APP'}</div><div class="zpAB">${main}
+    <button class="tb apkS" data-act="apkSh" data-id="${i}">📤 Share</button>
+    <button class="tb apkC" data-act="apkCp" data-id="${i}">🔗 Copy</button>
+    ${k.web ? `<a class="tb apkW" href="${esc(k.web)}" target="_blank" rel="noopener">🌐 Web</a>` : ''}</div></div>`;
+}
+function apkText(id) {
+  const a = id === 'HD' ? { ur: 'ہیلپ ڈیسک', en: 'PBT Help Desk' } : (appOf(id) || { ur: id, en: id }), k = APKS[id] || {}, en = a.lang === 'en';
+  if (k.play) return en ? `📲 ${a.en}\n\n▶️ Install from Google Play:\n${k.play}` : `📲 ${a.ur}\n\n▶️ گوگل پلے سے انسٹال کریں:\n${k.play}`;
+  if (k.apk) return en
+    ? `📲 ${a.en} — App\n\n⬇️ Download:\n${k.apk}\n\nHow to install:\n1) Tap the link — the file downloads\n2) Open the downloaded file\n3) If asked, allow "Install unknown apps"\n4) Tap Install — done\n\n🌐 Web: ${k.web}`
+    : `📲 ${a.ur} — ایپ\n\n⬇️ ڈاؤن لوڈ کریں:\n${k.apk}\n\nانسٹال کرنے کا طریقہ:\n1) لنک دبائیں — فائل ڈاؤن لوڈ ہو گی\n2) ڈاؤن لوڈ مکمل ہو تو فائل کھولیں\n3) «نامعلوم ایپس» کی اجازت مانگے تو اجازت دیں\n4) Install دبائیں — ایپ تیار\n\n🌐 ویب پر بھی: ${k.web}`;
+  return en ? `📲 ${a.en}\n\n🌐 Open: ${k.web}` : `📲 ${a.ur}\n\n🌐 کھولیں: ${k.web}`;
+}
+function apkShare(id) {
+  const t = apkText(id);
+  try { if (navigator.share) { navigator.share({ text: t }).catch(() => {}); return; } } catch (e) {}
+  window.open('https://wa.me/?text=' + encodeURIComponent(t), '_blank');
+}
+const apkCopy = id => { const k = APKS[id] || {}; zipCopy(k.play || k.apk || k.web || ''); };
 function zipCopy(t) {
   const ok = () => toast('📋 Copied: ' + t);
   try { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(t).then(ok, () => zipCopyOld(t, ok)); return; } } catch (e) {}
@@ -2582,6 +2624,8 @@ document.addEventListener('click', async e => {
     case 'srvUp': srvUp(); break;
     case 'zipSrvUp': srvUp(id); break;
     case 'zipRf': zipRf(id); break;
+    case 'apkSh': apkShare(id); break;
+    case 'apkCp': apkCopy(id); break;
     case 'ghTok': ghTokSheet(); break;
     case 'ghTokSave': ghTokSave(); break;
     case 'ghTokDel': try { localStorage.removeItem('pbthd_ghtok'); } catch (e) {} ghWho = ''; toast('🗑️'); zipSheet(); break;
