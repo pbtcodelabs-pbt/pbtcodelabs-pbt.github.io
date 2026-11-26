@@ -162,7 +162,7 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
     if (R.length) h += '<div class="aBox" style="border:3px solid #ea580c;background:#fff7ed"><b style="font-size:17px;color:#9a3412">📩 پیکج کی درخواستیں (' + R.length + ')</b><div class="aSub">گاہک نے ایپ سے پیکج مانگا ہے — پیسے وصول کر کے چالو کریں، فون خود چالو ہو جائے گا۔</div>'
       + R.map(x => { const p = PK.find(y => y.id === x.want.pkg), am = amtOf(x.want); return '<div style="margin-top:8px;padding:8px;border:1px solid #fdba74;border-radius:12px;background:#fff"><div class="aRow" style="flex-wrap:nowrap"><b dir="ltr" style="color:#0369a1;font:900 17px Arial,sans-serif">' + esc(x.aio) + '</b><b style="flex:1;min-width:0;margin-inline-start:8px">' + esc(x.name || '') + '</b></div>'
         + '<div class="aSub" style="color:#0f172a">📱 <span dir="ltr">' + esc(aPh(x.mobile) || '—') + '</span>' + (x.district ? ' · 📍 ' + esc(x.district) : '') + ' · 📦 ' + esc(p ? p.name : x.want.pkg) + ' · 💰 <b dir="ltr">Rs ' + am.toLocaleString('en-US') + '</b>' + (x.want.at ? ' · ' + dmy(x.want.at) + ' ' + hm(x.want.at) : '') + '</div>'
-        + '<button class="aBtn grn" data-a="rqopen" data-v="' + esc(x.aio) + '" style="width:100%;margin-top:6px">💰 پیسے وصول کر کے چالو کریں</button></div>'; }).join('') + '</div>';
+        + '<div class="aRow" style="margin-top:6px;flex-wrap:nowrap"><button class="aBtn grn" data-a="rqopen" data-v="' + esc(x.aio) + '" style="flex:1">💰 پیسے وصول کر کے چالو کریں</button><button class="aBtn" data-a="rqdel" data-v="' + esc(x.aio) + '" style="border-color:#dc2626;color:#b91c1c" aria-label="درخواست حذف">🗑️</button></div></div>'; }).join('') + '</div>';
     if (D.length) h += '<div class="aBox" style="border:3px solid #dc2626;background:#fef2f2"><b style="font-size:17px;color:#991b1b">⏳ پیسے باقی (' + D.length + ') — کل Rs ' + D.reduce((t, x) => t + (x.ent.due.amt || 0), 0).toLocaleString('en-US') + '</b>'
       + D.map(x => '<div style="margin-top:8px;padding:8px;border:1px solid #fca5a5;border-radius:12px;background:#fff"><div class="aRow" style="flex-wrap:nowrap"><b dir="ltr" style="color:#0369a1;font:900 17px Arial,sans-serif">' + esc(x.aio) + '</b><b style="flex:1;min-width:0;margin-inline-start:8px">' + esc(x.name || '') + '</b></div>'
         + '<div class="aSub" style="color:#0f172a">📱 <span dir="ltr">' + esc(aPh(x.mobile) || '—') + '</span> · 📦 ' + esc(x.ent.due.pkg || x.ent.pkg || '') + ' · <b style="color:#b91c1c">⏳ باقی Rs ' + Number(x.ent.due.amt).toLocaleString('en-US') + '</b> · ' + dmy(x.ent.due.at) + ' سے</div>'
@@ -547,7 +547,7 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
 
   function draw() {
     const o = document.getElementById('aiOv'); if (!o) return;
-    o.innerHTML = '<div class="aTop"><b>✅ ' + IDN() + ' — پیکج ایکٹیو کریں</b><button class="aX" data-a="close">✕</button></div>' +
+    o.innerHTML = '<div class="aTop"><b>✅ ' + IDN() + ' — پیکج ایکٹیو کریں</b><button class="aX" data-a="aref" ' + (BUSY ? 'disabled' : '') + ' aria-label="تازہ کریں">🔄</button><button class="aX" data-a="close">✕</button></div>' +
       '<div class="aBox" style="padding:8px"><div class="aTabs">' + TABS.map(([k, t]) => '<button class="' + (APP === k ? 'on' : '') + '" data-a="tab" data-v="' + k + '">' + t + '</button>').join('') + '</div></div>' +
       (MSG ? '<div class="aMsg ' + (OK ? 'ok' : 'bad') + '">' + esc(MSG) + '</div>' : '') + (!SEL ? rqHTML() : '') + (APP === 'SM' && !SEL ? '<div class="aBox" style="border:2px solid #b45309"><button class="aBtn" data-a="rpaste" style="width:100%;border-color:#b45309;color:#92400e">🛟 دکان بحال کریں — دکان کا پیغام (موبائل + کوڈ) پیسٹ کریں</button>' + rcHTML() + '</div>' : '') + detailHTML() +
       '<div class="aBox">' + filHTML() +
@@ -607,6 +607,16 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
       if (!/^03\d{9}$/.test(mob) || code.length !== 8) { say('⚠️ پیغام میں موبائل (03…) اور 8 حروف کا کوڈ (مثلاً R4S7-RM97) نہیں ملا', false); return; }
       RC = { m: mob, c: code, shop: sh.trim(), owner: '', list: [] }; v = ''; a = 'rwait'; }
     if (a === 'wlr') { WL = null; draw(); return; }
+    if (a === 'rqdel') {   /* HD2611TH192 (مالک کا حکم): پیکج کی درخواست صاف کرنے کا بٹن — صرف درخواست ہٹتی ہے، ID / پیکج / ٹرائل کو کچھ نہیں ہوتا */
+      const x = (AIDS || []).find(y => y.aio === v) || { aio: v }, p = PK.find(y => x.want && y.id === x.want.pkg);
+      guarded('🗑️ کیا آپ ' + v + ' «' + (x.name || '—') + '» کی پیکج کی درخواست حذف کرنا چاہتے ہیں؟\n\n📦 ' + (p ? p.name : ((x.want && x.want.pkg) || '')) + '\n\nصرف درخواست فہرست سے ہٹے گی — ID اور اس کا پیکج / ٹرائل ویسا ہی رہے گا۔', async () => {
+        const r = await call({ op: 'aiowantdel', aio: v });
+        if (!r || !r.ok) throw new Error((r && r.reason) || 'نہیں ہوا');
+        await loadAll(); if (SEL && SEL.who && SEL.who.aio === v) await loadDetail(v);
+        RES = null; MSG = '✅ ' + v + ' کی درخواست حذف ہو گئی'; OK = true;
+      });
+      return;
+    }
     if (a === 'rqopen') { await pick(v); if (SEL && SEL.who && SEL.who.want && SEL.who.want.pkg) { APK = SEL.who.want.pkg; SHOWPK = true; draw(); } return; }
     if (a === 'dpay') { const x = (AIDS || []).find(y => y.aio === v) || (SEL && SEL.who && SEL.who.aio === v ? { aio: v, name: SEL.who.name, ent: SEL.ent } : null); const left = x && x.ent && x.ent.due ? x.ent.due.amt : 0;
       const g0 = prompt('💰 باقی رقم وصول — ' + v + ' ' + ((x && x.name) || '') + '\n\nباقی: ' + Number(left).toLocaleString('en-US') + ' روپے\nکتنی رقم وصول ہوئی؟', String(left || '')); if (g0 === null) return;
