@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f766e">
+<title>PalmEarn — ہتھیلی پر کمائی</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<style>
+@font-face{font-family:Noori;src:local('Jameel Noori Nastaleeq');font-display:swap}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:linear-gradient(160deg,#0f766e,#064e3b);color:#fff;font-family:Noori,'Jameel Noori Nastaleeq','Noto Nastaliq Urdu',serif;display:flex;align-items:center;justify-content:center;padding:18px}
+.c{width:100%;max-width:440px;background:rgba(255,255,255,.1);border:2px solid rgba(253,230,138,.6);border-radius:24px;padding:22px 18px;text-align:center}
+.c img{width:110px;height:110px;border-radius:24px;box-shadow:0 8px 20px rgba(0,0,0,.35)}
+h1{font:900 30px/1.3 Arial,sans-serif;margin:12px 0 0;letter-spacing:1px}
+h2{font-size:26px;line-height:1.9;margin:4px 0 8px;color:#fde68a;font-weight:700}
+p{font-size:18px;line-height:2;margin:6px 0}
+.v{margin-top:14px;font:700 12px Arial,sans-serif;opacity:.7;direction:ltr}
+</style>
+</head>
+<body>
+<div class="c">
+  <img src="icon-192.png" alt="PalmEarn">
+  <h1>PalmEarn</h1>
+  <h2>ہتھیلی پر کمائی</h2>
+  <p>ہماری ایپس دکانداروں کو لگوائیں — ہر نئے پیکج پر کمیشن۔</p>
+  <p>یہ پورٹل جلد کھل رہا ہے، ان شاء اللہ۔</p>
+  <div class="v" id="ver"></div>
+</div>
+<script>
+/* PalmEarn (مالک کا حکم، 26 نومبر 2026): الگ پورٹل earn/ — ہیلپ ڈیسک میں اپنی قطار (تازہ زپ PE… / ورکر / شیئر)؛ صرف Admin 1۔ پورا نظام PalmEarn-PROMPT کے مطابق بنے گا */
+const APP_VERSION = 'PE2611TH001';
+const UPDATE_NOTE = 'PalmEarn — پورٹل کی جگہ تیار (جلد کھل رہا ہے)';
+document.getElementById('ver').textContent = APP_VERSION;
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>

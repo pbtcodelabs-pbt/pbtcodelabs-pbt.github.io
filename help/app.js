@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2611TH195';
-const UPDATE_NOTE = '⏻ لاگ آؤٹ اب گول سرخ پاور بٹن سے — پہلے «Logout / Yes / Cancel» پوچھتا ہے (سب ایپس جیسا)';
+const APP_VERSION = 'HD2611TH196';
+const UPDATE_NOTE = '🤲 نئی ایپ «PalmEarn» (تازہ زپ / ورکر / شیئر میں)؛ فری Claude کی زپ کا نام سادہ: ایپ کا نام + مسئلہ نمبر + (تعداد) + تاریخ وقت، اندر ایپ کا آئیکن';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -23,6 +23,7 @@ const APPS = [
   { id: 'MT', lang: 'en', ur: 'میٹر ٹریکر', en: 'Meter Tracker', img: '../img/mt.webp', repo: 'pbtcodelabs-pbt/MT' },
   { id: 'MCS', ur: 'سٹی شائنز', en: 'My City Shines', img: '../img/mcs.webp', repo: 'pbtcodelabs-pbt/MCS' },
   { id: 'PBT-Portal', ur: 'MCS Agent', en: 'MCS Agent', img: '../agent/icon-192.png', repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io', hide: true },   /* HD0911MO067: ایجنٹ / کو-ڈویلپر / ڈویلپر کی پورٹل ایپ — عام گاہک کی فہرست میں نہیں (پلے اسٹور ایپس کے اندر بھی ہیلپ ڈیسک کھلتا ہے)، صرف مالک کو اور پورٹل سے آئے تو */
+  { id: 'PalmEarn', ur: 'پام ارن', en: 'PalmEarn', img: '../earn/icon-192.png', repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io', hide: true },   /* HD2611TH196 (مالک کا حکم): PalmEarn — ہتھیلی پر کمائی، سب ایپس کا ایجنٹ پورٹل (صرف Admin 1)؛ الگ فولڈر earn/، زپ PE…؛ عام گاہک کی فہرست میں نہیں */
   { id: 'urdu-fonts-studio', ur: 'اردو فونٹس', en: 'Urdu Fonts', img: '../img/fonts.webp', repo: 'pbtcodelabs-pbt/urdu-fonts-studio' },
   { id: 'other', ur: 'کوئی اور', en: 'Other', emoji: '🧩', repo: '' }
 ];
@@ -712,7 +713,8 @@ const APKS = {
   FFPOS: { play: APK_P('com.pbtcodelabs.ffpos') },
   MCS: { play: APK_P('com.pbtcodelabs.mycityshines') },
   DG: { web: APK_W('DG') }, 'hafiz-musab-app': { web: APK_W('hafiz-musab-app') }, 'Stylish-listing-': { web: APK_W('Stylish-listing-') },
-  MT: { web: APK_W('MT') }, 'urdu-fonts-studio': { web: APK_W('urdu-fonts-studio') }, HD: { web: 'https://pbtcodelabs-pbt.github.io/help/' }
+  MT: { web: APK_W('MT') }, 'urdu-fonts-studio': { web: APK_W('urdu-fonts-studio') }, HD: { web: 'https://pbtcodelabs-pbt.github.io/help/' },
+  PalmEarn: { web: 'https://pbtcodelabs-pbt.github.io/earn/' }
 };
 function apkRow(a) {
   const k = APKS[a.id]; if (!k) return ''; const i = esc(a.id);
@@ -2270,7 +2272,7 @@ async function aiExportZip() {
 const BN_HD = { id: 'HD', ur: 'ہیلپ ڈیسک', en: 'PBT Help Desk', repo: 'pbtcodelabs-pbt/pbtcodelabs-pbt.github.io' };
 /* HD2211SU156: کوئی ٹک / شیٹ نہیں — بٹن دبتے ہی زپ بنتی اور اترتی ہے۔ ورکر خود شامل: سرور والی ایپس (AIO / MCS / MCS Agent) میں ہمیشہ،
    باقی ایپس میں تب جب کسی مسئلے کے متن میں سرور / ورکر / لائسنس / ایکٹیویشن / سبسکرپشن / پیمنٹ / لاگ ان / سنک وغیرہ کا ذکر ہو */
-const BN_SRV_APPS = new Set(['AIO', 'MCS', 'PBT-Portal']);
+const BN_SRV_APPS = new Set(['AIO', 'MCS', 'PBT-Portal', 'PalmEarn']);
 const BN_SRV_RX = /server|worker|cloudflare|license|licence|activation|activate|subscription|subscribe|payment|billing|verify|login|log in|sign.?in|otp|sync|backup|restore|سرور|ورکر|لائسنس|ایکٹیویشن|ایکٹیو|سبسکرپشن|پیمنٹ|ادائیگی|تصدیق|لاگ ?ان|سنک|بیک ?اپ|ریسٹور/i;
 const bnNeedsWorker = (a, arr) => BN_SRV_APPS.has(a.id) || arr.some(i => BN_SRV_RX.test(i.text || ''));
 let BN_BUSY = false;
@@ -2335,7 +2337,7 @@ async function bnGo() {
       (notes.length ? '\n⚠️ ' + notes.join('\n⚠️ ') + '\n' : '');
     files.unshift({ name: 'READ-ME.txt', data: enc.encode(readme) });
     const blob = HDZips.zip(files); busy(false);
-    download(blob, `HelpDesk-Claude-${totalIss}issues-${tag}.zip`);
+    { const s = fcStamp(); download(blob, `سب ایپس (${totalIss}) ${s.d} ${s.t}.zip`); }   /* HD2611TH196: سادہ نام */
     toast('✅ ' + totalIss + (E ? ' issues in one zip' : ' مسائل ایک زپ میں') + (notes.length ? ' ⚠️' : ''), 3500);
   } catch (e) { busy(false); toast('⚠️ ' + (e && e.message || e), 4500); }
   BN_BUSY = false;
@@ -2343,7 +2345,7 @@ async function bnGo() {
 /* HD2211SU153 (مالک کا حکم): «🎒 فری Claude کی گٹھڑی» — ہر چنے ہوئے مسئلے کی الگ زپ: اوپر ایپ کا نام + مسئلہ نمبر، گاہک کی صاف بات، اسکرین شاٹ، آواز،
    اس ایپ کی تازہ فائلیں (جڑ میں، HDZips.build) اور سرور والی ایپس کے ساتھ server/worker.js؛ اندر READ-ME (Claude کے اصول — صرف بدلی فائلیں واپس)۔
    واپسی پہلے والے نظام سے: ایپ کی زپ «⬆️ Upload zip»، worker.js «Upload changed worker.js»۔ */
-const FC_SRV_APPS = ['MCS', 'AIO', 'AIO-POS-DIRECT', 'FFPOS', 'PBT-Portal', 'SM'];
+const FC_SRV_APPS = ['MCS', 'AIO', 'AIO-POS-DIRECT', 'FFPOS', 'PBT-Portal', 'PalmEarn', 'SM'];
 /* HD2211SU159 (مالک کا مشورہ / حکم): گٹھڑی اب **ہر ایپ کی ایک** — اس ایپ کے سب چنے مسئلے ایک زپ میں (ایپ کی بڑی فائل فری Claude ایک ہی بار پڑھے = کم لمٹ)؛
    ہر مسئلہ issues.txt میں الگ نمبر کے ساتھ، اسکرین شاٹ / آواز مسئلہ نمبر کے نام سے؛ worker.js سرور والی ایپ یا متن میں سرور کا ذکر ہو تو۔
    زپ اترتے ہی وہ مسئلے «🎒 Claude کے پاس» (fcAt، fcApp، status work، stage claude) — کھڑی فہرست / گنتی سے باہر؛
@@ -2391,12 +2393,24 @@ function fcBrief(i) {
   return b.trim().slice(0, 40);
 }
 const fcSafe = s => String(s || '').replace(/[\\/:*?"<>|#%{}^~\[\]`]+/g, ' ').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+/* HD2611TH196 (مالک کا حکم): گٹھڑی کی زپ کا نام سادہ — سب سے پہلے ایپ کا نام، پھر مسئلہ نمبر، بریکٹ میں مسئلوں کی تعداد، پھر تاریخ + وقت؛
+   «Gathri / FreeClaude» لفظ نہیں — مثلاً «MCS 432 (1) 26-11-26 09-30PM.zip»، «سبزی منڈی 410-412-415 (3) 26-11-26 09-30PM.zip»؛ اندر ایپ کا آئیکن `00-app-icon.*` */
+const FC_NM = { MCS: 'MCS', AIO: 'AIO POS', 'AIO-POS-DIRECT': 'AIO Direct', FFPOS: 'FFPOS', DG: 'GG Khatabook', MT: 'Meter Tracker', 'PBT-Portal': 'MCS Agent', PalmEarn: 'PalmEarn', HD: 'Help Desk' };
+const fcAppName = a => FC_NM[a.id] || a.ur || a.en || a.id;
+function fcStamp(d) {
+  d = d || new Date(); const p = n => String(n).padStart(2, '0'), h = d.getHours(), ap = h < 12 ? 'AM' : 'PM', h12 = p(h % 12 || 12);
+  return { d: `${p(d.getDate())}-${p(d.getMonth() + 1)}-${String(d.getFullYear()).slice(-2)}`, t: `${h12}-${p(d.getMinutes())}${ap}`, tt: `${h12}:${p(d.getMinutes())} ${ap}` };
+}
 function fcZipName(a, arr) {
-  const body = arr.map(i => i.no + '-' + fcSafe(fcBrief(i))).join('_');
-  let n = `FreeClaude-Gathri-${a.id}-${arr.length}مسئلے-${body}`;
-  if (new TextEncoder().encode(n).length > 190) { n = `FreeClaude-Gathri-${a.id}-${arr.length}مسئلے-${arr.slice(0, 3).map(i => i.no + '-' + fcSafe(fcBrief(i)).split('-').slice(0, 2).join('-')).join('_')}${arr.length > 3 ? '_اور' + (arr.length - 3) : ''}`; }
-  while (new TextEncoder().encode(n).length > 190) n = n.slice(0, -1);
-  return n.replace(/[-_]+$/, '') + '.zip';
+  const s = fcStamp(), enc = new TextEncoder(), nos = arr.map(i => i.no);
+  let k = nos.length, n;
+  do { n = `${fcSafe(fcAppName(a)).replace(/-/g, ' ')} ${nos.slice(0, k).join('-')}${k < nos.length ? '-و-مزید' : ''} (${arr.length}) ${s.d} ${s.t}`; k--; } while (enc.encode(n).length > 180 && k > 0);
+  return n + '.zip';
+}
+async function fcIcon(a) {
+  try { if (!a.img) return null; const r = await fetch(new URL(a.img, location.href).href, { cache: 'force-cache' }); if (!r.ok) return null;
+    const by = new Uint8Array(await r.arrayBuffer()), ext = (String(a.img).match(/\.(png|webp|jpe?g|svg)/i) || [, 'png'])[1].toLowerCase();
+    return { name: '00-app-icon.' + ext, data: by }; } catch (e) { return null; }
 }
 async function fcBundles() {
   const picks = aiPicked(); if (!picks.length) return;
@@ -2434,7 +2448,8 @@ async function fcBundles() {
           parts.push(`──────── ISSUE #${i.no} (${q + 1} of ${arr.length}) — ${i.type || ''} — ${fcBrief(i)} ────────\n${txt}\nScreenshots: ${ns ? 'screenshots/' + i.no + '_1…' + ns : 'none'}${na ? '   |   Voice: voice/' + i.no + '_…' : ''}`);
         }
         const url = aiRepo(a), nos = arr.map(i => '#' + i.no).join(', ');
-        const briefs = arr.map(i => '#' + i.no + ' ' + fcBrief(i)), title = `FREE CLAUDE GATHRI — ${a.en}${a.ur && a.ur !== a.en ? ' (' + a.ur + ')' : ''} — ${arr.length} issue(s): ${briefs.join(' • ')}`;
+        const st = fcStamp(), briefs = arr.map(i => '#' + i.no + ' ' + fcBrief(i)), title = `${fcAppName(a)}${a.en && a.en !== fcAppName(a) ? ' (' + a.en + ')' : ''} — ${arr.map(i => '#' + i.no).join(', ')} (${arr.length}) — ${st.d} ${st.tt}\n${briefs.join(' • ')}`;
+        const ic = await fcIcon(a); if (ic) files.push(ic);
         const readme = `${title}\n${'='.repeat(70)}\n\nApp: ${a.en}${ver ? '   |   Current version: ' + ver : ''}\n${url ? 'Repo: ' + url + '\n' : ''}\n` +
           `=== FILES IN THIS ZIP ===\n- Root files (index.html, sw.js …) = the ${a.en} app, exactly as live now.\n${withSrv ? '- server/worker.js = the Cloudflare server (repo ' + sv.repo + ', ' + sv.path + ').\n' : ''}- issues.txt = every issue, one by one, exactly as the customers wrote it.\n- screenshots/, voice/ = named by issue number.\n\n` +
           `=== RULES FOR CLAUDE (must follow) ===\n1. Solve EVERY issue in issues.txt, one by one, carefully (not by guesswork). Do not change prices, payments, subscriptions, or delete data.\n2. Give back ONLY the files you actually changed. NEVER return an unchanged file.\n` +

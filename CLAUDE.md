@@ -14,6 +14,7 @@
 ## pbtcodelabs-pbt.github.io — بنیادی معلومات
 - جڑ: ویب سائٹ کا ہوم؛ ورژن `PBT…` (`index.html` `APP_VERSION` + `UPDATE_NOTE`، `sw.js` `CACHE_NAME` `pbt-home-<ورژن>`)۔
 - **`help/` — PBT Help Desk:** ورژن `HD…` (`help/app.js` `APP_VERSION` + `UPDATE_NOTE`، `help/sw.js` `CACHE_NAME` `pbt-helpdesk-…`)؛ فائلیں `app.js` (اسکرینیں، `DICT`، `APPS`)، `store.js` (فائربیس `pbt-help-desk`، asia-south1)، `widget.js` (ہر ایپ کا بٹن / پاپ اپ)، `zips.js` («📦 تازہ زپ»، `ZA`)، `lic.js` (License Keys)، `devhub.html` (🔐 ڈویلپر پینل)؛ اصول `help/firestore.rules` (کنسول میں ہاتھ سے Publish)۔ کلیدیں `pbthd_`۔
+- **`earn/` — PalmEarn (ہتھیلی پر کمائی، مالک کا حکم 26 نومبر 2026):** سب پیڈ ایپس کا الگ ایجنٹ پورٹل، **صرف Admin 1** (ایڈمن 2 کا کوئی کردار نہیں — وہ صرف عام ایجنٹ بن سکتے ہیں)؛ ورژن `PE…`، زپ `PE….zip` → `earn/`؛ ہیلپ ڈیسک میں اپنی قطار (`APPS` `PalmEarn`، `HDZips.ZA.PalmEarn`، ورکر بٹن)؛ پورا منصوبہ `earn/PalmEarn-PROMPT.md` (تازہ زپ کے اندر بھی)۔ MCS Agent (`agent/`) کو اس کے لیے نہ بدلیں۔ پلے اسٹور ایپس میں PalmEarn کا بٹن / لنک کبھی نہیں۔
 - **`agent/` — MCS Agent پورٹل** (ورژن `AGP…`؛ `index.html` + `ui2.js` + `ui2.css`)؛ حساب سرور `/fin2` (AIO `cloudflare-worker`) سے — پورٹل خود نہیں گنتا۔
 - **خودکار آلہ `help/tools/hd.py`:** `list` / `list --urgent` / `show <no>` / `set <no> status=… stage=… reply=… hold=…` / `add <app> <bug|idea|ask> "…" urgent` / `notify`؛ پاس ورڈ صرف ماحول کے متغیر `HD_OWNER_PASSWORD` میں (کبھی فائل / پیغام میں نہیں)۔
 - **خودکار جائزہ:** صبح 7 اور شام 7 (PKT) — scheduled tasks `trig_014jTr8w95pEXafnpVPThgGc` / `trig_014Qk63ZQ8oWTtw66qZFQyK1`، اسی «PBT HELP DESK» چیٹ میں؛ وقت بدلے تو `nextReview` بھی۔
@@ -24,6 +25,7 @@
 - **جواب:** گاہک کی زبان میں؛ مالک کے اپنے مسئلے (`isOwnIssue`) پر مالک کا نام / «حضور» / «PIARY BHAI TRADERS» نہیں؛ گاہک کو کبھی Claude / AI / تکنیکی نام نہیں۔ واٹس ایپ خود نہیں بھیجا جاتا۔
 - **ویڈیوز:** ہر نئی ویڈیو `help/media/` + `VIDEOS` میں — سوائے قیمت / کمیشن / ذاتی نمبر والی (صرف `media/promo/`)؛ اسٹیٹس ویڈیو 60 سیکنڈ سے کم؛ ویڈیو شیئر میں fetch کے بعد سیدھا `navigator.share` نہیں (`shareReady`)۔
 - **MCS Agent پورٹل:** پیسے / کمیشن / ادائیگی صرف یہاں (پلے اسٹور ایپ میں کبھی نہیں، نہ اس کا لنک)؛ نظر آنے والے نام Admin 1 / Admin 2 (ADMIN1 / ADMIN2)؛ پرانی فروخت کا حساب کبھی نہیں بدلتا (شرحیں ورژن وار)؛ لوگوں کا لکھا نام / متن کبھی ترجمہ نہیں۔
+- **فری Claude کی زپ (گٹھڑی) کا نام (HD2611TH196، مالک کا حکم):** سب سے پہلے ایپ کا نام (`fcAppName`)، پھر مسئلہ نمبر، بریکٹ میں تعداد، پھر تاریخ + وقت — مثلاً «MCS 432 (1) 26-11-26 09-30PM.zip»؛ «Gathri / FreeClaude» لفظ نہیں؛ اندر ایپ کا آئیکن `00-app-icon.*`۔
 - **دوبارہ نہ لگائیں:** «📊 Claude کی حد» کارڈ، ہر گھنٹے والی خودکار باری / «چوکیدار»، ہوم پر «📦 تازہ زپ» کا لمبا ڈبہ (چھوٹا گول بٹن رہے)۔
 - گیٹ ہب اجازت نامہ (`pbthd_ghtok`) صرف فون میں — کبھی ریپو / فائربیس / پیغام میں نہیں۔
 
