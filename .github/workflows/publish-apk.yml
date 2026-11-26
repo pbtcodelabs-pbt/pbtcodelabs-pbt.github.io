@@ -1,0 +1,30 @@
+# 📲 HD2611TH191: ایپ بلڈر کی بنی APK (apk-drop/<نام>.apk) یہاں کی پبلک ریلیز apk-<نام چھوٹا> میں — ہمیشہ ایک ہی لنک
+# مثلاً https://github.com/pbtcodelabs-pbt/pbtcodelabs-pbt.github.io/releases/download/apk-arhatbook/ArhatBook.apk
+name: publish-apk
+on:
+  push:
+    branches: [main]
+    paths: ['apk-drop/**']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: publish-apk
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: "ریلیز"
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          set -e
+          ls apk-drop/*.apk >/dev/null 2>&1 || { echo "کوئی APK نہیں"; exit 0; }
+          for F in apk-drop/*.apk; do
+            B=$(basename "$F" .apk); T="apk-$(echo "$B" | tr 'A-Z' 'a-z')"
+            gh release delete "$T" -y --cleanup-tag || true
+            gh release create "$T" "$F" --title "📲 $B — APK" --notes "ڈاؤن لوڈ کر کے انسٹال کریں — اپڈیٹس ویب سائٹ سے خود آتی ہیں۔ کروم کا ڈیٹا صاف کرنے سے ایپ کا ڈیٹا نہیں مٹتا۔"
+          done
+          git config user.name "apk-bot"; git config user.email "actions@users.noreply.github.com"
+          git rm -rq apk-drop && git commit -qm "APK ریلیز میں — apk-drop صاف" && git push -q || true
