@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2611TH193';
-const UPDATE_NOTE = '✅ پیکج ایکٹیو کریں کھلتے ہی چلتے پیکج (کم دن والے اوپر) · ہر پیکج کی ایک لائن میں رقم · الگ رقم والا ڈبہ ختم';
+const APP_VERSION = 'HD2611TH194';
+const UPDATE_NOTE = '🎬 مدرسہ مینجمنٹ کی نئی اسٹیٹس ویڈیو (55 سیکنڈ، بغیر موسیقی) — «تعارفی ویڈیوز» میں';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -332,6 +332,7 @@ const VIDEOS = [
   { id: 'helpdesk', file: 'media/pbt-help-desk.mp4', poster: 'media/helpdesk.jpg', ur: 'Help Desk — مسئلہ کیسے بتائیں؟ مکمل طریقہ', en: 'Help Desk — how to report a problem', dur: '1:06', dl: 'PBT-Help-Desk' },
   { id: 'maktaba', file: 'media/maktaba-ur.mp4', poster: 'media/maktaba-ur.jpg', ur: 'میرا مکتبہ — پورا مکتبہ ایک ایپ میں (علماء و طلباء کے لیے)', en: 'Mera Maktaba — your whole library in one app (Urdu)', dur: '1:40', dl: 'Mera-Maktaba-Urdu', share: '📚 میرا مکتبہ — ہزاروں کتابیں ایک ایپ میں\nفن وار الماریاں، کتاب کا مکمل ریکارڈ، فہرستیں / PDF، موضوعات، ڈائری، میری مصروفیات اور جلسے کا پوسٹر\n🎁 علماء و طلباء کے لیے بہترین تحفہ\nhttps://pbtcodelabs-pbt.github.io/MA/get.html' },
   { id: 'maktaba-st', file: 'media/maktaba-status-ur.mp4', poster: 'media/maktaba-ur.jpg', ur: 'میرا مکتبہ — واٹس ایپ اسٹیٹس والی (56 سیکنڈ)', en: 'Mera Maktaba — WhatsApp Status (56s)', dur: '0:56', dl: 'Mera-Maktaba-Status', share: '📚 میرا مکتبہ — پورا مکتبہ ایک ایپ میں\n🎁 علماء و طلباء کے لیے بہترین تحفہ\nhttps://pbtcodelabs-pbt.github.io/MA/get.html' },
+  { id: 'madrasa-st', file: 'media/madrasa-status-ur.mp4', poster: 'media/madrasa-status-ur.jpg', ur: 'مدرسہ مینجمنٹ — واٹس ایپ اسٹیٹس (55 سیکنڈ، بغیر موسیقی)', en: 'Madrasa Management — WhatsApp Status (55s, no music)', dur: '0:55', dl: 'Madrasa-Management-Status', share: '🕌 مدرسہ مینجمنٹ — حفظ کے مدارس کا مکمل سافٹ ویئر\nحاضری · سبق / سبقی / منزل · رپورٹیں · والدین کا آن لائن لنک · دو موبائل ایک ڈیٹا\n🎁 تین دن بالکل مفت\n📲 ایپ ڈاؤن لوڈ: https://github.com/pbtcodelabs-pbt/Hifz-progress/releases/download/madrasa-apk/Madrasa.apk' },
   { id: 'aio-staff', file: 'media/aio-staff-join-ur.mp4', poster: 'media/aio-staff-join.jpg', ur: 'AIO POS — ملازم کا فون دکان سے کیسے جوڑیں؟ (مالک اور ملازم کے قدم)', en: 'AIO POS — connect a staff phone to your shop (Urdu)', dur: '1:37', dl: 'AIO-POS-Staff-Phone-Urdu', share: '📱 AIO POS — ملازم کا فون دکان سے جوڑنے کا آسان طریقہ\n🧑‍💼 ملازم: AIO ID بنائیں ← «I work in a shop» ← 📤 Send (مالک کو)\n👑 مالک: ☰ ← Users ← سبز ڈبے میں ID پیسٹ ← Save\n✅ ملازم کا فون: «Connect now» — جڑ گیا' },
   { id: 'aio-staff-en', file: 'media/aio-staff-join-en.mp4', poster: 'media/aio-staff-join-en.jpg', ur: 'AIO POS — ملازم کا فون جوڑیں (انگلش)', en: 'AIO POS — connect a staff phone to your shop (English)', dur: '1:37', dl: 'AIO-POS-Staff-Phone-English', share: '📱 AIO POS — connect a staff phone to your shop\n🧑‍💼 Staff: make your AIO ID → «I work in a shop» → 📤 Send (to the owner)\n👑 Owner: ☰ → Users → paste the ID in the green box → Save\n✅ Staff phone: «Connect now» — connected' },
   { id: 'aio-ur', file: 'media/aio-pos-ur.mp4', poster: 'media/aio-ur.jpg', ur: 'AIO POS — تعارف (اردو)', en: 'AIO POS — introduction (Urdu)', dur: '0:50', dl: 'AIO-POS-Urdu', share: 'AIO POS — آپ کی دکان کا مکمل سافٹ ویئر 🧾📱\nGoogle Play: https://play.google.com/store/apps/details?id=com.pbtcodelabs.aiopos' },
