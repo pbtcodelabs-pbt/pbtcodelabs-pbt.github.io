@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2611TH192';
-const UPDATE_NOTE = '🗑️ پیکج کی درخواست کے ساتھ حذف کا بٹن (صرف درخواست صاف) · 🔄 پیکج ایکٹیو کریں کے اوپر تازہ کرنے کا بٹن';
+const APP_VERSION = 'HD2611TH193';
+const UPDATE_NOTE = '✅ پیکج ایکٹیو کریں کھلتے ہی چلتے پیکج (کم دن والے اوپر) · ہر پیکج کی ایک لائن میں رقم · الگ رقم والا ڈبہ ختم';
 const DEV_PHONE = '03206793793';
 
 const APPS = [

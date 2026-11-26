@@ -13,7 +13,7 @@
   const TABS = [['MCS', 'My City Shines'], ['SM', 'سبزی منڈی'], ['MD', 'مدرسہ'], ['FM', 'فروٹ منڈی'], ['MA', 'مکتبہ'], ['DR', 'AIO Direct'], ['AIO', 'AIO POS']];   /* MD2311MO028 (مالک کا حکم): مدرسہ سافٹ ویئر بھی MD ID پر — سبزی منڈی جیسا */   /* HD2211SU163 (مالک کا حکم): سبزی منڈی بھی SM ID پر — AIO Direct جیسا */
   const IDN = () => APP === 'SM' ? 'SM ID' : APP === 'MD' ? 'MD ID' : APP === 'FM' ? 'FM ID' : APP === 'MA' ? 'MA ID' : 'AIO ID';
   let SFIND = null, RC = null;   /* HD2411TU173: دکان کی بحالی (SM) */
-  let APP = 'AIO', AIDS = [], ENTS = [], PK = [], PRICE = {}, AQ = '', SHOW = 40, SEL = null, APK = '', SHOWPK = false, BUSY = false, MSG = '', OK = true, RES = null, SHARE = '', GRP = {}, FIL = 'su', ST = {};
+  let APP = 'AIO', AIDS = [], ENTS = [], PK = [], PRICE = {}, AQ = '', SHOW = 40, SEL = null, APK = '', SHOWPK = false, BUSY = false, MSG = '', OK = true, RES = null, SHARE = '', GRP = {}, FIL = 'act', FILAUTO = true, ST = {};   /* HD2611TH193 (مالک کا حکم): کھلتے ہی ڈیفالٹ «✅ پیکج» — جو چل رہے ہیں، کم دن والے سب سے اوپر */
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const p2 = n => String(n).padStart(2, '0');
   const dmy = ts => { if (!ts) return '—'; const d = new Date(ts); return p2(d.getDate()) + '/' + p2(d.getMonth() + 1) + '/' + d.getFullYear(); };
@@ -233,6 +233,7 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
     } catch (e) { err = '⚠️ ' + e.message + (PK.length ? ' (فون میں محفوظ پیکج فہرست دکھا رہا ہوں)' : ''); }
     try { const l = await call({ op: 'list' }); ENTS = l.list || []; } catch (e) { if (!err) err = '⚠️ ' + e.message; }
     try { const n = await call({ op: 'aionew' }); AIDS = n.list || []; buildGroups(); } catch (e) { if (!err) err = '⚠️ ' + e.message; }
+    if (!err && FILAUTO) { try { calc(); FIL = AIDS.some(a => bucket(ST[a.aio]) === 'act') ? 'act' : 'su'; } catch (e) {} FILAUTO = false; }   /* HD2611TH193: چلتا پیکج نہ ہو تو خالی ڈبے کی جگہ سائن اپ */
     if (err) { MSG = err; OK = false; } else if (!SEL) MSG = '';
     if (!err) rqPop();
   }
@@ -523,7 +524,7 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
     /* HD2211SU163 (مالک کا حکم): پیسوں کا حساب — کل وصولی، چلتے پیکجوں کی رقم، کم دن والے */
     const fm = n => Number(n || 0).toLocaleString('en-US'), paid = AIDS.reduce((x, a) => x + ((a.ent && a.ent.paid) || 0), 0), paidAct = AIDS.reduce((x, a) => x + (live(ST[a.aio]) && a.ent ? a.ent.paid || 0 : 0), 0), low = AIDS.filter(a => ST[a.aio].k === 'act' && ST[a.aio].left <= 15).length;
     const sum = paid || low ? '<div class="aRow" style="justify-content:space-between;background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;padding:8px 10px;margin-bottom:8px"><span><b style="font-size:16px;color:#166534">💰 ' + fm(paid) + ' روپے</b><span class="aSub" style="display:block;margin:0">کل وصولی</span></span><span><b style="font-size:16px;color:#0e7490">' + fm(paidAct) + ' روپے</b><span class="aSub" style="display:block;margin:0">چلتے پیکج</span></span>' + (low ? '<span class="aTag d" data-a="fil" data-v="act" style="cursor:pointer">⚠️ ' + low + ' کے 15 دن سے کم</span>' : '') + '</div>' : '';
-    return sum + '<div class="aFil">' + B.map(x => '<button class="' + (FIL === x[0] ? 'on' : '') + '" data-a="fil" data-v="' + x[0] + '">' + x[1] + '<b>' + x[2] + '</b></button>').join('') + '</div>';
+    return '<div class="aFil">' + B.map(x => '<button class="' + (FIL === x[0] ? 'on' : '') + '" data-a="fil" data-v="' + x[0] + '">' + x[1] + '<b>' + x[2] + '</b></button>').join('') + '</div>';
   }
   /* HD2111SA142: پیکج کا نام — اسی ID کا پیکج، ورنہ سرور کی فہرست والا نام */
   const pkn = (a, st) => (st.ent && (st.ent.pkgName || st.ent.label)) || (a.ent && a.ent.pkg) || (st.ent && st.ent.life ? 'لائف ٹائم' : 'پیکج');
@@ -540,6 +541,12 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
       if (st.k === 'trial') btn = tel + '<button class="aBtn grn" data-a="trialmsg" data-v="' + esc(a.aio) + '" style="padding:4px 9px;font-size:12px">💬 پیغام</button>';
       if (st.k === 'tend') btn = (st.extra ? '' : tel + '<button class="aBtn grn" data-a="trialmsg" data-v="' + esc(a.aio) + '" style="padding:4px 9px;font-size:12px">💬 پیغام</button>') + '<button class="aBtn red" data-a="adel" data-v="' + esc(a.aio) + '" style="padding:4px 9px;font-size:12px">🗑️ ہٹائیں</button>';
       const tl = (st.k === 'trial' || st.k === 'tend') ? ' · ڈاؤن لوڈ ' + dmy(a.made) + ' · ٹرائل ' + (st.k === 'trial' ? 'ختم ہو گا ' : 'ختم ہوا ') + dmy(st.exp) : (a.made ? ' · ' + dmy(a.made) : '');
+      if (FIL === 'act' && live(st)) {   /* HD2611TH193 (مالک کا حکم): چلتا پیکج — ایک ہی چھوٹی لائن: پیکج + اسی میں رقم؛ باقی تفصیل دبانے پر */
+        const pr = Number(String((a.ent && a.ent.lastPrice) || '').replace(/[^0-9.]/g, '')) || (a.ent && a.ent.paid) || 0;
+        return '<div class="aItem" data-a="pick" data-v="' + esc(a.aio) + '" style="cursor:pointer' + (dup > 1 ? ';border-right:4px solid #f59e0b' : '') + (SEL && SEL.who.aio === a.aio ? ';background:#ecfeff' : '') + '"><div class="aRow" style="flex-wrap:nowrap"><span class="aCode" style="color:#0e7490">' + esc(a.aio) + '</span><b style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(a.name || '—') + (dup > 1 ? ' <small>⚠️×' + dup + '</small>' : '') + '</b><span class="aTag ' + ch[0] + '">' + esc(ch[1]) + '</span></div>'
+          + '<div class="aSub" style="margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><b style="color:#065f46">📦 ' + esc(pkn(a, st)) + '</b>' + (pr ? ' · <b style="color:#166534">💰 ' + Number(pr).toLocaleString('en-US') + ' روپے</b>' : '') + '</div>'
+          + (a.staff || []).map(x => '<div class="aStfL">👷 ' + esc(x.name || '—') + ' · ' + esc(aPh(x.mobile)) + ' · ' + esc(x.aio) + '</div>').join('') + '</div>';
+      }
       return '<div class="aItem" data-a="pick" data-v="' + esc(a.aio) + '" style="cursor:pointer' + (dup > 1 ? ';border-right:4px solid #f59e0b' : '') + (SEL && SEL.who.aio === a.aio ? ';background:#ecfeff' : '') + '"><div class="aRow" style="flex-wrap:nowrap"><span class="aCode" style="color:#0e7490">' + esc(a.aio) + '</span><b style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(a.name || '—') + (dup > 1 ? ' <small>⚠️×' + dup + '</small>' : '') + '</b><span class="aTag ' + ch[0] + '">' + esc(ch[1]) + '</span></div><div class="aRow" style="flex-wrap:nowrap;justify-content:space-between"><div class="aSub" style="flex:1;min-width:0">' + [aPh(a.mobile), a.district ? '📍 ' + a.district : '', a.gmail].filter(Boolean).map(esc).join(' · ') + tl + (live(st) ? ' · 📦 ' + esc(pkn(a, st)) + (a.ent && a.ent.paid ? ' · 💰 ' + Number(a.ent.paid).toLocaleString('en-US') + ' روپے' : '') + (a.ent && a.ent.lastAt ? ' · ' + Math.max(0, Math.floor((Date.now() - a.ent.lastAt) / 864e5)) + ' دن گزرے' : '') : '') + '</div><div style="display:flex;gap:6px;flex:0 0 auto">' + btn + '</div></div>' + ((st.k === 'trial' || st.k === 'tend') && !st.extra ? slTag(a.aio) : '') + (live(st) ? '' : wantTag(a.want)) + (FIL === 'act' ? (a.staff || []).map((x, i) => '<div class="aStfL">👷 ' + esc(x.name || '—') + ' · ' + esc(aPh(x.mobile)) + ' · ' + esc(x.aio) + '</div>').join('') : '') + '</div>';
     }).join('') + (list.length > SHOW ? '<button class="aBtn" data-a="amore" style="width:100%;margin-top:8px">⬇️ مزید دکھائیں (' + (list.length - SHOW) + ')</button>' : '') || '<div class="aSub" style="margin-top:8px">' + (BUSY ? '⏳' : 'اس خانے میں کوئی ID نہیں') + '</div>';
   }
@@ -594,7 +601,7 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
     if (a === 'close') { const o = document.getElementById('aiOv'); if (o) o.remove(); document.body.style.overflow = ''; return; }
     if (a === 'tab') {
       if (v === 'MCS') { const o = document.getElementById('aiOv'); if (o) o.remove(); document.body.style.overflow = ''; OLD('MCS'); return; }
-      if (v === APP) return; APP = v; SEL = null; AIDS = []; ENTS = []; APK = ''; SHOWPK = false; RES = null; MSG = ''; loadLocal(); draw(); BUSY = true; draw(); loadAll().finally(() => { BUSY = false; draw(); }); return;
+      if (v === APP) return; APP = v; FIL = 'act'; FILAUTO = true; SEL = null; AIDS = []; ENTS = []; APK = ''; SHOWPK = false; RES = null; MSG = ''; loadLocal(); draw(); BUSY = true; draw(); loadAll().finally(() => { BUSY = false; draw(); }); return;
     }
     if (a === 'oldscr') { const o = document.getElementById('aiOv'); if (o) o.remove(); document.body.style.overflow = ''; window.__licBypass = true; OLD(APP); return; }
     if (a === 'sfind') { const mob = String(v || '').replace(/\D/g, ''); if (mob.length < 10) { say('موبائل نمبر نہیں', false); return; } BUSY = true; draw(); try { const r = await call({ op: 'shopfind', mobile: mob }); SFIND = r.list || []; RC = null; } catch (e) { MSG = '⚠️ ' + e.message; OK = false; } BUSY = false; draw(); return; }
@@ -722,7 +729,7 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
     window.__licBypass = false;
     const old = document.getElementById('licOv'); if (old) old.remove();
     APP = app === 'DR' ? 'DR' : app === 'SM' ? 'SM' : app === 'MD' ? 'MD' : app === 'FM' ? 'FM' : app === 'MA' ? 'MA' : 'AIO'; try { localStorage.setItem('lic_app', APP); } catch (e) {}
-    SEL = null; APK = ''; SHOWPK = false; RES = null; SHARE = ''; MSG = ''; AQ = ''; SHOW = 40; loadLocal();
+    SEL = null; APK = ''; SHOWPK = false; RES = null; SHARE = ''; MSG = ''; AQ = ''; SHOW = 40; FIL = 'act'; FILAUTO = true; loadLocal();
     css();
     let o = document.getElementById('aiOv'); if (o) o.remove();
     o = document.createElement('div'); o.id = 'aiOv';
