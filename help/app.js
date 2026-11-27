@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2711FR201';
-const UPDATE_NOTE = '🤝 MCS Agent کے نیچے بھی APK / Share / Copy / Web قطار (باقی ایپس جیسی)';
+const APP_VERSION = 'HD2711FR203';
+const UPDATE_NOTE = '📦 فری Claude زپ کا نیا نام: MCS2711FR0506AM(3) — ایپ + دن + وقت + (کل مسئلے)؛ «گٹھڑی» لفظ ختم';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -2397,13 +2397,16 @@ function fcBrief(i) {
   return b.trim().slice(0, 40);
 }
 const fcSafe = s => String(s || '').replace(/[\\/:*?"<>|#%{}^~\[\]`]+/g, ' ').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
-function fcZipName(a, arr) {
-  const body = arr.map(i => i.no + '-' + fcSafe(fcBrief(i))).join('_');
-  let n = `FreeClaude-Gathri-${a.id}-${arr.length}مسئلے-${body}`;
-  if (new TextEncoder().encode(n).length > 190) { n = `FreeClaude-Gathri-${a.id}-${arr.length}مسئلے-${arr.slice(0, 3).map(i => i.no + '-' + fcSafe(fcBrief(i)).split('-').slice(0, 2).join('-')).join('_')}${arr.length > 3 ? '_اور' + (arr.length - 3) : ''}`; }
-  while (new TextEncoder().encode(n).length > 190) n = n.slice(0, -1);
-  return n.replace(/[-_]+$/, '') + '.zip';
+/* HD2711FR202 (مالک کا حکم): زپ / ٹائٹل کا نیا نظام — «گٹھڑی» لفظ ختم۔ شکل: ایپ-ورژن کے حروف + دن مہینہ + دن کا کوڈ + وقت (گھنٹہ منٹ AM/PM) + (کل مسئلے)
+   مثال: MCS2711FR0506AM(3) — سال نہیں لکھتے؛ مسئلہ نمبر نام میں نہیں (مالک کا حکم)؛ بریکٹ میں اس زپ کے کل مسئلے */
+function fcTag(a, arr, ver) {
+  const d = new Date(), p2 = n => String(n).padStart(2, '0');
+  const pre = ((String(ver || '').match(/^[A-Za-z]+/) || [])[0]) || String(a.id || '').replace(/[^A-Za-z]/g, '').toUpperCase();
+  const day = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'][d.getDay()];
+  const h12 = d.getHours() % 12 || 12, ap = d.getHours() < 12 ? 'AM' : 'PM';   /* HD2711FR203: وقت (12 گھنٹے + AM/PM) — اسی دن دوسری زپ کا نام الگ رہے */
+  return `${pre}${p2(d.getDate())}${p2(d.getMonth() + 1)}${day}${p2(h12)}${p2(d.getMinutes())}${ap}(${arr.length})`;
 }
+function fcZipName(a, arr, ver) { return fcTag(a, arr, ver) + '.zip'; }
 async function fcBundles() {
   const picks = aiPicked(); if (!picks.length) return;
   if (!window.HDZips || !HDZips.zip) { toast('⚠️ zip'); return; }
@@ -2440,18 +2443,18 @@ async function fcBundles() {
           parts.push(`──────── ISSUE #${i.no} (${q + 1} of ${arr.length}) — ${i.type || ''} — ${fcBrief(i)} ────────\n${txt}\nScreenshots: ${ns ? 'screenshots/' + i.no + '_1…' + ns : 'none'}${na ? '   |   Voice: voice/' + i.no + '_…' : ''}`);
         }
         const url = aiRepo(a), nos = arr.map(i => '#' + i.no).join(', ');
-        const briefs = arr.map(i => '#' + i.no + ' ' + fcBrief(i)), title = `FREE CLAUDE GATHRI — ${a.en}${a.ur && a.ur !== a.en ? ' (' + a.ur + ')' : ''} — ${arr.length} issue(s): ${briefs.join(' • ')}`;
+        const briefs = arr.map(i => '#' + i.no + ' ' + fcBrief(i)), title = `${fcTag(a, arr, ver)} — ${a.en}${a.ur && a.ur !== a.en ? ' (' + a.ur + ')' : ''} — ${arr.length} issue(s): ${briefs.join(' • ')}`;
         const readme = `${title}\n${'='.repeat(70)}\n\nApp: ${a.en}${ver ? '   |   Current version: ' + ver : ''}\n${url ? 'Repo: ' + url + '\n' : ''}\n` +
           `=== FILES IN THIS ZIP ===\n- Root files (index.html, sw.js …) = the ${a.en} app, exactly as live now.\n${withSrv ? '- server/worker.js = the Cloudflare server (repo ' + sv.repo + ', ' + sv.path + ').\n' : ''}- issues.txt = every issue, one by one, exactly as the customers wrote it.\n- screenshots/, voice/ = named by issue number.\n\n` +
           `=== RULES FOR CLAUDE (must follow) ===\n1. Solve EVERY issue in issues.txt, one by one, carefully (not by guesswork). Do not change prices, payments, subscriptions, or delete data.\n2. Give back ONLY the files you actually changed. NEVER return an unchanged file.\n` +
           `3. App changed: return ONE zip named with the NEW app version${ver ? ' (same pattern as ' + ver + ', serial +1)' : ''}. Inside: only changed app files at the root (always index.html + sw.js — the version changes in both — plus the update note). No server folder, no worker.js, no screenshots, no READ-ME.\n` +
           (withSrv ? `4. Server changed: return worker.js ALONE (not zipped, not inside the app zip).\n` : '') +
           `${withSrv ? '5' : '4'}. At the end, tell the owner in Urdu, for EACH issue number: solved or not, what you changed, and exactly which file to upload where.\n\n` +
-          `=== مالک کے لیے ===\nیہ زپ فری Claude کو دیں: «سب مسئلے حل کرو»۔ واپسی: ایپ کی زپ → ہیلپ ڈیسک «📦 تازہ زپ» ← ${nm} ← «⬆️ Upload zip»${withSrv ? '؛ worker.js → اسی قطار میں «⬆️🖥️ Upload new worker.js»' : ''}۔ لائیو ہوتے ہی ہیلپ ڈیسک پوچھے گا کہ (${nos}) میں سے کون سے حل ہوئے — ✓ والے «✅ حل» اور گاہکوں کو جواب؛ باقی گٹھڑی میں رہیں گے۔\n` +
+          `=== مالک کے لیے ===\nیہ زپ فری Claude کو دیں: «سب مسئلے حل کرو»۔ واپسی: ایپ کی زپ → ہیلپ ڈیسک «📦 تازہ زپ» ← ${nm} ← «⬆️ Upload zip»${withSrv ? '؛ worker.js → اسی قطار میں «⬆️🖥️ Upload new worker.js»' : ''}۔ لائیو ہوتے ہی ہیلپ ڈیسک پوچھے گا کہ (${nos}) میں سے کون سے حل ہوئے — ✓ والے «✅ حل» اور گاہکوں کو جواب؛ باقی Claude کے پاس رہیں گے۔\n` +
           (notes.length ? '\n⚠️ ' + notes.join('\n⚠️ ') + '\n' : '');
         files.unshift({ name: 'issues.txt', data: enc.encode(title + '\n\n' + parts.join('\n\n')) });
         files.unshift({ name: '00-READ-ME-FREE-CLAUDE.txt', data: enc.encode(readme) });
-        download(HDZips.zip(files), fcZipName(a, arr));
+        download(HDZips.zip(files), fcZipName(a, arr, ver));
         const now = Date.now();
         for (const i of arr) { const p = { fcAt: now, fcApp: a.id, status: i.status === 'new' ? 'work' : (i.status || 'work'), stage: 'claude', stageAt: now }; try { await Store.update(i.id, p); Object.assign(i, p); delete AI.sel[i.id]; } catch (e) { notes.push('#' + i.no + ': mark failed'); } }
         done.push(`${nm}: ${nos}`);
@@ -2523,7 +2526,7 @@ async function fcBundlesOld() {
             else if (b.kind === 'audio') { na++; files.push({ name: `voice/${i.no}_${na}.${/ogg/i.test(mt) ? 'ogg' : /mp4|m4a|aac/i.test(mt) ? 'm4a' : 'webm'}`, data: by }); }
           } catch (e) {}
         }
-        const url = aiRepo(a), title = `FREE CLAUDE GATHRI — ${a.en}${a.ur && a.ur !== a.en ? ' (' + a.ur + ')' : ''} — Issue #${i.no}`;
+        const url = aiRepo(a), title = `${fcTag(a, [i], ver)} — ${a.en}${a.ur && a.ur !== a.en ? ' (' + a.ur + ')' : ''} — Issue #${i.no}`;
         const txt = (claudeText(i) || i.text || '').replace(/\nScreenshots:[^\n]*/g, '').trim();
         const readme = `${title}\n${'='.repeat(Math.min(70, title.length))}\n\nApp: ${a.en}${ver ? '   |   Current version: ' + ver : ''}\n${url ? 'Repo: ' + url + '\n' : ''}Issue: #${i.no}   |   Type: ${i.type || ''}\n` +
           `Screenshots: ${ns} (screenshots/ folder)${na ? '   |   Voice: ' + na + ' (voice/ folder — the customer explains there)' : ''}\n\n` +
@@ -2536,7 +2539,7 @@ async function fcBundlesOld() {
           `=== مالک کے لیے ===\nیہ زپ فری Claude کو دیں اور کہیں: «یہ مسئلہ حل کرو»۔ واپسی: ایپ کی زپ → ہیلپ ڈیسک «📦 تازہ زپ» ← ${nm} ← «⬆️ Upload zip»${withSrv ? '؛ worker.js → «🖥️ Server file» ← «Upload changed worker.js»' : ''}۔ پھر اس مسئلے کو حل شدہ کر دیں۔\n` +
           (notes.length ? '\n⚠️ ' + notes.join('\n⚠️ ') + '\n' : '');
         files.unshift({ name: '00-READ-ME-FREE-CLAUDE.txt', data: enc.encode(readme) });
-        download(HDZips.zip(files), `FreeClaude-Gathri-${a.id}-${i.no}.zip`);
+        download(HDZips.zip(files), fcZipName(a, [i], ver));
         done.push('#' + i.no);
         await wait(900);
       } catch (e) { fail.push('#' + i.no + ' (' + String(e && e.message || e).slice(0, 50) + ')'); }
