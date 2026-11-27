@@ -2,7 +2,7 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2711FR207';
+const APP_VERSION = 'HD2711FR209';
 const UPDATE_NOTE = '📦 فری Claude زپ کا نیا نام: MCS2711FR0506AM(3) — ایپ + دن + وقت + (کل مسئلے)؛ «گٹھڑی» لفظ ختم';
 const DEV_PHONE = '03206793793';
 
@@ -2197,7 +2197,7 @@ function aiHTML() {
     ${ex ? `<div class="aiBar"><button class="tb" data-act="aiAll">☑️ ${E ? 'Select all' : 'سب چنیں'}</button><button class="tb" data-act="aiNone">⬜ ${E ? 'Clear' : 'ہٹائیں'}</button><span style="align-self:center;color:var(--mut);font-size:13.5px">${E ? 'Selected' : 'چنے ہوئے'}: <b>${n}</b></span></div>` : ''}
     ${body}
     ${ex ? (() => { const W = ISSUES.filter(i => i.fcAt && i.status !== 'done' && i.status !== 'dup'); if (!W.length) return ''; const G = new Map(); W.forEach(i => { const k = i.fcRef || (E ? 'Earlier bundle' : 'پرانی گٹھڑی'); if (!G.has(k)) G.set(k, []); G.get(k).push(i); });
-      return `<div class="card" style="padding:10px;margin:8px 0;border:1.5px dashed #7c3aed"><b>🎒 ${E ? 'With free Claude (waiting for the zip upload)' : 'فری Claude کے پاس (زپ اپلوڈ کا انتظار)'}: ${W.length}</b>${[...G.entries()].map(([ref, L]) => `<div style="margin-top:8px"><div dir="ltr" style="display:flex;gap:6px;align-items:center;font-weight:800;font-size:13px;color:#6d28d9;word-break:break-all">${appIcon(appOf(L[0].fcApp || L[0].app), 'appMini')}<span>📦 ${esc(ref)}</span></div>${L.map(i => `<div style="display:flex;gap:8px;align-items:center;margin-top:5px;font-size:13.5px">${appIcon(appOf(i.app), 'appMini')}<span style="min-width:0;flex:1;line-height:1.5"><b>${esc(AN(appOf(i.app)))}</b> <b class="num">#${i.no}</b> · ${esc(fcBrief(i))} · <small>${ago(i.fcAt)}</small></span><button class="tb grn" data-act="aiSolve" data-id="${i.id}">✅ ${E ? 'Solved' : 'حل ہو گیا'}</button><button class="tb" data-act="fcBack" data-id="${i.id}">↩️ ${E ? 'Back' : 'واپس'}</button></div>`).join('')}</div>`).join('')}</div>`; })() : ''}
+      return `<div class="card" style="padding:10px;margin:8px 0;border:1.5px dashed #7c3aed"><b>🎒 ${E ? 'With free Claude (waiting for the zip upload)' : 'فری Claude کے پاس (زپ اپلوڈ کا انتظار)'}: ${W.length}</b>${[...G.entries()].map(([ref, L]) => `<div style="margin-top:8px"><div dir="ltr" style="display:flex;gap:6px;align-items:center;font-weight:800;font-size:13px;color:#6d28d9;word-break:break-all">${appIcon(appOf(L[0].fcApp || L[0].app), 'appMini').replace(/class="([^"]*)"/, 'class="$1" style="width:36px;height:36px;flex:0 0 36px"')}<span>📦 ${esc(ref)}</span></div>${L.map(i => `<div style="display:flex;gap:8px;align-items:center;margin-top:5px;font-size:13.5px">${appIcon(appOf(i.app), 'appMini')}<span style="min-width:0;flex:1;line-height:1.5"><b>${esc(AN(appOf(i.app)))}</b> <b class="num">#${i.no}</b> · ${esc(fcBrief(i))} · <small>${ago(i.fcAt)}</small></span><button class="tb grn" data-act="aiSolve" data-id="${i.id}">✅ ${E ? 'Solved' : 'حل ہو گیا'}</button><button class="tb" data-act="fcBack" data-id="${i.id}">↩️ ${E ? 'Back' : 'واپس'}</button></div>`).join('')}</div>`).join('')}</div>`; })() : ''}
     ${ex ? `<div class="aiAct" style="flex-direction:column"><button class="tb grn" data-act="fcBundles" ${n ? '' : 'disabled'} style="width:100%;padding:14px;font-size:16px;background:linear-gradient(135deg,#7c3aed,#4c1d95);border-color:#4c1d95;color:#fff">🎒 ${E ? 'Make free-Claude bundles — one zip per app' : 'فری Claude کی گٹھڑیاں بنائیں — ہر ایپ کی ایک زپ'} (${n})</button><div style="display:flex;gap:8px"><button class="tb pri" data-act="aiCopy" ${n ? '' : 'disabled'}>📋 ${E ? 'Copy text' : 'متن کاپی'}</button><button class="tb" data-act="bnAll">📦 ${E ? 'All open issues in one zip (all apps)' : 'سب مسائل ایک زپ میں (سب ایپس)'}</button></div></div>` : ''}`;
 }
 function aiOpen(tab) {
@@ -2266,7 +2266,7 @@ async function aiExportZip() {
     files.unshift({ name: 'issues.txt', data: new TextEncoder().encode(txt) });
     const d = new Date(), tag = String(d.getDate()).padStart(2, '0') + String(d.getMonth() + 1).padStart(2, '0');
     const blob = HDZips.zip(files); busy(false);
-    download(blob, gtrTag(picks.length) + '.zip');
+    download(blob, gtrTag(picks.length, [...new Set(picks.map(p => fcCode(appOf(p.i.app))))].join('-')) + '.zip');
     toast('✅ ' + picks.length + (E ? ' issues in one zip' : ' مسائل ایک زپ میں') + (notes.length ? ' ⚠️' : ''), 3500);
   } catch (e) { busy(false); toast('⚠️ ' + (e && e.message || e), 4500); }
 }
@@ -2342,7 +2342,7 @@ async function bnGo() {
       (notes.length ? '\n⚠️ ' + notes.join('\n⚠️ ') + '\n' : '');
     files.unshift({ name: 'READ-ME.txt', data: enc.encode(readme) });
     const blob = HDZips.zip(files); busy(false);
-    download(blob, gtrTag(totalIss) + '.zip');
+    download(blob, gtrTag(totalIss, [...new Set(jobs.filter(j => j.arr.length).map(j => fcCode(j.a)))].join('-')) + '.zip');
     toast('✅ ' + totalIss + (E ? ' issues in one zip' : ' مسائل ایک زپ میں') + (notes.length ? ' ⚠️' : ''), 3500);
   } catch (e) { busy(false); toast('⚠️ ' + (e && e.message || e), 4500); }
   BN_BUSY = false;
@@ -2400,12 +2400,12 @@ function fcBrief(i) {
 const fcSafe = s => String(s || '').replace(/[\\/:*?"<>|#%{}^~\[\]`]+/g, ' ').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
 /* HD2711FR202 (مالک کا حکم): زپ / ٹائٹل کا نیا نظام — «گٹھڑی» لفظ ختم۔ شکل: ایپ-ورژن کے حروف + دن مہینہ + دن کا کوڈ + وقت (گھنٹہ منٹ AM/PM) + (کل مسئلے)
    مثال: MCS2711FR0506AM(3) — سال نہیں لکھتے؛ مسئلہ نمبر نام میں نہیں (مالک کا حکم)؛ بریکٹ میں اس زپ کے کل مسئلے */
-function gtrTag(n, name) {   /* HD2711FR207 (مالک کا حکم، پکا): GTR + دن مہینہ + وقت (24 گھنٹے) + ایپ کا نام + (مسائل) — سال نہیں۔ مثال GTR27nov1305AIOPOS(4) */
-  const d = new Date(), p2 = x => String(x).padStart(2, '0'), mon = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'][d.getMonth()];
-  const nm = String(name || 'Multi').replace(/[^A-Za-z0-9]+/g, '') || 'App';
-  return `GTR${p2(d.getDate())}${mon}${p2(d.getHours())}${p2(d.getMinutes())}${nm}(${n})`;
+const fcCode = a => { const id = String(a && a.id || ''); return id === 'AIO' ? 'AIOPOS' : (id.replace(/[^A-Za-z0-9]+/g, '').toUpperCase() || 'APP'); };   /* ریپو کا مختصر نام: AIOPOS / AIOPOSDIRECT / SM / FM / MCS … */
+function gtrTag(n, code) {   /* HD2711FR209 (مالک کا حکم، پکا): GTR + وقت (24 گھنٹے HHMM) + دن کا کوڈ + تاریخ DDMM + ریپو کا نام + (مسائل) — مثال GTR1306FR2711AIOPOS(4)؛ کئی ایپس ہوں تو نام - سے جڑتے ہیں، «Multi» کبھی نہیں */
+  const d = new Date(), p2 = x => String(x).padStart(2, '0'), day = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'][d.getDay()];
+  return `GTR${p2(d.getHours())}${p2(d.getMinutes())}${day}${p2(d.getDate())}${p2(d.getMonth() + 1)}${code || 'APP'}(${n})`;
 }
-function fcTag(a, arr, ver) { return gtrTag(arr.length, a.en); }
+function fcTag(a, arr, ver) { return gtrTag(arr.length, fcCode(a)); }
 function fcZipName(a, arr, ver) { return fcTag(a, arr, ver) + '.zip'; }
 async function fcBundles() {
   const picks = aiPicked(); if (!picks.length) return;
