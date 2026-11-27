@@ -534,6 +534,12 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
     if (FIL === 'act') list = list.slice().sort((p, r) => (ST[p.aio].k === 'life' ? 1e9 : ST[p.aio].left) - (ST[r.aio].k === 'life' ? 1e9 : ST[r.aio].left));
     if (FIL === 'su') list = list.slice().sort((p, r) => (r.made || 0) - (p.made || 0));
     if (FIL === 'trial') list = list.slice().sort((p, r) => ST[p.aio].left - ST[r.aio].left);
+    /* HD2711FR204 (مالک کا حکم): سرور کے وہ ایکٹو پیکج جو اوپر کسی ID کی لائن میں نہیں — وہ بھی دکھیں */
+    let more = '';
+    if (FIL === 'act') { const have = {}; list.forEach(a => { const x = ENTS.find(e => e.active && e.aio === a.aio) || ST[a.aio].ent; if (x && x.id) have[x.id] = 1; });
+      more = ENTS.filter(e => e.active && !have[e.id] && (!q || ((e.aio || '') + ' ' + (e.name || '') + ' ' + (e.label || '') + ' ' + (e.keys || []).join(' ')).toUpperCase().indexOf(q) >= 0))
+        .map(e => '<div class="aItem"><div class="aRow" style="flex-wrap:nowrap"><span class="aCode" style="color:#0e7490">' + esc(e.aio || e.code || '—') + '</span><b style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(e.name || e.label || '') + '</b></div><div class="aSub">📦 ' + esc(e.pkgName || 'پیکج') + ' · ' + (e.life ? '♾️' : 'ختم ' + dmy(e.exp)) + '</div>' + endBtn(e) + '</div>').join(''); }
+    if (more && !list.length) return more;
     return list.slice(0, SHOW).map(a => {
       const st = ST[a.aio], ch = chip(st), dup = (GRP[a.aio] || []).length;
       let btn = '';
@@ -544,11 +550,30 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
       if (FIL === 'act' && live(st)) {   /* HD2611TH193 (مالک کا حکم): چلتا پیکج — ایک ہی چھوٹی لائن: پیکج + اسی میں رقم؛ باقی تفصیل دبانے پر */
         const pr = Number(String((a.ent && a.ent.lastPrice) || '').replace(/[^0-9.]/g, '')) || (a.ent && a.ent.paid) || 0;
         return '<div class="aItem" data-a="pick" data-v="' + esc(a.aio) + '" style="cursor:pointer' + (dup > 1 ? ';border-right:4px solid #f59e0b' : '') + (SEL && SEL.who.aio === a.aio ? ';background:#ecfeff' : '') + '"><div class="aRow" style="flex-wrap:nowrap"><span class="aCode" style="color:#0e7490">' + esc(a.aio) + '</span><b style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(a.name || '—') + (dup > 1 ? ' <small>⚠️×' + dup + '</small>' : '') + '</b><span class="aTag ' + ch[0] + '">' + esc(ch[1]) + '</span></div>'
-          + '<div class="aSub" style="margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><b style="color:#065f46">📦 ' + esc(pkn(a, st)) + '</b>' + (pr ? ' · <b style="color:#166534">💰 ' + Number(pr).toLocaleString('en-US') + ' روپے</b>' : '') + '</div>'
+          + '<div class="aSub" style="margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><b style="color:#065f46">📦 ' + esc(pkn(a, st)) + '</b>' + (pr ? ' · <b style="color:#166534">💰 ' + Number(pr).toLocaleString('en-US') + ' روپے</b>' : '') + '</div>' + endBtn(ENTS.find(e => e.active && e.aio === a.aio) || st.ent)
           + (a.staff || []).map(x => '<div class="aStfL">👷 ' + esc(x.name || '—') + ' · ' + esc(aPh(x.mobile)) + ' · ' + esc(x.aio) + '</div>').join('') + '</div>';
       }
       return '<div class="aItem" data-a="pick" data-v="' + esc(a.aio) + '" style="cursor:pointer' + (dup > 1 ? ';border-right:4px solid #f59e0b' : '') + (SEL && SEL.who.aio === a.aio ? ';background:#ecfeff' : '') + '"><div class="aRow" style="flex-wrap:nowrap"><span class="aCode" style="color:#0e7490">' + esc(a.aio) + '</span><b style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(a.name || '—') + (dup > 1 ? ' <small>⚠️×' + dup + '</small>' : '') + '</b><span class="aTag ' + ch[0] + '">' + esc(ch[1]) + '</span></div><div class="aRow" style="flex-wrap:nowrap;justify-content:space-between"><div class="aSub" style="flex:1;min-width:0">' + [aPh(a.mobile), a.district ? '📍 ' + a.district : '', a.gmail].filter(Boolean).map(esc).join(' · ') + tl + (live(st) ? ' · 📦 ' + esc(pkn(a, st)) + (a.ent && a.ent.paid ? ' · 💰 ' + Number(a.ent.paid).toLocaleString('en-US') + ' روپے' : '') + (a.ent && a.ent.lastAt ? ' · ' + Math.max(0, Math.floor((Date.now() - a.ent.lastAt) / 864e5)) + ' دن گزرے' : '') : '') + '</div><div style="display:flex;gap:6px;flex:0 0 auto">' + btn + '</div></div>' + ((st.k === 'trial' || st.k === 'tend') && !st.extra ? slTag(a.aio) : '') + (live(st) ? '' : wantTag(a.want)) + (FIL === 'act' ? (a.staff || []).map((x, i) => '<div class="aStfL">👷 ' + esc(x.name || '—') + ' · ' + esc(aPh(x.mobile)) + ' · ' + esc(x.aio) + '</div>').join('') : '') + '</div>';
-    }).join('') + (list.length > SHOW ? '<button class="aBtn" data-a="amore" style="width:100%;margin-top:8px">⬇️ مزید دکھائیں (' + (list.length - SHOW) + ')</button>' : '') || '<div class="aSub" style="margin-top:8px">' + (BUSY ? '⏳' : 'اس خانے میں کوئی ID نہیں') + '</div>';
+    }).join('') + more + (list.length > SHOW ? '<button class="aBtn" data-a="amore" style="width:100%;margin-top:8px">⬇️ مزید دکھائیں (' + (list.length - SHOW) + ')</button>' : '') || '<div class="aSub" style="margin-top:8px">' + (BUSY ? '⏳' : 'اس خانے میں کوئی ID نہیں') + '</div>';
+  }
+  const endBtn = e => e && e.id ? '<button class="aBtn red" data-a="xend" data-id="' + esc(e.id) + '" ' + (BUSY ? 'disabled' : '') + ' style="padding:3px 10px;font-size:12px;margin-top:4px">🗑️ ختم کریں</button>' : '';
+  /* HD2711FR204: حذف → سرور سے دوبارہ فہرست لے کر تصدیق → فوری پیغام */
+  async function endPkg(eid) {
+    if (BUSY) return;
+    const e = ENTS.find(x => x.id === eid) || {}, who = e.aio || e.code || (SEL && SEL.who.aio) || '';
+    if (!window.confirm('ID ' + who + (e.name ? ' (' + e.name + ')' : '') + ' کا پیکج ہمیشہ کے لیے ختم کریں؟')) return;
+    BUSY = true; MSG = '⏳ ختم ہو رہا ہے…'; OK = true; draw();
+    let note = '';
+    try {
+      await call({ op: 'delete', id: eid });
+      const l = await call({ op: 'list' });
+      if ((l.list || []).some(x => x.id === eid)) throw new Error('سرور پر پیکج ابھی موجود ہے');
+      ENTS = l.list || []; AIDS.forEach(a => { if (a.aio === who) a.ent = null; }); draw();
+      note = '✅ ID ' + who + ' کا پیکج سرور سے ختم ہو گیا۔' + (APP === 'MA' && e.aio ? '\nگاہک کے موبائل پر انٹرنیٹ کے ساتھ ایپ کھلتے ہی بند ہو جائے گا۔' : '');
+      const open = SEL && SEL.who.aio; await loadAll(); if (open) await loadDetail(open);
+      RES = null; SHARE = ''; MSG = note.replace('\n', ' '); OK = true;
+    } catch (x) { if (!note) { MSG = '⚠️ ختم ہونے کی تصدیق نہیں ہوئی: ' + x.message; OK = false; note = MSG; } }
+    BUSY = false; draw(); window.alert(note);
   }
   function drawList() { const n = document.getElementById('aiList'); if (n) n.innerHTML = listHTML(); }
 
@@ -714,6 +739,8 @@ html:not([lang=en]) #aiOv,html:not([lang=en]) #aiOv :is(button,input,textarea,se
       });
       return;
     }
+    if (a === 'xend') return endPkg(id);
+    if (a === 'aop' && t.dataset.op === 'delete') return endPkg(id);
     if (a === 'aop') {
       const op = t.dataset.op, txt = { revoke: 'معطل کرنا (فون 30 منٹ میں بند ہو جائے گا)', unrevoke: 'بحال کرنا', reset: 'فون صاف کرنا (گاہک کا فون خود دوبارہ جڑ جائے گا)', delete: 'ہمیشہ کے لیے حذف کرنا — فون بند ہو جائے گا' }[op] || op;
       guarded('<b>' + esc(w.aio) + '</b> (' + esc(name) + ') کا پیکج: <b>' + txt + '</b>۔ پاس ورڈ لکھیں:', async () => {

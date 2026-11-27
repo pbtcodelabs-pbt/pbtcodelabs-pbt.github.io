@@ -2,7 +2,7 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2711FR203';
+const APP_VERSION = 'HD2711FR204';
 const UPDATE_NOTE = '📦 فری Claude زپ کا نیا نام: MCS2711FR0506AM(3) — ایپ + دن + وقت + (کل مسئلے)؛ «گٹھڑی» لفظ ختم';
 const DEV_PHONE = '03206793793';
 
