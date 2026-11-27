@@ -2,7 +2,7 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2711FR204';
+const APP_VERSION = 'HD2711FR205';
 const UPDATE_NOTE = '📦 فری Claude زپ کا نیا نام: MCS2711FR0506AM(3) — ایپ + دن + وقت + (کل مسئلے)؛ «گٹھڑی» لفظ ختم';
 const DEV_PHONE = '03206793793';
 
@@ -2196,7 +2196,8 @@ function aiHTML() {
     <div class="aiBar"><select class="inp" data-aiapp="1">${aiAppOpts()}</select></div>
     ${ex ? `<div class="aiBar"><button class="tb" data-act="aiAll">☑️ ${E ? 'Select all' : 'سب چنیں'}</button><button class="tb" data-act="aiNone">⬜ ${E ? 'Clear' : 'ہٹائیں'}</button><span style="align-self:center;color:var(--mut);font-size:13.5px">${E ? 'Selected' : 'چنے ہوئے'}: <b>${n}</b></span></div>` : ''}
     ${body}
-    ${ex ? (() => { const W = ISSUES.filter(i => i.fcAt && i.status !== 'done' && i.status !== 'dup'); return W.length ? `<div class="card" style="padding:10px;margin:8px 0;border:1.5px dashed #7c3aed"><b>🎒 ${E ? 'With free Claude (waiting for the zip upload)' : 'فری Claude کے پاس (زپ اپلوڈ کا انتظار)'}: ${W.length}</b>${W.map(i => `<div style="display:flex;gap:6px;align-items:center;margin-top:6px;font-size:13.5px">${appIcon(appOf(i.app), 'appMini')}<span>${esc(AN(appOf(i.app)))} <b class="num">#${i.no}</b> · ${ago(i.fcAt)}</span><button class="tb grn" style="margin-inline-start:auto" data-act="aiSolve" data-id="${i.id}">✅ ${E ? 'Solved' : 'حل ہو گیا'}</button><button class="tb" data-act="fcBack" data-id="${i.id}">↩️ ${E ? 'Back to list' : 'واپس فہرست میں'}</button></div>`).join('')}</div>` : ''; })() : ''}
+    ${ex ? (() => { const W = ISSUES.filter(i => i.fcAt && i.status !== 'done' && i.status !== 'dup'); if (!W.length) return ''; const G = new Map(); W.forEach(i => { const k = i.fcRef || (E ? 'Earlier bundle' : 'پرانی گٹھڑی'); if (!G.has(k)) G.set(k, []); G.get(k).push(i); });
+      return `<div class="card" style="padding:10px;margin:8px 0;border:1.5px dashed #7c3aed"><b>🎒 ${E ? 'With free Claude (waiting for the zip upload)' : 'فری Claude کے پاس (زپ اپلوڈ کا انتظار)'}: ${W.length}</b>${[...G.entries()].map(([ref, L]) => `<div style="margin-top:8px"><div dir="ltr" style="font-weight:800;font-size:13px;color:#6d28d9;word-break:break-all">📦 ${esc(ref)}</div>${L.map(i => `<div style="display:flex;gap:8px;align-items:center;margin-top:5px;font-size:13.5px">${appIcon(appOf(i.app), 'appMini')}<span style="min-width:0;flex:1;line-height:1.5"><b>${esc(AN(appOf(i.app)))}</b> <b class="num">#${i.no}</b> · ${esc(fcBrief(i))} · <small>${ago(i.fcAt)}</small></span><button class="tb grn" data-act="aiSolve" data-id="${i.id}">✅ ${E ? 'Solved' : 'حل ہو گیا'}</button><button class="tb" data-act="fcBack" data-id="${i.id}">↩️ ${E ? 'Back' : 'واپس'}</button></div>`).join('')}</div>`).join('')}</div>`; })() : ''}
     ${ex ? `<div class="aiAct" style="flex-direction:column"><button class="tb grn" data-act="fcBundles" ${n ? '' : 'disabled'} style="width:100%;padding:14px;font-size:16px;background:linear-gradient(135deg,#7c3aed,#4c1d95);border-color:#4c1d95;color:#fff">🎒 ${E ? 'Make free-Claude bundles — one zip per app' : 'فری Claude کی گٹھڑیاں بنائیں — ہر ایپ کی ایک زپ'} (${n})</button><div style="display:flex;gap:8px"><button class="tb pri" data-act="aiCopy" ${n ? '' : 'disabled'}>📋 ${E ? 'Copy text' : 'متن کاپی'}</button><button class="tb" data-act="bnAll">📦 ${E ? 'All open issues in one zip (all apps)' : 'سب مسائل ایک زپ میں (سب ایپس)'}</button></div></div>` : ''}`;
 }
 function aiOpen(tab) {
@@ -2265,7 +2266,7 @@ async function aiExportZip() {
     files.unshift({ name: 'issues.txt', data: new TextEncoder().encode(txt) });
     const d = new Date(), tag = String(d.getDate()).padStart(2, '0') + String(d.getMonth() + 1).padStart(2, '0');
     const blob = HDZips.zip(files); busy(false);
-    download(blob, `HelpDesk-${picks.length}issues-${tag}.zip`);
+    download(blob, gtrTag(picks.length) + '.zip');
     toast('✅ ' + picks.length + (E ? ' issues in one zip' : ' مسائل ایک زپ میں') + (notes.length ? ' ⚠️' : ''), 3500);
   } catch (e) { busy(false); toast('⚠️ ' + (e && e.message || e), 4500); }
 }
@@ -2341,7 +2342,7 @@ async function bnGo() {
       (notes.length ? '\n⚠️ ' + notes.join('\n⚠️ ') + '\n' : '');
     files.unshift({ name: 'READ-ME.txt', data: enc.encode(readme) });
     const blob = HDZips.zip(files); busy(false);
-    download(blob, `HelpDesk-Claude-${totalIss}issues-${tag}.zip`);
+    download(blob, gtrTag(totalIss) + '.zip');
     toast('✅ ' + totalIss + (E ? ' issues in one zip' : ' مسائل ایک زپ میں') + (notes.length ? ' ⚠️' : ''), 3500);
   } catch (e) { busy(false); toast('⚠️ ' + (e && e.message || e), 4500); }
   BN_BUSY = false;
@@ -2399,13 +2400,12 @@ function fcBrief(i) {
 const fcSafe = s => String(s || '').replace(/[\\/:*?"<>|#%{}^~\[\]`]+/g, ' ').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
 /* HD2711FR202 (مالک کا حکم): زپ / ٹائٹل کا نیا نظام — «گٹھڑی» لفظ ختم۔ شکل: ایپ-ورژن کے حروف + دن مہینہ + دن کا کوڈ + وقت (گھنٹہ منٹ AM/PM) + (کل مسئلے)
    مثال: MCS2711FR0506AM(3) — سال نہیں لکھتے؛ مسئلہ نمبر نام میں نہیں (مالک کا حکم)؛ بریکٹ میں اس زپ کے کل مسئلے */
-function fcTag(a, arr, ver) {
-  const d = new Date(), p2 = n => String(n).padStart(2, '0');
-  const pre = ((String(ver || '').match(/^[A-Za-z]+/) || [])[0]) || String(a.id || '').replace(/[^A-Za-z]/g, '').toUpperCase();
-  const day = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'][d.getDay()];
-  const h12 = d.getHours() % 12 || 12, ap = d.getHours() < 12 ? 'AM' : 'PM';   /* HD2711FR203: وقت (12 گھنٹے + AM/PM) — اسی دن دوسری زپ کا نام الگ رہے */
-  return `${pre}${p2(d.getDate())}${p2(d.getMonth() + 1)}${day}${p2(h12)}${p2(d.getMinutes())}${ap}(${arr.length})`;
+function gtrTag(n) {   /* HD2711FR205 (مالک کا حکم، پکا): GTR + دن مہینہ(انگلش چھوٹے) سال + وقت + AM/PM + (total#مسائل) — مثال GTR27nov261255PM(total#3) */
+  const d = new Date(), p2 = x => String(x).padStart(2, '0'), mon = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'][d.getMonth()];
+  const h12 = d.getHours() % 12 || 12, ap = d.getHours() < 12 ? 'AM' : 'PM';
+  return `GTR${p2(d.getDate())}${mon}${p2(d.getFullYear() % 100)}${p2(h12)}${p2(d.getMinutes())}${ap}(total#${n})`;
 }
+function fcTag(a, arr, ver) { return gtrTag(arr.length); }
 function fcZipName(a, arr, ver) { return fcTag(a, arr, ver) + '.zip'; }
 async function fcBundles() {
   const picks = aiPicked(); if (!picks.length) return;
@@ -2456,7 +2456,7 @@ async function fcBundles() {
         files.unshift({ name: '00-READ-ME-FREE-CLAUDE.txt', data: enc.encode(readme) });
         download(HDZips.zip(files), fcZipName(a, arr, ver));
         const now = Date.now();
-        for (const i of arr) { const p = { fcAt: now, fcApp: a.id, status: i.status === 'new' ? 'work' : (i.status || 'work'), stage: 'claude', stageAt: now }; try { await Store.update(i.id, p); Object.assign(i, p); delete AI.sel[i.id]; } catch (e) { notes.push('#' + i.no + ': mark failed'); } }
+        for (const i of arr) { const p = { fcAt: now, fcApp: a.id, fcRef: fcTag(a, arr, ver), status: i.status === 'new' ? 'work' : (i.status || 'work'), stage: 'claude', stageAt: now }; try { try { await Store.update(i.id, p); } catch (e0) { delete p.fcRef; await Store.update(i.id, p); } Object.assign(i, p); delete AI.sel[i.id]; } catch (e) { notes.push('#' + i.no + ': mark failed'); } }
         done.push(`${nm}: ${nos}`);
         await wait(900);
       } catch (e) { fail.push(nm + ' (' + String(e && e.message || e).slice(0, 50) + ')'); }
@@ -2475,7 +2475,7 @@ function fcAutoDone(appId, ver) {
   FCQ = { appId, ver }; const E = LANG === 'en', a = appOf(appId);
   sheet(`<h2>🎒 ${E ? 'Which bundle issues did this zip solve?' : 'اس زپ میں کون سے گٹھڑی والے مسئلے حل ہوئے؟'}<button class="x" data-act="close">✕</button></h2>
     <p style="font-size:14.5px;line-height:1.9;margin:0 0 8px">${esc(ZN(a))} ${ver && ver !== 'server' ? '· <b>' + esc(ver) + '</b> ' : ''}${E ? 'is live. Free Claude told you, issue by issue, which are solved — keep ✓ only on those. Unticked ones stay with free Claude.' : 'لائیو ہو گئی۔ فری Claude نے آخر میں ہر نمبر کا بتایا تھا کہ حل ہوا یا نہیں — ✓ صرف حل والوں پر رہنے دیں۔ جن پر ✓ نہیں وہ «🎒 فری Claude کے پاس» ہی رہیں گے۔'}</p>
-    ${L.map(i => `<label class="card" style="display:flex;gap:10px;align-items:flex-start;padding:10px;margin:6px 0;box-shadow:none;border:1.5px solid #c4b5fd;cursor:pointer"><input type="checkbox" data-fc="${i.id}" checked style="width:22px;height:22px;flex:0 0 22px;margin-top:3px"><span style="font-size:14px;line-height:1.7" dir="auto"><b class="num">#${i.no}</b> · ${esc(String(i.text || '').slice(0, 110))}${String(i.text || '').length > 110 ? '…' : ''}</span></label>`).join('')}
+    ${L.map(i => `<label class="card" style="display:flex;gap:10px;align-items:flex-start;padding:10px;margin:6px 0;box-shadow:none;border:1.5px solid #c4b5fd;cursor:pointer"><input type="checkbox" data-fc="${i.id}" checked style="width:22px;height:22px;flex:0 0 22px;margin-top:3px">${appIcon(a, 'appMini')}<span style="font-size:14px;line-height:1.7" dir="auto">${i.fcRef ? '<small dir="ltr" style="display:block;color:#6d28d9;font-weight:800">' + esc(i.fcRef) + '</small>' : ''}<b class="num">#${i.no}</b> · ${esc(String(i.text || '').slice(0, 110))}${String(i.text || '').length > 110 ? '…' : ''}</span></label>`).join('')}
     <button class="bigBtn" data-act="fcAskOk">✅ ${E ? 'Mark ticked as solved & reply to customers' : '✓ والے حل کریں + گاہکوں کو جواب'}</button>
     <button class="bigBtn" style="background:#64748b" data-act="close">⏳ ${E ? 'None yet — keep all with free Claude' : 'ابھی کوئی نہیں — سب فری Claude کے پاس رہیں'}</button>`);
 }
@@ -2492,7 +2492,7 @@ async function fcMarkDone(ids, ver) {
   if (n) { toast('✅ ' + n + (LANG === 'en' ? ' bundle issue(s) marked solved — customers can see the reply' : ' گٹھڑی والے مسئلے حل — گاہکوں کو جواب نظر آ گیا'), 6000); try { render(); ownerBadge(); } catch (e) {} }
 }
 /* Claude کے پاس گیا مسئلہ واپس کھڑی فہرست میں */
-async function fcBack(id) { const i = ISSUES.find(x => x.id === id); if (!i) return; const p = { fcAt: 0, fcApp: '' }; try { await Store.update(i.id, p); Object.assign(i, p); aiRedraw(); } catch (e) { toast('⚠️ ' + (e.message || e), 4000); } }
+async function fcBack(id) { const i = ISSUES.find(x => x.id === id); if (!i) return; const p = { fcAt: 0, fcApp: '', fcRef: '' }; try { await Store.update(i.id, p); Object.assign(i, p); aiRedraw(); } catch (e) { toast('⚠️ ' + (e.message || e), 4000); } }
 async function fcBundlesOld() {
   const picks = aiPicked(); if (!picks.length) return;
   if (!window.HDZips || !HDZips.zip) { toast('⚠️ zip'); return; }
