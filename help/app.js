@@ -2,8 +2,8 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2711FR209';
-const UPDATE_NOTE = '📦 فری Claude زپ کا نیا نام: MCS2711FR0506AM(3) — ایپ + دن + وقت + (کل مسئلے)؛ «گٹھڑی» لفظ ختم';
+const APP_VERSION = 'HD2711FR210';
+const UPDATE_NOTE = '🎨 فری Claude زپ کے نام کے شروع میں ہر ایپ کا اپنا رنگ دار نشان (🔵🟢🟠…) — فائل مینجر میں دیکھتے ہی پتا چل جائے کہ کس ایپ کی زپ ہے';
 const DEV_PHONE = '03206793793';
 
 const APPS = [
@@ -2401,9 +2401,12 @@ const fcSafe = s => String(s || '').replace(/[\\/:*?"<>|#%{}^~\[\]`]+/g, ' ').re
 /* HD2711FR202 (مالک کا حکم): زپ / ٹائٹل کا نیا نظام — «گٹھڑی» لفظ ختم۔ شکل: ایپ-ورژن کے حروف + دن مہینہ + دن کا کوڈ + وقت (گھنٹہ منٹ AM/PM) + (کل مسئلے)
    مثال: MCS2711FR0506AM(3) — سال نہیں لکھتے؛ مسئلہ نمبر نام میں نہیں (مالک کا حکم)؛ بریکٹ میں اس زپ کے کل مسئلے */
 const fcCode = a => { const id = String(a && a.id || ''); return id === 'AIO' ? 'AIOPOS' : (id.replace(/[^A-Za-z0-9]+/g, '').toUpperCase() || 'APP'); };   /* ریپو کا مختصر نام: AIOPOS / AIOPOSDIRECT / SM / FM / MCS … */
+/* HD2711FR210 (مالک کا حکم): زپ کے نام کے شروع میں ہر ایپ کا اپنا رنگ دار نشان — فائل مینجر میں زپ کا آئیکن بدلنا ممکن نہیں، اس لیے نام میں ایموجی؛ کئی ایپس ہوں تو سب کے نشان ساتھ */
+const GTR_ICON = { AIOPOS: '🔵', AIOPOSDIRECT: '🟦', FFPOS: '🟠', SM: '🟢', FM: '🔴', AB: '🟤', DG: '🟡', DDL: '⚪', HIFZPROGRESS: '🟣', HAFIZMUSABAPP: '🟪', MA: '🟫', MS: '🟥', STYLISHLISTING: '🟨', MT: '🟧', MCS: '🟩', PBTPORTAL: '🔷', PALMEARN: '🔶', URDUFONTSSTUDIO: '⬛', HD: '🔺', OTHER: '⬜' };
+const gtrIcons = code => String(code || '').split('-').filter(Boolean).map(c => GTR_ICON[c] || '🔻').join('');
 function gtrTag(n, code) {   /* HD2711FR209 (مالک کا حکم، پکا): GTR + وقت (24 گھنٹے HHMM) + دن کا کوڈ + تاریخ DDMM + ریپو کا نام + (مسائل) — مثال GTR1306FR2711AIOPOS(4)؛ کئی ایپس ہوں تو نام - سے جڑتے ہیں، «Multi» کبھی نہیں */
   const d = new Date(), p2 = x => String(x).padStart(2, '0'), day = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'][d.getDay()];
-  return `GTR${p2(d.getHours())}${p2(d.getMinutes())}${day}${p2(d.getDate())}${p2(d.getMonth() + 1)}${code || 'APP'}(${n})`;
+  return `${gtrIcons(code || 'APP')}GTR${p2(d.getHours())}${p2(d.getMinutes())}${day}${p2(d.getDate())}${p2(d.getMonth() + 1)}${code || 'APP'}(${n})`;
 }
 function fcTag(a, arr, ver) { return gtrTag(arr.length, fcCode(a)); }
 function fcZipName(a, arr, ver) { return fcTag(a, arr, ver) + '.zip'; }
