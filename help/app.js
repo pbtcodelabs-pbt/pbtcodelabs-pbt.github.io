@@ -2,7 +2,7 @@
    راستے (hash): #/ ہوم · #/app/<ID> · #/new/<ID> · #/thanks/<no> · #/mine · #/i/<id> · #/owner
    ایپ سے سیدھا: ?app=AIO-POS-DIRECT&v=AIODR0111SU111&phone=03001234567&name=احمد */
 'use strict';
-const APP_VERSION = 'HD2811SA217';
+const APP_VERSION = 'HD2811SA218';
 const UPDATE_NOTE = '🔄 زپ پینل: 🔄 دبانے پر کالا پیغام ختم؛ گنتی ری سیٹ نہیں ہوتی';
 const DEV_PHONE = '03206793793';
 
@@ -256,7 +256,7 @@ const tyChip = t => `<span class="chip">${TYPES[t] || '🐞'} ${T(t)}</span>`;
 /* ---------- ڈیٹا ---------- */
 let ISSUES = [], CFG = {};
 const keepDays = () => +CFG.keepDays || 7;
-const KEEP_MS = 24 * 36e5;   /* HD2811SA217 (مالک کا حکم): حل شدہ صرف 24 گھنٹے، پھر ہر جگہ سے ہمیشہ کے لیے حذف */
+const KEEP_MS = 24 * 36e5;   /* HD2811SA218 (مالک کا حکم): حل شدہ صرف 24 گھنٹے، پھر ہر جگہ سے ہمیشہ کے لیے حذف */
 const isOpen = i => ['new', 'seen', 'work'].includes(i.status);
 const fresh = i => !(i.status === 'done' || i.status === 'dup') || (Date.now() - (i.doneAt || i.upd) < keepDays() * 864e5);
 const publicList = () => ISSUES.filter(i => i.pub && fresh(i) && !i.arch);
@@ -578,7 +578,7 @@ let PF = 'all';
 /* HD1111WE078 (مالک کا حکم): 📦 تازہ زپ — ہر ایپ کی ابھی لائیو فائلیں (zips.js) */
 const ZIPC = {}, ZPG = {};
 /* HD1111WE080 (مالک کا حکم): اپلوڈ / ڈاؤن لوڈ کی پروگریس بار — بائیں سے دائیں 0 سے 100٪، مکمل ہو تو سبز ٹک ✓ */
-/* HD2811SA217 (مالک کا حکم): 🔄 کے اوپر سنہری ڈبہ — اپلوڈ سے ایپ میں لائیو ہونے تک کا اندازہ، الٹی گنتی (گھنٹہ / منٹ / سیکنڈ)؛ اندازہ پچھلی اپلوڈز کے اوسط + 5 سیکنڈ */
+/* HD2811SA218 (مالک کا حکم): 🔄 کے اوپر سنہری ڈبہ — اپلوڈ سے ایپ میں لائیو ہونے تک کا اندازہ، الٹی گنتی (گھنٹہ / منٹ / سیکنڈ)؛ اندازہ پچھلی اپلوڈز کے اوسط + 5 سیکنڈ */
 const ZDUR_KEY = 'pbthd_zdur', ZT0 = {};
 function zDurAvg() { try { const v = JSON.parse(localStorage.getItem(ZDUR_KEY) || '[]').filter(x => x > 0); if (v.length) return v.reduce((s, x) => s + x, 0) / v.length; } catch (e) {} return 115e3; }
 function zDurSave(ms) { if (!(ms > 10e3 && ms < 20 * 60e3)) return; try { const v = JSON.parse(localStorage.getItem(ZDUR_KEY) || '[]'); v.push(Math.round(ms)); localStorage.setItem(ZDUR_KEY, JSON.stringify(v.slice(-5))); } catch (e) {} }
@@ -1441,7 +1441,7 @@ function rankSheet(m) {
     ${list.map(([a, n]) => `<div class="rkLine">${appIcon(a, 'appMini')}<span class="rn">${esc(AN(a))}</span>
       <span class="rb"><i style="width:${n / max * 100}%"></i></span><b class="num">${n}</b></div>`).join('')}`);
 }
-/* HD2811SA217 (مالک کا حکم): کوئی خودکار صفائی نہیں — صرف بٹن «24 گھنٹے سے پرانے حل شدہ حذف» دبانے پر، سامنے ایک ایک کر کے */
+/* HD2811SA218 (مالک کا حکم): کوئی خودکار صفائی نہیں — صرف بٹن «24 گھنٹے سے پرانے حل شدہ حذف» دبانے پر، سامنے ایک ایک کر کے */
 const oldSolved = () => ISSUES.filter(i => !isReq(i) && !i.arch && (i.status === 'done' || i.status === 'dup') && Date.now() - (i.doneAt || i.upd) > KEEP_MS);
 let PURGING = false;
 async function purgeOld() {
@@ -2236,7 +2236,7 @@ function aiHTML() {
     ${ex ? `<div class="aiAct" style="flex-direction:column"><button class="tb grn" data-act="fcBundles" ${n ? '' : 'disabled'} style="width:100%;padding:14px;font-size:16px;background:linear-gradient(135deg,#7c3aed,#4c1d95);border-color:#4c1d95;color:#fff">🎒 ${E ? 'Make free-Claude bundles — one zip per app' : 'فری Claude کی گٹھڑیاں بنائیں — ہر ایپ کی ایک زپ'} (${n})</button><div style="display:flex;gap:8px"><button class="tb pri" data-act="aiCopy" ${n ? '' : 'disabled'}>📋 ${E ? 'Copy text' : 'متن کاپی'}</button><button class="tb" data-act="bnAll">📦 ${E ? 'All open issues in one zip (all apps)' : 'سب مسائل ایک زپ میں (سب ایپس)'}</button></div></div>` : ''}`;
 }
 
-/* HD2811SA217 (مالک کا حکم): ہر مسئلے کے بائیں کونے کی ربن + اوپر گنتی اور سب کاپی / سب منظور */
+/* HD2811SA218 (مالک کا حکم): ہر مسئلے کے بائیں کونے کی ربن + اوپر گنتی اور سب کاپی / سب منظور */
 function rbn(i, ctx) {
   const E = LANG === 'en', B = (c, ic, ur, en, cl) => `<button class="rbt ${cl || ''}" data-act="${c}" data-id="${i.id}">${ic}<b>${E ? en : ur}</b></button>`;
   let h = '';
